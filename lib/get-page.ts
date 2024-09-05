@@ -1,11 +1,41 @@
 import { Data } from "@measured/puck";
-import fs from "fs";
+import { createAdminClient } from "./appwrite";
+import { Query } from "node-appwrite";
 
-// Replace with call to your database
-export const getPage = (path: string) => {
-  const allData: Record<string, Data> | null = fs.existsSync("database.json")
-    ? JSON.parse(fs.readFileSync("database.json", "utf-8"))
-    : null;
+const databaseId = "webapp";
+const collectionId = "page_content";
 
-  return allData ? allData[path] : null;
+export const getPage = async (path: string): Promise<Data | null> => {
+  try {
+    const { db } = await createAdminClient();
+    const response = await db.listDocuments(databaseId, collectionId, [
+      Query.equal('path', path),
+    ]);
+
+    console.log("Response:", response);
+
+    if (response.total > 0) {
+      const document = response.documents[0];
+
+      // Parse each string in the content array back into an object
+      const content = document.content.map((item: string) => JSON.parse(item));
+
+      const zones = JSON.parse(document.zones) ?? {};
+
+      return {
+        content,
+        zones,
+        root: {
+          props: {
+            title: document.title,
+          },
+        },
+      };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching page content:', error);
+    return null;
+  }
 };

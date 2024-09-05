@@ -9,11 +9,12 @@
  * a static file. Subsequent visits will receive the cache. Publishing a page
  * will invalidate the cache as the page is written in /api/puck/route.ts
  */
-
+import "@measured/puck/puck.css";
+import "@/app/globals.css";
 import { Client } from "./client";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { getPage } from "../../lib/get-page";
+import { getPage } from "../../../lib/get-page";
 
 export async function generateMetadata({
   params: { puckPath = [] },
@@ -22,8 +23,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const path = `/${puckPath.join("/")}`;
 
+  const { root } = await getPage(path) ?? {};
+
   return {
-    title: getPage(path)?.root.props.title,
+    title: root?.props.title,
   };
 }
 
@@ -33,7 +36,7 @@ export default async function Page({
   params: { puckPath: string[] };
 }) {
   const path = `/${puckPath.join("/")}`;
-  const data = getPage(path);
+  const data = await getPage(path);
 
   if (!data) {
     return notFound();
