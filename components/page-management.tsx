@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Plus, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
-import { getPages } from '@/lib/admin/db';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { deletePage } from '@/lib/admin/db';
+import { Models } from 'node-appwrite';
 
 interface Page {
   title: string;
@@ -22,7 +22,7 @@ interface Page {
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
-export function PageManagement() {
+export function PageManagement({ getPages }: { getPages: () => Promise<Models.DocumentList<Models.Document>> }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [pages, setPages] = useState<Page[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,6 +43,7 @@ export function PageManagement() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Running into strange errors when getPages is called from client components. Passed in function instead.
         const pages = await getPages();
         console.log("Pages: ", pages);
         const formattedRows = pages.documents.map((page) => ({
@@ -58,7 +59,7 @@ export function PageManagement() {
     };
 
     fetchData();
-  }, []);
+  }, [getPages]);
 
   const handleCreatePage = () => {
     router.push(BASE_URL + "/new/edit");

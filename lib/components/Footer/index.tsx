@@ -82,11 +82,11 @@ const Footer = ({ children }: { children: ReactNode }) => {
       >
         Made by{" "}
         <Link
-          href="https://measured.co"
+          href="https://github.com/MHeien"
           target="_blank"
           style={{ color: "inherit", textDecoration: "none", fontWeight: 600 }}
         >
-          Measured
+          Markus Heien
         </Link>
       </div>
     </footer>

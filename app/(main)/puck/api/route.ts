@@ -17,7 +17,8 @@ export async function POST(request: Request) {
 
   const { db } = await createAdminClient();
 
-  const correctPath = path === '/new' ? data.root.props.title : path;
+  // If the path is '/new', use the title as the path. If the path is empty or undefined, set it to '/'
+  const correctPath = path === '/new' ? data.root.props.title : (path || '/');
 
   try {
     // Convert each object in the content array to a string
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
     let documentId = null;
     try {
       const existingDoc = await db.listDocuments(databaseId, collectionId, [
-        Query.equal('path', path),
+        Query.equal('path', correctPath),
       ]);
       if (existingDoc.total > 0) {
         documentId = existingDoc.documents[0].$id;
@@ -36,16 +37,16 @@ export async function POST(request: Request) {
       console.error('Error retrieving document:', error);
     }
 
-    let insertedPath = path;
+    let insertedPath = correctPath;
     if (documentId) {
       // Update existing document
       const response = await db.updateDocument(databaseId, collectionId, documentId, {
         content: stringifiedContent,  // Use the array of stringified objects
         title: data.root.props.title,
         zones: JSON.stringify(data.zones),
-        path: sanitizePath(correctPath),
+        path: path,
       });
-      insertedPath = sanitizePath(response.path);
+      insertedPath = response.path;
     } else {
       // Create a new document
       const response = await db.createDocument(databaseId, collectionId, ID.unique(), {
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
     }
 
     // Purge Next.js cache
-    revalidatePath(path);
+    revalidatePath(correctPath);
     
     return NextResponse.json({ status: "ok", path: insertedPath });
   } catch (error) {
