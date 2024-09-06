@@ -9,6 +9,7 @@ import { Logos, LogosProps } from "../blocks/Logos";
 import { Stats, StatsProps } from "../blocks/Stats";
 import { Text, TextProps } from "../blocks/Text";
 import { VerticalSpace, VerticalSpaceProps } from "../blocks/VerticalSpace";
+import { PuckRichText, PuckRichTextProps } from "@tohuhono/puck-rich-text"
 
 import Root, { RootProps } from "./root";
 
@@ -25,6 +26,7 @@ export type Props = {
   Stats: StatsProps;
   Text: TextProps;
   VerticalSpace: VerticalSpaceProps;
+  PuckRichText: PuckRichTextProps;
 };
 
 export type UserConfig = Config<
@@ -66,5 +68,6 @@ export const conf: UserConfig = {
     Stats,
     Text,
     VerticalSpace,
+    PuckRichText,
   },
 };

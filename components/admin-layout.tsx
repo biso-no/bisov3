@@ -16,10 +16,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const toggleSidebar = () => setIsSidebarExpanded(!isSidebarExpanded)
 
   const navItems = [
-    { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { href: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/admin/pages', icon: FileText, label: 'Pages' },
     { href: '/admin/posts', icon: FileText, label: 'Posts' },
-    { href: '/admin/templates', icon: FileText, label: 'Templates' },
     { href: '/admin/users', icon: Users, label: 'Users' },
     { href: '/admin/settings', icon: Settings, label: 'Settings' },
   ]
@@ -33,7 +32,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <div className="p-4 text-xl font-semibold">CMS Admin</div>
           <ul className="mt-6">
             {navItems.map((item) => {
-              const isActive = pathname.startsWith(item.href)
+              const isActive = item.href === '/admin'
+                ? pathname === '/admin' || pathname === '/admin/'
+                : pathname.startsWith(item.href)
               return (
                 <li key={item.href}>
                   <Link 

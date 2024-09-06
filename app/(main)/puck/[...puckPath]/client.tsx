@@ -12,6 +12,8 @@ export function Client({ path, data }: { path: string; data: Data }) {
   const router = useRouter();
 
 
+
+  
   return (
     <Puck
       config={conf}
@@ -34,7 +36,6 @@ export function Client({ path, data }: { path: string; data: Data }) {
         } else {
             alert(json.message);
             setNewPath(path);
-
         }
       }}
     />

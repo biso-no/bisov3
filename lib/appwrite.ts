@@ -1,5 +1,5 @@
 "use server";
-import { Client, Account, Databases } from "node-appwrite";
+import { Client, Account, Databases, Teams } from "node-appwrite";
 import { cookies } from "next/headers";
 
 const APPWRITE_API_KEY = process.env.APPWRITE_API_KEY;
@@ -11,7 +11,7 @@ export async function createSessionClient() {
     .setEndpoint(APPWRITE_ENDPOINT)
     .setProject(APPWRITE_PROJECT)
 
-  const session = cookies().get("my-custom-session");
+  const session = cookies().get("x-biso-session");
   if (!session || !session.value) {
     throw new Error("No session");
   }
@@ -24,6 +24,9 @@ export async function createSessionClient() {
     },
     get db() {
       return new Databases(client);
+    },
+    get teams() {
+      return new Teams(client);
     },
   };
 }
@@ -40,6 +43,9 @@ export async function createAdminClient() {
     },
     get db() {
       return new Databases(client);
+    },
+    get teams() {
+      return new Teams(client);
     },
   };
 }
