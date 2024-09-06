@@ -9,7 +9,15 @@ const collectionId = 'page_content';
 
 //Sanitize path. Remove spaces and replace them with dashes. Remove special characters that cannot be used in URLs.
 function sanitizePath(path: string) {
-  return path.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-_]/g, '').toLocaleLowerCase();
+  return path
+    .split('/')
+    .map(segment => 
+      segment
+        .replace(/\s+/g, '-')
+        .replace(/[^a-zA-Z0-9-_]/g, '')
+        .toLowerCase()
+    )
+    .join('/');
 }
 
 export async function POST(request: Request) {
