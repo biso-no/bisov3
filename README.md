@@ -1,42 +1,82 @@
-# `next` recipe
+# Bunpack
 
-The `next` recipe showcases one of the most powerful ways to implement Puck using to provide an authoring tool for any route in your Next app.
+Bunpack is a Next.js application with TypeScript and Tailwind CSS.
 
-## Demonstrates
+## Table of Contents
 
-- Next.js 13 App Router implementation
-- JSON database implementation with HTTP API
-- Catch-all routes to use puck for any route on the platform
-- Incremental static regeneration (ISR) for all Puck pages
+1. [Project Structure](#project-structure)
+2. [Installation](#installation)
+3. [Usage](#usage)
+4. [Configuration](#configuration)
+5. [API Routes](#api-routes)
+6. [Components](#components)
+7. [Styling](#styling)
+8. [Deployment](#deployment)
+9. [Contributing](#contributing)
+10. [License](#license)
+
+## Project Structure
+
+```
+bunpack/
+├── .next/
+├── app/
+├── components/
+├── lib/
+├── public/
+├── .env
+├── .env.example
+├── .eslintrc.js
+├── .gitignore
+├── bun.lockb
+├── components.json
+├── database.json
+├── middleware.ts
+├── next-env.d.ts
+├── next.config.js
+├── package.json
+├── postcss.config.js
+├── tailwind.config.js
+├── tsconfig.json
+└── README.md
+```
+
+## Installation
+
+See [Installation Guide](docs/installation.md) for detailed instructions.
 
 ## Usage
 
-Run the generator and enter `next` when prompted
+See [Usage Guide](docs/usage.md) for information on how to use Bunpack.
 
-```
-npx create-puck-app my-app
-```
+## Configuration
 
-Start the server
+- `next.config.js`: Next.js configuration
+- `tsconfig.json`: TypeScript configuration
+- `tailwind.config.js`: Tailwind CSS configuration
+- `postcss.config.js`: PostCSS configuration
+- `.eslintrc.js`: ESLint configuration
 
-```
-yarn dev
-```
+## API Routes
 
-Navigate to the homepage at https://localhost:3000. To edit the homepage, access the Puck editor at https://localhost:3000/edit.
+API routes can be accessed on `/api/*`. This directory is mapped to `/app/api/*`.
 
-You can do this for any route on the application, **even if the page doesn't exist**. For example, visit https://localhost:3000/hello/world and you'll receive a 404. You can author and publish a page by visiting https://localhost:3000/hello/world/edit. After publishing, go back to the original URL to see your page.
+## Components
 
-## Using this recipe
+Reusable components are stored in the `components/` directory.
 
-To adopt this recipe you will need to:
+## Styling
 
-- **IMPORTANT** Add authentication to `/edit` routes. This can be done by modifying the example API routes in `/app/puck/api/route.ts` and server component in `/app/puck/[...puckPath]/page.tsx`. **If you don't do this, Puck will be completely public.**
-- Integrate your database into the API calls in `/app/puck/api/route.ts`
-- Implement a custom puck configuration in `puck.config.tsx`
+This project uses Tailwind CSS for styling. The configuration can be found in `tailwind.config.js`.
 
-By default, this recipe will generate static pages by setting `dynamic` to [`force-static`](https://nextjs.org/docs/app/api-reference/file-conventions/route-segment-config#dynamic) in the `/app/[...puckPath]/page.tsx`. This will strip headers and cookies. If you need dynamic pages, you can delete this.
+## Deployment
+
+Follow the [Next.js deployment documentation](https://nextjs.org/docs/deployment) for detailed instructions on how to deploy your app.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT © [Measured Co.](https://github.com/measuredco)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

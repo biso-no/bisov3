@@ -12,11 +12,9 @@ export async function createSessionClient() {
     .setProject(APPWRITE_PROJECT)
 
   const session = cookies().get("x-biso-session");
-  if (!session || !session.value) {
-    throw new Error("No session");
-  }
 
-  client.setSession(session.value);
+
+  client.setSession(session?.value);
 
   return {
     get account() {

@@ -5,6 +5,7 @@ import { Puck } from "@measured/puck";
 import { conf } from "../../../../lib/config";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { deletePage, savePage } from "@/lib/actions/save-page";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 export function Client({ path, data }: { path: string; data: Data }) {
   const [newPath, setNewPath] = useState(path);
@@ -19,23 +20,22 @@ export function Client({ path, data }: { path: string; data: Data }) {
       config={conf}
       data={data}
       onPublish={async (data: Data) => {
-        const response = await fetch("/puck/api", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ data, path }), // Ensure newPath is used
-        });
-
-        // Parse JSON from response
-        const json = await response.json();
-        console.log(json);
-        if (json.status === "ok") {
-          const url = `${BASE_URL}/${json.path}/edit`;
-            router.push(url);
+        const response = await savePage({ data, path });
+        if (response.status === "ok") {
+          const url = `${BASE_URL}/${response.path}/edit`;
+          router.push(url);
         } else {
-            alert(json.message);
-            setNewPath(path);
+          alert(response.message);
+          setNewPath(path);
+        }
+      }}
+      onDelete={async (data: Data) => {
+        const response = await deletePage(data.root.props.title, path);
+        if (response.status === "ok") {
+          router.push(BASE_URL);
+        } else {
+          alert(response.message);
+          setNewPath(path);
         }
       }}
     />

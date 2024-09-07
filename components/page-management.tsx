@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { deletePage } from '@/lib/admin/db';
+import { deletePage } from '@/lib/actions/save-page';
 import { Models } from 'node-appwrite';
 
 interface Page {
@@ -70,7 +70,7 @@ export function PageManagement({ getPages }: { getPages: () => Promise<Models.Do
   };
 
   const handleDeletePage = async (pageId: string) => {
-    await deletePage(pageId);
+    await deletePage(pageId, '/admin/pages');
     setCurrentPage(1);
   };
 

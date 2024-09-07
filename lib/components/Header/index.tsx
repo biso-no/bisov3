@@ -1,7 +1,9 @@
+"use client"
 import { getClassNameFactory } from "../../get-className-factory";
 import { usePathname } from "next/navigation";
-
+import { getNavItems } from "@/lib/actions/main/actions";
 import styles from "./styles.module.css";
+import { useEffect, useState } from "react";
 
 const getClassName = getClassNameFactory("Header", styles);
 
@@ -28,15 +30,25 @@ const NavItem = ({ label, href }: { label: string; href: string }) => {
   );
 };
 
-const Header = ({ editMode }: { editMode: boolean }) => (
+export const Header = ({ editMode }: { editMode: boolean }) => {
+  const [navItems, setNavItems] = useState<any[]>([]);
+  
+  useEffect(() => {
+    const fetchNavItems = async () => {
+      const items = await getNavItems();
+      setNavItems(items);
+    };
+
+    fetchNavItems();
+  }, []);
+  return (
   <header className={getClassName()}>
     <div className={getClassName("logo")}>LOGO</div>
     <nav className={getClassName("items")}>
-      <NavItem label="Home" href={`${editMode ? "" : "/"}`} />
-      <NavItem label="Pricing" href={editMode ? "" : "/pricing"} />
-      <NavItem label="About" href={editMode ? "" : "/about"} />
+      {navItems.map(item => (
+        <NavItem label={item.title} href={editMode ? "" : item.path} />
+      ))}
     </nav>
   </header>
-);
-
-export { Header };
+  );
+}

@@ -8,8 +8,15 @@ export async function middleware(req: NextRequest) {
 
   const session = cookies().get("x-biso-session");
 
-  const account = await getAccount();
-  console.log("Account: ", account);
+  let isUser: boolean;
+  let account: any; // Define account here to make it accessible
+
+  if (session) {
+    account = await getAccount();
+    if (account.$id) {
+      isUser = true; // Use assignment
+    }
+  }
 
   if (req.method === "GET") {
     // Rewrite routes that match "/[...puckPath]/edit" to "/puck/[...puckPath]"
@@ -26,10 +33,10 @@ export async function middleware(req: NextRequest) {
     // Disable "/puck/[...puckPath]"
     if (req.nextUrl.pathname.startsWith("/puck")) {
       return NextResponse.redirect(new URL("/", req.url));
-    } else if (req.nextUrl.pathname.startsWith("/admin") && !session) {
+    } else if (req.nextUrl.pathname.startsWith("/admin") && !account) {
       return NextResponse.redirect(new URL("/auth/login", req.url));
+    }
   }
 
   return res;
-}
 }

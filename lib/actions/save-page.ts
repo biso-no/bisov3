@@ -1,7 +1,8 @@
+'use server'
+
 import { Query, ID } from "node-appwrite";
 import { revalidatePath } from "next/cache";
-import { NextResponse } from "next/server";
-import { createAdminClient } from "../../../../lib/appwrite";
+import { createSessionClient } from "../appwrite";
 import { Data } from "@measured/puck";
 
 const databaseId = 'webapp';
@@ -20,10 +21,15 @@ function sanitizePath(path: string) {
     .join('/');
 }
 
-export async function POST(request: Request) {
-  const { data, path }: { data: Data, path: string } = await request.json();
+export async function savePage({
+  data,
+  path,
+}: {
+  data: Data;
+  path: string;
+}) {
 
-  const { db } = await createAdminClient();
+  const { db } = await createSessionClient();
 
   // If the path is '/new', use the title as the path. If the path is empty or undefined, set it to '/'
   const correctPath = path === '/new' ? data.root.props.title : (path || '/');
@@ -69,9 +75,34 @@ export async function POST(request: Request) {
     // Purge Next.js cache
     revalidatePath(correctPath);
     
-    return NextResponse.json({ status: "ok", path: insertedPath });
+    return {
+        status: "ok",
+        path: insertedPath,
+    }
   } catch (error) {
     console.error('Error saving content:', error);
-    return NextResponse.json({ status: "error", message: error.message });
+    return {
+      status: "error",
+      message: error.message,
+    }
+  }
+}
+
+export async function deletePage(pageId: string, path: string) {
+  const { db } = await createSessionClient();
+
+  const response = await db.deleteDocument("webapp", "page_content", pageId);
+
+  if (response) {
+    revalidatePath(path);
+    return {
+      status: "ok",
+    }
+  } else {
+    revalidatePath(path);
+    return {
+      status: "error",
+      message: "Failed to delete page",
+    }
   }
 }
