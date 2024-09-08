@@ -6,8 +6,7 @@ import { getAccount } from "./lib/admin/account";
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
-  const session = cookies().get("x-biso-session");
-
+  const session = req.cookies.get("x-biso-session");
   let isUser: boolean;
   let account: any; // Define account here to make it accessible
 

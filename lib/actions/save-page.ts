@@ -4,22 +4,13 @@ import { Query, ID } from "node-appwrite";
 import { revalidatePath } from "next/cache";
 import { createSessionClient } from "../appwrite";
 import { Data } from "@measured/puck";
+import { sanitizePath } from "../utils/sanitizePath";
 
 const databaseId = 'webapp';
 const collectionId = 'page_content';
 
 //Sanitize path. Remove spaces and replace them with dashes. Remove special characters that cannot be used in URLs.
-function sanitizePath(path: string) {
-  return path
-    .split('/')
-    .map(segment => 
-      segment
-        .replace(/\s+/g, '-')
-        .replace(/[^a-zA-Z0-9-_]/g, '')
-        .toLowerCase()
-    )
-    .join('/');
-}
+
 
 export async function savePage({
   data,
