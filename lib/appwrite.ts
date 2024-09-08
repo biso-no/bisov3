@@ -1,5 +1,5 @@
 "use server";
-import { Client, Account, Databases, Teams } from "node-appwrite";
+import { Client, Account, Databases, Teams, Storage } from "node-appwrite";
 import { cookies } from "next/headers";
 
 const APPWRITE_API_KEY = process.env.APPWRITE_API_KEY;
@@ -26,6 +26,9 @@ export async function createSessionClient() {
     get teams() {
       return new Teams(client);
     },
+    get storage() {
+      return new Storage(client);
+    },
   };
 }
 
@@ -44,6 +47,9 @@ export async function createAdminClient() {
     },
     get teams() {
       return new Teams(client);
+    },
+    get storage() {
+      return new Storage(client);
     },
   };
 }
