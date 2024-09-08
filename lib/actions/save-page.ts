@@ -57,7 +57,7 @@ export async function savePage({
       const response = await db.createDocument(databaseId, collectionId, ID.unique(), {
         title: data.root.props.title,
         zones: JSON.stringify(data.zones),
-        path: sanitizePath(correctPath),
+        path: '/' + sanitizePath(correctPath),
         content: stringifiedContent,  // Use the array of stringified objects
       });
       insertedPath = sanitizePath(response.path);
