@@ -29,15 +29,6 @@ export function Client({ path, data }: { path: string; data: Data }) {
           setNewPath(path);
         }
       }}
-      onDelete={async (data: Data) => {
-        const response = await deletePage(data.root.props.title, path);
-        if (response.status === "ok") {
-          router.push(BASE_URL);
-        } else {
-          alert(response.message);
-          setNewPath(path);
-        }
-      }}
     />
   );
 }

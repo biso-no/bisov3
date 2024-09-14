@@ -56,6 +56,13 @@ const FooterList = ({
 };
 
 const Footer = ({ children }: { children: ReactNode }) => {
+  // Updated madeByString with emojis 💻 (coding) and ❤️ (love)
+  const madeByString = (
+    <>
+      💻 with ❤️ by
+    </>
+  );
+
   return (
     <footer style={{ background: "var(--puck-color-grey-12)" }}>
       <h2 style={{ visibility: "hidden", height: 0, margin: 0 }}>Footer</h2>
@@ -80,7 +87,7 @@ const Footer = ({ children }: { children: ReactNode }) => {
           background: "var(--puck-color-grey-11)",
         }}
       >
-        Made by{" "}
+        {madeByString}{" "}
         <Link
           href="https://github.com/MHeien"
           target="_blank"

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { ComponentConfig } from "@measured/puck";
 import styles from "./styles.module.css";
 import { getClassNameFactory } from "../../get-className-factory";
-import { Button } from "@measured/puck";
+import { Button } from "@/components/ui/button";
 import { Section } from "../../components/Section";
 import { quotes } from "./quotes";
 

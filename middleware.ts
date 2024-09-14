@@ -18,11 +18,11 @@ export async function middleware(req: NextRequest) {
       account = await getAccount();
       if (account.$id) {
         // Fetch teams that the user belongs to
-        const teams = await getTeams([Query.equal('name', ['admin', 'PR'])]);
+        const teams = await getTeams([Query.equal('name', ['Admin', 'PR'])]);
 
         // Check if the user is part of the "Admin" or "PR" teams
         const userTeams = teams.teams.map(team => team.name);
-        canEditPages = userTeams.includes("admin") || userTeams.includes("PR");
+        canEditPages = userTeams.includes("Admin") || userTeams.includes("PR");
       }
     } catch (error) {
       console.log("Error fetching account or teams:", error);
