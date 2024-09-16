@@ -1,17 +1,16 @@
 /* eslint-disable @next/next/no-img-element */
 import React from "react";
-import { ComponentConfig } from "@measured/puck"
+import { ComponentConfig } from "@measured/puck";
 import styles from "./styles.module.css";
-import { getClassNameFactory } from "../../get-className-factory";
+import { getClassNameFactory } from "@/lib/get-className-factory";
 import { Button } from "@/components/ui/button";
 import { Section } from "../../components/Section";
-import { redirect } from "next/navigation";
 
 const getClassName = getClassNameFactory("ButtonGroup", styles);
 
 export type ButtonGroupProps = {
   align?: string;
-  buttons: { label: string; href: string; variant: "link" | "secondary" | "default" | "destructive" | "outline" | "ghost" }[];
+  buttons: { label: string; href: string; variant: "primary" | "secondary" }[];
 };
 
 export const ButtonGroup: ComponentConfig<ButtonGroupProps> = {
@@ -34,7 +33,7 @@ export const ButtonGroup: ComponentConfig<ButtonGroupProps> = {
       defaultItemProps: {
         label: "Button",
         href: "#",
-        variant: "default",
+        variant: "primary",
       },
     },
     align: {
@@ -46,7 +45,7 @@ export const ButtonGroup: ComponentConfig<ButtonGroupProps> = {
     },
   },
   defaultProps: {
-    buttons: [{ label: "Learn more", href: "#", variant: "default" }],
+    buttons: [{ label: "Learn more", href: "#", variant: "primary" }],
   },
   render: ({ align, buttons, puck }) => {
     return (
@@ -55,12 +54,12 @@ export const ButtonGroup: ComponentConfig<ButtonGroupProps> = {
           {buttons.map((button, i) => (
             <Button
               key={i}
-              onClick={redirect(button.href)}
+              href={button.href}
               variant={button.variant}
-              size="lg"
+              size="large"
               tabIndex={puck.isEditing ? -1 : undefined}
             >
-              {button.label}1
+              {button.label}
             </Button>
           ))}
         </div>
