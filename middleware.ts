@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { getAccount } from "./lib/admin/account";
 import { getTeams } from "./lib/server";
 import { Query } from "node-appwrite";
+import { getUserRoles } from "./app/actions/admin";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -12,20 +13,22 @@ export async function middleware(req: NextRequest) {
   const session = req.cookies.get("x-biso-session");
   let account: any;
   let canEditPages = false;
+  let canAccessAdminDashboard = false;
 
   if (session) {
     try {
       account = await getAccount();
       if (account.$id) {
         // Fetch teams that the user belongs to
-        const teams = await getTeams([Query.equal('name', ['Admin', 'PR'])]);
+        const roles = await getUserRoles();
 
         // Check if the user is part of the "Admin" or "PR" teams
-        const userTeams = teams.teams.map(team => team.name);
-        canEditPages = userTeams.includes("Admin") || userTeams.includes("PR");
+        canEditPages = roles.includes("Admin") || roles.includes("PR");
+        canAccessAdminDashboard = roles.includes("Admin") || roles.includes("PR") || roles.includes("kk") || roles.includes("hr") || roles.includes("finance");
       }
     } catch (error) {
       console.log("Error fetching account or teams:", error);
+      return NextResponse.redirect(new URL("/auth/login", req.url));
     }
   }
 
@@ -50,7 +53,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // Redirect to login if accessing "/admin" without being logged in
-  if (isAdminRoute && !account) {
+  if (isAdminRoute && !canAccessAdminDashboard) {
     return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
