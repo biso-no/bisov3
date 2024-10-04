@@ -84,9 +84,7 @@ export async function getElections(): Promise<Election[]> {
 export async function startSession(sessionId: string): Promise<ElectionSession> {
     const { db: databases } = await createSessionClient();
     const response = await databases.updateDocument(databaseId, 'election_sessions', sessionId, { startTime: new Date().toISOString(), status: 'ongoing' })
-    if (response.election.status === 'upcoming') {
       await databases.updateDocument(databaseId, 'elections', response.electionId, { status: 'ongoing' })
-    }
     revalidatePath('/admin/elections')
     return response as ElectionSession
 }

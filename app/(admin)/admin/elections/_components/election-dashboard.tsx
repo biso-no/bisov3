@@ -37,7 +37,10 @@ import {
 } from '../actions'
 import { useVotesSubscription } from '@/lib/admin/use-subscription'
 import VoterTable from './voter-table'
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import ElectionResultsPDF from './pdf-results';
 import { campusMap } from '@/lib/utils'
+import PDFDownloadButton from './pdf-download'
 
 export default function ElectionDashboard({ initialElection }: { initialElection: Election }) {
   const [election, setElection] = useState(initialElection)
@@ -46,7 +49,7 @@ export default function ElectionDashboard({ initialElection }: { initialElection
   const [voterParticipation, setVoterParticipation] = useState<VoterParticipation | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-
+  const [isPdfLoading, setIsPdfLoading] = useState(false);
   const newVoteData = useVotesSubscription(election.$id)
 
   const updateResultsWithNewVote = useCallback((newVote: any) => {
@@ -317,7 +320,10 @@ export default function ElectionDashboard({ initialElection }: { initialElection
           </Accordion>
         </TabsContent>
         <TabsContent value="results">
-          <h2 className="text-2xl font-bold mb-4">Election Results</h2>
+        <h2 className="text-2xl font-bold mb-4">Election Results</h2>
+        <div className="mb-4">
+          <PDFDownloadButton election={election} detailedResults={detailedResults} />
+        </div>
           {isLoading ? (
             <div className="text-center">
               <p>Loading results...</p>

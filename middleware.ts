@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { getAccount } from "./lib/admin/account";
+import { getLoggedInUser } from "./lib/actions/user";
 import { getTeams } from "./lib/server";
 import { Query } from "node-appwrite";
 import { getUserRoles } from "./app/actions/admin";
@@ -17,7 +17,7 @@ export async function middleware(req: NextRequest) {
 
   if (session) {
     try {
-      account = await getAccount();
+      account = await getLoggedInUser();
       if (account.$id) {
         // Fetch teams that the user belongs to
         const roles = await getUserRoles();

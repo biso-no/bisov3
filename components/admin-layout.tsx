@@ -11,6 +11,7 @@ import { LayoutDashboard, FileText, Settings, Users, ChevronLeft, ChevronRight, 
 interface AdminLayoutProps {
   children: ReactNode
   roles: string[]  // Pass roles from parent component
+  firstName: string
 }
 
 interface NavItem {
@@ -21,7 +22,7 @@ interface NavItem {
   subItems?: { href: string; label: string; roles?: string[] }[]
 }
 
-export function AdminLayout({ children, roles }: AdminLayoutProps) {
+export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true)
   const pathname = usePathname()
 
@@ -70,7 +71,7 @@ export function AdminLayout({ children, roles }: AdminLayoutProps) {
         isSidebarExpanded ? 'w-64' : 'w-20'
       } flex-shrink-0 flex flex-col justify-between transition-all duration-300 ease-in-out`}>
         <div>
-          <div className="p-4 text-xl font-semibold text-white">CMS Admin</div>
+          <div className="p-4 text-xl font-semibold text-white">BISO Admin</div>
           <ul className="mt-6">
             {navItems.map((item) => {
               if (!hasAccess(item.roles)) return null // Hide items if the user doesn't have access
@@ -123,7 +124,7 @@ export function AdminLayout({ children, roles }: AdminLayoutProps) {
       <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
         <header className="flex items-center justify-between px-6 py-4 bg-white border-b">
           <div className="flex items-center">
-            <span className="text-2xl font-semibold text-gray-800">Welcome, {roles.join(', ')}</span>
+            <span className="text-2xl font-semibold text-gray-800">Welcome, {firstName}</span>
           </div>
           <div className="flex items-center">
             <Button variant="outline" className="mr-2">

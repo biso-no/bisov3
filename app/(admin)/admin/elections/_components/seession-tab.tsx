@@ -9,6 +9,7 @@ import { PlusIcon, Pencil, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import { Models } from 'node-appwrite'
 import React from 'react'
 import { EditSessionDialog } from './dialogs'
+import type { ElectionSession, Voter } from '../actions'
 
 export function SessionsTab({
     sessions,
@@ -20,10 +21,10 @@ export function SessionsTab({
     expandedSession,
     toggleSessionExpand
   }: {
-    sessions: Models.Document[]
-    voters: Models.Document[]
-    newSession: Partial<Models.Document>
-    setNewSession: (session: Partial<Models.Document>) => void
+    sessions: ElectionSession[]
+    voters: Voter[]
+    newSession: Partial<ElectionSession>
+    setNewSession: (session: Partial<ElectionSession>) => void
     handleCreateSession: () => Promise<void>
     handleDeleteSession: (id: string) => Promise<void>
     expandedSession: string | null
