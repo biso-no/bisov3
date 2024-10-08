@@ -340,7 +340,7 @@ export async function getVotingSessions({
             'election_sessions',
             query
         );
-        console.log("Sessions: ", sessions.documents)
+
         revalidatePath(path);
         return sessions.documents;
     } catch (error) {

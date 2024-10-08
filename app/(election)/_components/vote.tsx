@@ -37,7 +37,7 @@ export default function VoterComponent({ initialElection, initialVotes }: { init
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [election.$id, election.sessions])
 
   const handleVote = (itemId: string, optionId: string) => {
     setVotes(prevVotes => ({

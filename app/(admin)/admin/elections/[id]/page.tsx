@@ -1,5 +1,16 @@
 import ElectionDashboard from '../_components/election-dashboard'
 import { getElections, getElectionSessions, getVotingItems, getVotingOptions, getVoters } from '@/app/(admin)/admin/elections/actions'
+import {
+  addElectionSession,
+  addVotingItem,
+  addVotingOption,
+  removeVotingOption,
+  addOrRemoveAbstain,
+  fetchDetailedResults,
+  fetchVoterParticipation,
+  startSession,
+  stopSession,
+} from '../actions'
 
 export default async function ElectionPage() {
   const elections = await getElections()
@@ -21,5 +32,16 @@ export default async function ElectionPage() {
     return { ...session, votingItems: votingItemsWithOptions }
   }))
 
-  return <ElectionDashboard initialElection={{ ...initialElection, sessions: sessionsWithItems, voters }} />
+  return <ElectionDashboard 
+            initialElection={{ ...initialElection, sessions: sessionsWithItems, voters }} 
+            addElectionSession={addElectionSession}
+            addVotingItem={addVotingItem}
+            addVotingOption={addVotingOption}
+            removeVotingOption={removeVotingOption}
+            addOrRemoveAbstain={addOrRemoveAbstain}
+            fetchDetailedResults={fetchDetailedResults}
+            fetchVoterParticipation={fetchVoterParticipation}
+            startSession={startSession}
+            stopSession={stopSession}
+          />
 }

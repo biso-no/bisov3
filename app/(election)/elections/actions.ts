@@ -41,7 +41,6 @@ export async function castVote(electionId: string, optionId: string, votingSessi
     const { db, account } = await createSessionClient();
     try {
         const user = await account.get();
-        console.log("User: ", user);
         const voter = await db.listDocuments(
             'app',
             'election_users',
@@ -50,7 +49,6 @@ export async function castVote(electionId: string, optionId: string, votingSessi
                 Query.equal('userId', user.$id)
             ]
         );
-        console.log("Voter: ", voter);
         if (!voter) {
             return new Error('Voter not found');
         }

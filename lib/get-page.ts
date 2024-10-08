@@ -12,7 +12,6 @@ export const getPage = async (path: string): Promise<Data | null> => {
       Query.equal('path', path),
     ]);
 
-    console.log("Response:", response);
 
     if (response.total > 0) {
       const document = response.documents[0];

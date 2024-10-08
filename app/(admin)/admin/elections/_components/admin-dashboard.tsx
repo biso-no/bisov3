@@ -1,22 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { PlusCircle, Edit, Trash2, Users, BarChart2 } from 'lucide-react'
-import { Models } from 'node-appwrite'
-import { createElection } from '@/app/actions/elections'
-import { ElectionSession, fetchDetailedResults, getElectionResults, Election } from '@/app/(admin)/admin/elections/actions'
+import { PlusCircle, Edit, Trash2 } from 'lucide-react'
+import type { Models } from 'node-appwrite'
+
+import { ElectionSession, Election } from '@/app/(admin)/admin/elections/actions'
 import {
     Select,
     SelectContent,
     SelectGroup,
     SelectItem,
-    SelectLabel,
     SelectTrigger,
     SelectValue,
   } from "@/components/ui/select"
@@ -28,12 +27,16 @@ export default function AdminDashboard({
     elections,
     selectedElection,
     votingResults,
+    getElectionResults,
+    createElection
 }: {
     isAdmin: boolean,
     elections: Election[],
     votingSessions: ElectionSession[],
     selectedElection: Election | null,
     votingResults: Models.Document[],
+    getElectionResults: (electionId: string) => Promise<Models.Document[]>
+    createElection: (election: Omit<Election, '$id'>) => Promise<Models.Document>
 }) {
 
     const [campusValue, setCampusValue] = useState<string>('');
@@ -62,7 +65,6 @@ export default function AdminDashboard({
     const date = formData.get('date') as string
     //Get the value of campus select
     const campus = formData.get('campus') as string
-    console.log('Selected campus:', campus);
     const election = await createElection({
       name,
       description,

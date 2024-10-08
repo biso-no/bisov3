@@ -12,7 +12,7 @@ export async function getLoggedInUser() {
         const user = await account.get();
         if (user.$id) {
             const profile = await db.getDocument('app', 'user', user.$id);
-            console.log(profile);
+
             return {user, profile};
         }
     } catch (error) {

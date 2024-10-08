@@ -10,39 +10,43 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { BarChart, Calendar, Clock, Users, FileText, Check, X, Play, LoaderIcon } from 'lucide-react'
+import { Clock, X, Play, LoaderIcon } from 'lucide-react'
 import {
   Election,
   ElectionSession,
   VotingItem,
   VotingOption,
-  addElection,
+  DetailedVoteResult,
+  VoterParticipation,
+} from '../actions'
+import { useVotesSubscription } from '@/lib/admin/use-subscription'
+import VoterTable from './voter-table'
+import { campusMap } from '@/lib/utils'
+import PDFDownloadButton from './pdf-download'
+
+export default function ElectionDashboard({ 
+  initialElection,
   addElectionSession,
   addVotingItem,
   addVotingOption,
-  updateElection,
-  updateElectionSession,
-  updateVotingItem,
-  updateVotingOption,
-  removeVotingItem,
   removeVotingOption,
   addOrRemoveAbstain,
   fetchDetailedResults,
   fetchVoterParticipation,
-  DetailedVoteResult,
-  VoterParticipation,
   startSession,
-  stopSession,
-  getVoters
-} from '../actions'
-import { useVotesSubscription } from '@/lib/admin/use-subscription'
-import VoterTable from './voter-table'
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import ElectionResultsPDF from './pdf-results';
-import { campusMap } from '@/lib/utils'
-import PDFDownloadButton from './pdf-download'
-
-export default function ElectionDashboard({ initialElection }: { initialElection: Election }) {
+  stopSession
+ }: { 
+  initialElection: Election,
+  addElectionSession: (session: Omit<ElectionSession, '$id'>) => Promise<ElectionSession>,
+  addVotingItem: (item: Omit<VotingItem, '$id'>) => Promise<VotingItem>,
+  addVotingOption: (option: Omit<VotingOption, '$id'>) => Promise<VotingOption>,
+  removeVotingOption: (optionId: string) => Promise<void>,
+  addOrRemoveAbstain: (itemId: string, allowAbstain: boolean) => Promise<void>,
+  fetchDetailedResults: (electionId: string) => Promise<DetailedVoteResult[]>,
+  fetchVoterParticipation: (electionId: string) => Promise<VoterParticipation>,
+  startSession: (sessionId: string) => Promise<ElectionSession>,
+  stopSession: (sessionId: string) => Promise<ElectionSession>
+ }) {
   const [election, setElection] = useState(initialElection)
   const [activeTab, setActiveTab] = useState("overview")
   const [detailedResults, setDetailedResults] = useState<DetailedVoteResult[]>([])
@@ -274,6 +278,8 @@ export default function ElectionDashboard({ initialElection }: { initialElection
                     <StartStopSessionButton 
                   session={session} 
                   onStatusChange={handleSessionStatusChange}
+                  startSession={startSession}
+                  stopSession={stopSession}
                 />
                     </div>
                   </Card>
@@ -576,10 +582,14 @@ function AddVotingOptionDialog({ onAddVotingOption }: { onAddVotingOption: (opti
 
 function StartStopSessionButton({ 
   session, 
-  onStatusChange 
+  onStatusChange,
+  startSession,
+  stopSession
 }: { 
   session: ElectionSession, 
-  onStatusChange: (sessionId: string, newStatus: 'upcoming' | 'ongoing' | 'past') => void 
+  onStatusChange: (sessionId: string, newStatus: 'upcoming' | 'ongoing' | 'past') => void,
+  startSession: (sessionId: string) => Promise<ElectionSession>,
+  stopSession: (sessionId: string) => Promise<ElectionSession>
 }) {
   const [isLoading, setIsLoading] = useState(false)
   const [status, setStatus] = useState(session.status)
