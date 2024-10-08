@@ -1,0 +1,90 @@
+"use client";
+import { createContext, useContext, useEffect, useState } from "react";
+import { getLoggedInUser, listIdentities } from "../actions/user";
+import { Models } from "node-appwrite";
+import { createJWT } from "../actions/user";
+import { clientSideClient } from "../appwrite-client";
+
+interface AuthContextType {
+  user: Models.User<Models.Preferences> | undefined;
+  profile: Models.Document | undefined;
+  identities: Models.Identity[] | undefined;
+  setUser: (user: Models.User<Models.Preferences> | undefined) => void;
+  setProfile: (profile: Models.Document | undefined) => void;
+  setIdentities: (identities: Models.Identity[] | undefined) => void;
+  isLoading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType>({
+  user: undefined,
+  profile: undefined,
+  identities: undefined,
+  setUser: () => {},
+  setProfile: () => {},
+  setIdentities: () => {},
+  isLoading: true,
+});
+
+export function AuthProvider({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  const [user, setUser] = useState<Models.User<Models.Preferences> | undefined>();
+  const [profile, setProfile] = useState<Models.Document | undefined>();
+  const [identities, setIdentities] = useState<Models.Identity[] | undefined>();
+  const [jwt, setJWT] = useState<string | undefined>();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function getUser() {
+      setIsLoading(true);
+      if (!user) {
+        const user = await getLoggedInUser();
+      setUser(user?.user);
+      setProfile(user?.profile);
+      setIsLoading(false);
+    }
+}
+    getUser();
+  }, [user]);
+
+  useEffect(() => {
+    async function getJWT() {
+      if (!jwt) {
+        const jwt = await createJWT();
+        setJWT(jwt as string);
+        clientSideClient.setJWT(jwt as string);
+      }
+    }
+    getJWT();
+  }, [jwt]);
+
+  useEffect(() => {
+    async function getIdentities() {
+      if (!identities) {
+        const identities = await listIdentities();
+      setIdentities(identities?.identities);
+    }
+}
+   getIdentities();
+}, [identities]);
+  
+
+  return (<AuthContext.Provider value={{
+    user,
+    profile,
+    identities,
+    setUser,
+    setProfile,
+    setIdentities,
+    isLoading
+  }}>
+    {children}
+  </AuthContext.Provider>);
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
+

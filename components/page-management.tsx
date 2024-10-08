@@ -45,7 +45,6 @@ export function PageManagement({ getPages }: { getPages: () => Promise<Models.Do
       try {
         // Running into strange errors when getPages is called from client components. Passed in function instead.
         const pages = await getPages();
-        console.log("Pages: ", pages);
         const formattedRows = pages.documents.map((page) => ({
           $id: page.$id,
           title: page.title,
