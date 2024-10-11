@@ -2,7 +2,7 @@ version: "3.9"
 services:
   app:
     platform: "linux/amd64"
-    container_name: timetracker
+    container_name: biso-app
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s

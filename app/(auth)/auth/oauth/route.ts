@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/appwrite";
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { redirect } from "next/navigation";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -19,5 +20,5 @@ export async function GET(request: NextRequest) {
     secure: true,
   });
 
-  return NextResponse.redirect(`${BASE_URL}/admin`);
+  return redirect(`${BASE_URL}/admin`);
 }
