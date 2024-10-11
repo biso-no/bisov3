@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getLoggedInUser } from "./lib/actions/user";
-import { getUserRoles } from "./app/actions/admin";
+import { getLoggedInUser, getUserRoles } from "./app/actions/middleware";
 
-async function getUserPermissions() {
+
+async function getUserPermissions(sessionCookie?: string) {
   try {
-    const account = await getLoggedInUser();
+    // Pass the sessionCookie to getLoggedInUser and getUserRoles
+    const account = await getLoggedInUser(sessionCookie);
     if (!account?.user.$id) return null;
 
-    const roles = await getUserRoles();
+    const roles = await getUserRoles(sessionCookie);
     const permissions = {
       canEditPages: roles.includes("Admin") || roles.includes("PR"),
       canAccessAdminDashboard: ["Admin", "PR", "kk", "hr", "finance"].some(role => roles.includes(role)),
@@ -31,10 +32,11 @@ function handleRewrite(req: NextRequest, newPath: string) {
 }
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
+  // Extract session cookie from the request manually
+  const sessionCookie = req.cookies.get("x-biso-session")?.value;
 
   // Fetch user permissions and account info
-  const permissions = await getUserPermissions();
+  const permissions = await getUserPermissions(sessionCookie);
   if (!permissions?.account) {
     return handleUnauthorizedRedirect(req, "/auth/login");
   }
@@ -45,7 +47,7 @@ export async function middleware(req: NextRequest) {
   const isEditRoute = req.nextUrl.pathname.endsWith("/edit");
   const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
   const isPuckRoute = req.nextUrl.pathname.startsWith("/puck");
-
+  
   // Restrict access to "/edit" routes
   if (isEditRoute) {
     if (!canEditPages) {
@@ -66,5 +68,5 @@ export async function middleware(req: NextRequest) {
     return handleUnauthorizedRedirect(req, "/auth/login");
   }
 
-  return res;
+  return NextResponse.next();
 }

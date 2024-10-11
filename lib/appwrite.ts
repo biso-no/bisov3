@@ -1,20 +1,22 @@
 "use server";
-import { Client, Account, Databases, Teams, Storage } from "node-appwrite";
+import { Client, Account, Databases, Teams, Storage, Users } from "node-appwrite";
 import { cookies } from "next/headers";
 
 const APPWRITE_API_KEY = process.env.APPWRITE_API_KEY;
-const APPWRITE_PROJECT = process.env.NEXT_PUBLIC_APPWRITE_PROJECT || "biso"
+const APPWRITE_PROJECT = process.env.NEXT_PUBLIC_APPWRITE_PROJECT || "biso";
 const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://appwrite.biso.no/v1";
 
-export async function createSessionClient() {
+export async function createSessionClient(sessionCookie?: string) {
   const client = new Client()
     .setEndpoint(APPWRITE_ENDPOINT)
-    .setProject(APPWRITE_PROJECT)
+    .setProject(APPWRITE_PROJECT);
 
-  const session = cookies().get("x-biso-session");
+  // If sessionCookie is provided, use that; otherwise fallback to cookies().get
+  const session = sessionCookie ?? cookies().get("x-biso-session")?.value;
 
-
-  client.setSession(session?.value);
+  if (session) {
+    client.setSession(session); // Set the session from the provided or fallback cookie
+  }
 
   return {
     get account() {
@@ -50,6 +52,9 @@ export async function createAdminClient() {
     },
     get storage() {
       return new Storage(client);
+    },
+    get users() {
+      return new Users(client);
     },
   };
 }
