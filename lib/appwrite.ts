@@ -3,8 +3,8 @@ import { Client, Account, Databases, Teams, Storage } from "node-appwrite";
 import { cookies } from "next/headers";
 
 const APPWRITE_API_KEY = process.env.APPWRITE_API_KEY;
-const APPWRITE_PROJECT = "biso";
-const APPWRITE_ENDPOINT = "https://appwrite.biso.no/v1";
+const APPWRITE_PROJECT = process.env.NEXT_PUBLIC_APPWRITE_PROJECT || "biso"
+const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://appwrite.biso.no/v1";
 
 export async function createSessionClient() {
   const client = new Client()
