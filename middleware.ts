@@ -1,69 +1,64 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getLoggedInUser } from "./lib/actions/user";
-import { getUserRoles } from "./app/actions/admin";
-
-async function getUserPermissions() {
-  try {
-    const account = await getLoggedInUser();
-    if (!account?.user.$id) return null;
-
-    const roles = await getUserRoles();
-    const permissions = {
-      canEditPages: roles.includes("Admin") || roles.includes("PR"),
-      canAccessAdminDashboard: ["Admin", "PR", "kk", "hr", "finance"].some(role => roles.includes(role)),
-      account
-    };
-
-    return permissions;
-  } catch (error) {
-    console.error("Error fetching user or roles:", error);
-    return null;
-  }
-}
-
-function handleUnauthorizedRedirect(req: NextRequest, target: string) {
-  return NextResponse.redirect(new URL(target, req.url));
-}
-
-function handleRewrite(req: NextRequest, newPath: string) {
-  return NextResponse.rewrite(new URL(newPath, req.url));
-}
+import { createSessionClient } from "./lib/appwrite";
+import { Query } from "node-appwrite";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-
-  // Fetch user permissions and account info
-  const permissions = await getUserPermissions();
-  if (!permissions?.account) {
-    return handleUnauthorizedRedirect(req, "/auth/login");
+  
+  // List of available roles that grant access to the admin dashboard
+  const availableRoles = ['Admin', 'pr', 'finance', 'hr', 'users', 'kk'];
+  
+  // These routes are public for anyone. Required for the application to work properly
+  if (req.nextUrl.pathname.startsWith("/_next")) {
+    return res;
   }
 
-  const { canEditPages, canAccessAdminDashboard, account } = permissions;
-
-  // Route guards
   const isEditRoute = req.nextUrl.pathname.endsWith("/edit");
-  const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
   const isPuckRoute = req.nextUrl.pathname.startsWith("/puck");
+  const authPath = "/auth";
+  const adminPath = "/admin";
 
-  // Restrict access to "/edit" routes
+  const { account, teams } = await createSessionClient();
+
+  // Check if the user is authenticated
+  let user;
+  try {
+    user = await account.get();
+  } catch (error) {
+    // If the user is not authenticated and tries to access admin paths, redirect them to the login page
+    if (req.nextUrl.pathname.startsWith(adminPath)) {
+      return NextResponse.redirect(new URL("/auth/login", req.url));
+    }
+    return res;
+  }
+
+  // If the user is authenticated and attempts to access auth pages (e.g., login), redirect them to the homepage
+  if (user.$id && req.nextUrl.pathname.startsWith(authPath)) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
+  // Retrieve the user's teams and check if any of their team roles match the available roles
+  const userTeams = await teams.list([
+    Query.equal('name', availableRoles)
+  ]);
+
+  const userRoles = userTeams.teams.map((team) => team.name);
+
+  const canEditPages = userRoles.includes("Admin") || userRoles.includes("PR");
+
   if (isEditRoute) {
     if (!canEditPages) {
-      return handleUnauthorizedRedirect(req, "/");
+      return NextResponse.redirect(new URL("/", req.url));
     }
     const pathWithoutEdit = req.nextUrl.pathname.slice(0, -5);
     const pathWithEditPrefix = `/puck${pathWithoutEdit}`;
-    return handleRewrite(req, pathWithEditPrefix);
+    return NextResponse.rewrite(new URL(pathWithEditPrefix, req.url));
   }
-
-  // Restrict access to "/puck" routes
-  if (isPuckRoute && !canEditPages) {
-    return handleUnauthorizedRedirect(req, "/");
-  }
-
-  // Restrict access to "/admin" routes for unauthorized users
-  if (isAdminRoute && !canAccessAdminDashboard) {
-    return handleUnauthorizedRedirect(req, "/auth/login");
+  // If the user does not have a matching role and tries to access the admin path, redirect them
+  const hasAccess = userRoles.some((role) => availableRoles.includes(role));
+  if (!hasAccess && req.nextUrl.pathname.startsWith(adminPath)) {
+    return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
   return res;
