@@ -112,7 +112,7 @@ export default function ElectionDashboard({
       }
     }
     loadResults()
-  }, [election.$id])
+  }, [election.$id, fetchDetailedResults, fetchVoterParticipation])
 
   const handleAddSession = async (newSession: Omit<ElectionSession, '$id' | 'electionId'>) => {
     const session = await addElectionSession({ ...newSession, electionId: election.$id, election: election.$id, startTime: null, endTime: null })
