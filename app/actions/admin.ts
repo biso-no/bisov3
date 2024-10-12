@@ -4,7 +4,7 @@ import { Query } from "node-appwrite";
 
 export async function getUserRoles() {
 
-    const availableRoles = ['Admin', 'pr', 'finance', 'hr', 'users', 'kk'];
+    const availableRoles = ['Admin', 'pr', 'finance', 'hr', 'users', 'Control Committee'];
 
   const { teams } = await createSessionClient();
 
