@@ -3,21 +3,27 @@ import type { NextRequest } from "next/server";
 import { createSessionClient } from "./lib/appwrite";
 import { Query } from "node-appwrite";
 
+// Define available roles and their corresponding admin paths
+const roleAccessMap = {
+  'Admin': ['/admin', '/admin/pages', '/admin/posts', '/admin/shop', '/admin/elections', '/admin/users', '/admin/settings'],
+  'pr': ['/admin/pages', '/admin/posts'],
+  'finance': ['/admin/shop', '/admin/users'],
+  'hr': ['/admin/users'],
+  'users': [],
+  'Control Committee': ['/admin/elections'],
+};
+
+const publicPaths = ['/_next', '/auth'];
+const adminPath = '/admin';
+
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-  
-  // List of available roles that grant access to the admin dashboard
-  const availableRoles = ['Admin', 'pr', 'finance', 'hr', 'users', 'kk'];
-  
-  // These routes are public for anyone. Required for the application to work properly
-  if (req.nextUrl.pathname.startsWith("/_next")) {
+  const { pathname } = req.nextUrl;
+
+  // Check if the path is public
+  if (publicPaths.some(path => pathname.startsWith(path))) {
     return res;
   }
-
-  const isEditRoute = req.nextUrl.pathname.endsWith("/edit");
-  const isPuckRoute = req.nextUrl.pathname.startsWith("/puck");
-  const authPath = "/auth";
-  const adminPath = "/admin";
 
   const { account, teams } = await createSessionClient();
 
@@ -27,38 +33,53 @@ export async function middleware(req: NextRequest) {
     user = await account.get();
   } catch (error) {
     // If the user is not authenticated and tries to access admin paths, redirect them to the login page
-    if (req.nextUrl.pathname.startsWith(adminPath)) {
+    if (pathname.startsWith(adminPath)) {
       return NextResponse.redirect(new URL("/auth/login", req.url));
     }
     return res;
   }
 
-  // If the user is authenticated and attempts to access auth pages (e.g., login), redirect them to the homepage
-  if (user.$id && req.nextUrl.pathname.startsWith(authPath)) {
+  // If the user is authenticated and attempts to access auth pages, redirect them to the homepage
+  if (user.$id && pathname.startsWith('/auth')) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  // Retrieve the user's teams and check if any of their team roles match the available roles
+  // Retrieve the user's teams and roles
   const userTeams = await teams.list([
-    Query.equal('name', availableRoles)
+    Query.equal('name', Object.keys(roleAccessMap))
   ]);
-
   const userRoles = userTeams.teams.map((team) => team.name);
 
-  const canEditPages = userRoles.includes("Admin") || userRoles.includes("PR");
-
-  if (isEditRoute) {
-    if (!canEditPages) {
+  // Handle edit routes
+  if (pathname.endsWith("/edit")) {
+    if (!userRoles.includes("Admin") && !userRoles.includes("PR")) {
       return NextResponse.redirect(new URL("/", req.url));
     }
-    const pathWithoutEdit = req.nextUrl.pathname.slice(0, -5);
+    const pathWithoutEdit = pathname.slice(0, -5);
     const pathWithEditPrefix = `/puck${pathWithoutEdit}`;
     return NextResponse.rewrite(new URL(pathWithEditPrefix, req.url));
   }
-  // If the user does not have a matching role and tries to access the admin path, redirect them
-  const hasAccess = userRoles.some((role) => availableRoles.includes(role));
-  if (!hasAccess && req.nextUrl.pathname.startsWith(adminPath)) {
-    return NextResponse.redirect(new URL("/auth/login", req.url));
+
+  // Check if the user has access to the requested admin path
+  const hasAccess = userRoles.some(role => 
+    roleAccessMap[role]?.some(path => pathname.startsWith(path))
+  );
+
+  if (pathname === adminPath) {
+    // If the user is trying to access /admin, redirect them to their first allowed path
+    for (const role of userRoles) {
+      if (roleAccessMap[role] && roleAccessMap[role].length > 0) {
+        const firstAllowedPath = roleAccessMap[role][0];
+        if (firstAllowedPath !== adminPath) {
+          return NextResponse.redirect(new URL(firstAllowedPath, req.url));
+        }
+        break; // If the user has Admin role, don't redirect
+      }
+    }
+  }
+
+  if (!hasAccess && pathname.startsWith(adminPath)) {
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return res;

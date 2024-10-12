@@ -62,7 +62,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
         { href: '/admin/shop/settings', label: 'Settings', roles: ['Admin'] },
       ],
     },
-    { href: '/admin/elections', icon: VoteIcon, label: 'Elections', roles: ['Admin', 'kk'] },
+    { href: '/admin/elections', icon: VoteIcon, label: 'Elections', roles: ['Admin', 'Control Committee'] },
     { href: '/admin/users', icon: Users, label: 'Users', roles: ['Admin', 'hr', 'finance'] },
     {
       href: '/admin/settings',
