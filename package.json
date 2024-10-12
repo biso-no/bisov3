@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "docker:build": "docker build -t biso-app .",
+    "docker:save": "docker save biso-app -o biso-app.tar"
   },
   "dependencies": {
     "@fontsource/roboto": "^5.0.14",
