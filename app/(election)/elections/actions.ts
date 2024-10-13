@@ -26,8 +26,7 @@ export async function getElections() {
     try {
         const elections = await db.listDocuments(
             'app',
-            'elections',
-            []
+            'elections'
         );
         revalidatePath('/admin/elections');
         return elections.documents;
