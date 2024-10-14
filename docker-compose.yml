@@ -2,7 +2,7 @@ version: "3.9"
 services:
   app:
     platform: "linux/amd64"
-    container_name: biso-app
+    container_name: biso-appv3
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s

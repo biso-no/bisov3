@@ -128,7 +128,7 @@ export default function UserDetailsManagement() {
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Password Reset</AlertTitle>
               <AlertDescription>
-                A password reset link has been sent to the user's email address.
+                A password reset link has been sent to the user&apos;s email address.
               </AlertDescription>
             </Alert>
           )}
