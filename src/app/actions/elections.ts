@@ -1,6 +1,6 @@
 "use server"
 import { createSessionClient } from "@/lib/appwrite";
-import { ID, Models, Query } from "node-appwrite";
+import { ID, Models, Permission, Query, Role } from "node-appwrite";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -70,19 +70,29 @@ export async function createElection({
     campus: string;
     path?: string;
   }) {
-    const { db } = await createSessionClient();
+    const { db, teams } = await createSessionClient();
+    const id = ID.unique();
+
+    const electionTeam = await teams.create(id, name, ["owner", "voter"]);
+    if (!electionTeam) {
+      throw new Error('Failed to create election, please try again in a few seconds.');
+    }
     try {
         const election = await db.createDocument(
             'app',
             'elections',
-            ID.unique(),
+            id,
             {
                 name,
                 description,
                 date,
                 campus: campus
             },
-            []
+            [
+                Permission.read(Role.team(id)),
+                Permission.update(Role.team(id, 'owner')),
+                Permission.delete(Role.team(id, 'owner')),
+            ]
         );
         revalidatePath(path);
         return election;
@@ -115,8 +125,7 @@ export async function updateElection({
                 name,
                 description,
                 date,
-            },
-            []
+            }
         );
         revalidatePath(path);
         return election;

@@ -44,8 +44,8 @@ export default function ElectionDashboard({
   addOrRemoveAbstain: (itemId: string, allowAbstain: boolean) => Promise<void>,
   fetchDetailedResults: (electionId: string) => Promise<DetailedVoteResult[]>,
   fetchVoterParticipation: (electionId: string) => Promise<VoterParticipation>,
-  startSession: (sessionId: string) => Promise<ElectionSession>,
-  stopSession: (sessionId: string) => Promise<ElectionSession>
+  startSession: (session: ElectionSession) => Promise<ElectionSession>,
+  stopSession: (session: ElectionSession) => Promise<ElectionSession>
  }) {
   const [election, setElection] = useState(initialElection)
   const [activeTab, setActiveTab] = useState("overview")
@@ -112,7 +112,7 @@ export default function ElectionDashboard({
       }
     }
     loadResults()
-  }, [election.$id])
+  }, [election.$id, fetchDetailedResults, fetchVoterParticipation])
 
   const handleAddSession = async (newSession: Omit<ElectionSession, '$id' | 'electionId'>) => {
     const session = await addElectionSession({ ...newSession, electionId: election.$id, election: election.$id, startTime: null, endTime: null })
@@ -259,7 +259,7 @@ export default function ElectionDashboard({
             <AddSessionDialog onAddSession={handleAddSession} />
           </div>
           <Accordion type="single" collapsible className="w-full">
-            {election.sessions.map((session) => (
+            {election.sessions?.map((session) => (
               <AccordionItem key={session.$id} value={session.$id}>
                 <AccordionTrigger>{session.name}</AccordionTrigger>
                 <AccordionContent>
@@ -588,8 +588,8 @@ function StartStopSessionButton({
 }: { 
   session: ElectionSession, 
   onStatusChange: (sessionId: string, newStatus: 'upcoming' | 'ongoing' | 'past') => void,
-  startSession: (sessionId: string) => Promise<ElectionSession>,
-  stopSession: (sessionId: string) => Promise<ElectionSession>
+  startSession: (session: ElectionSession) => Promise<ElectionSession>,
+  stopSession: (session: ElectionSession) => Promise<ElectionSession>
 }) {
   const [isLoading, setIsLoading] = useState(false)
   const [status, setStatus] = useState(session.status)
@@ -597,7 +597,7 @@ function StartStopSessionButton({
   const handleStartSession = async () => {
     setIsLoading(true)
     try {
-      await startSession(session.$id)
+      await startSession(session)
       setStatus('ongoing')
       onStatusChange(session.$id, 'ongoing')
     } catch (error) {
@@ -610,7 +610,7 @@ function StartStopSessionButton({
   const handleStopSession = async () => {
     setIsLoading(true)
     try {
-      await stopSession(session.$id)
+      await stopSession(session)
       setStatus('past')
       onStatusChange(session.$id, 'past')
     } catch (error) {

@@ -1,5 +1,5 @@
 import ElectionDashboard from '../_components/election-dashboard'
-import { getElections, getElectionSessions, getVotingItems, getVotingOptions, getVoters } from '@/app/(admin)/admin/elections/actions'
+import { getElection, getElectionSessions, getVotingItems, getVotingOptions, getVoters } from '@/app/(admin)/admin/elections/actions'
 import {
   addElectionSession,
   addVotingItem,
@@ -12,16 +12,15 @@ import {
   stopSession,
 } from '../actions'
 
-export default async function ElectionPage() {
-  const elections = await getElections()
-  const initialElection = elections[0] // Assuming we're working with the first election
+export default async function ElectionPage({ params }: { params: { id: string } }) {
+  const election = await getElection(params.id)
 
-  if (!initialElection) {
+  if (!election) {
     return <div>No elections found. Please create an election first.</div>
   }
 
-  const sessions = await getElectionSessions(initialElection.$id)
-  const voters = await getVoters(initialElection.$id)
+  const sessions = await getElectionSessions(election.$id)
+  const voters = await getVoters(election.$id)
 
   const sessionsWithItems = await Promise.all(sessions.map(async (session) => {
     const votingItems = await getVotingItems(session.$id)
@@ -33,7 +32,7 @@ export default async function ElectionPage() {
   }))
 
   return <ElectionDashboard 
-            initialElection={{ ...initialElection, sessions: sessionsWithItems, voters }} 
+            initialElection={{ ...election, sessions: sessionsWithItems, voters }} 
             addElectionSession={addElectionSession}
             addVotingItem={addVotingItem}
             addVotingOption={addVotingOption}

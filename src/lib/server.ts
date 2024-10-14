@@ -4,7 +4,6 @@ import { createAdminClient, createSessionClient } from "./appwrite";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { ID, OAuthProvider, Query } from "node-appwrite";
-import { UserRole } from "@/components/dashboard/types";
 
 interface DashboardCard {
     id: string;
