@@ -41,7 +41,7 @@ export async function getUserById(userId: string) {
 export async function signIn(email: string) {
     try {
         const { account } = await createAdminClient();
-        const user = await account.createMagicURLToken(ID.unique(), email, 'https://localhost:3000/auth/callback');
+        const user = await account.createMagicURLToken(ID.unique(), email, `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback`);
         return user;
     } catch (error) {
         console.error(error);

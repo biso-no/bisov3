@@ -29,7 +29,7 @@ export async function signInWithAzure() {
     const redirectUrl = await account.createOAuth2Token(
         OAuthProvider.Microsoft,
         `${origin}/auth/oauth/`,
-        `https://localhost:3000/auth/login`
+        `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login`
         );
 
     return redirect(redirectUrl);
