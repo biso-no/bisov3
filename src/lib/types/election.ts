@@ -44,7 +44,7 @@ export interface Election extends Models.Document {
     electionId: string
     name: string
     email: string
-    studentId: string
+    voter_id: string
   }
   export interface Vote extends Models.Document {
     optionId: string
