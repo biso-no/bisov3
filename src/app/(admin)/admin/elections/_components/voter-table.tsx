@@ -65,7 +65,11 @@ export default function VoterTable({ electionId }: { electionId: string }) {
 
   const handleSaveEdit = async (updatedVoter: Voter) => {
     try {
-      await updateVoter(updatedVoter.$id, updatedVoter)
+      await updateVoter(updatedVoter.$id, {
+        ...updatedVoter,
+        canVote: updatedVoter.canVote,
+        voteWeight: updatedVoter.voteWeight,
+      });
       setVoters(voters.map(voter => 
         voter.$id === updatedVoter.$id ? updatedVoter : voter
       ))
@@ -78,7 +82,7 @@ export default function VoterTable({ electionId }: { electionId: string }) {
   const handleInvite = async (newVoters: Omit<Voter, 'id'>[]) => {
     try {
       const createdVoters = await Promise.all(newVoters.map(async (voter) => {
-        const response = await addVoter(voter)
+        const response = await addVoter(electionId, voter)
         return response as Voter
       }))
       setVoters([...voters, ...createdVoters])
@@ -260,8 +264,8 @@ export default function VoterTable({ electionId }: { electionId: string }) {
         <TableBody>
           {voters?.map((voter) => (
             <TableRow key={voter.$id}>
-              <TableCell>{voter.user.name}</TableCell>
-              <TableCell>{voter.user.email}</TableCell>
+              <TableCell>{voter.name}</TableCell>
+              <TableCell>{voter.email}</TableCell>
               <TableCell>{voter.voter_id}</TableCell>
               <TableCell>{voter.voteWeight}</TableCell>
               <TableCell>
@@ -305,24 +309,24 @@ export default function VoterTable({ electionId }: { electionId: string }) {
               const formData = new FormData(e.currentTarget)
               handleSaveEdit({
                 ...editingVoter,
-                name: formData.get('name') as string,
-                email: formData.get('email') as string,
-                voterId: formData.get('voterId') as string,
-                voteWeight: parseInt(formData.get('voteWeight') as string),
+                name: formData.get('edit-name') as string || editingVoter.name,
+                email: formData.get('edit-email') as string || editingVoter.email,
+                voterId: formData.get('edit-voterId') as string || editingVoter.voterId,
+                voteWeight: parseInt(formData.get('edit-voteWeight') as string) || editingVoter.voteWeight,
               })
             }}>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="edit-name" className="text-right">Name</Label>
-                  <Input id="edit-name" name="name" disabled defaultValue={editingVoter.user.name} className="col-span-3" />
+                  <Input id="edit-name" name="name" disabled defaultValue={editingVoter.name} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="edit-email" className="text-right">Email</Label>
-                  <Input id="edit-email" name="email" type="email" disabled defaultValue={editingVoter.user.email} className="col-span-3" />
+                  <Input id="edit-email" name="email" type="email" disabled defaultValue={editingVoter.email} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="edit-voterId" className="text-right">Voter ID</Label>
-                  <Input id="edit-voterId" name="voterId" defaultValue={editingVoter.voterId} className="col-span-3" />
+                  <Input id="edit-voterId" name="voterId" defaultValue={editingVoter.voter_id} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="edit-voteWeight" className="text-right">Vote Weight</Label>

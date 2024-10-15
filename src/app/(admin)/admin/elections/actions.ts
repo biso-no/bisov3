@@ -3,7 +3,7 @@
 import { Client, Databases, Permission, Query, Role } from 'node-appwrite'
 import { revalidatePath } from 'next/cache'
 import { Models } from 'node-appwrite'
-import { createSessionClient } from "@/lib/appwrite";
+import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 
 const databaseId = 'app'
 
@@ -48,11 +48,18 @@ export interface VotingOption extends Models.Document {
 }
 
 export interface Voter extends Models.Document {
-  electionId: string
-  name: string
-  email: string
-  studentId: string
+  userId: string;
+  voter_id: string;
+  canVote: boolean;
+  electionId: string;
+  voteWeight: number;
+  user: string; // This will be the ID of the related user document
+  election: string; // This will be the ID of the related election document
+  name: string;
+  email: string;
+  electionVote: string; // This will be the ID of the related electionVote document, if any
 }
+
 export interface Vote extends Models.Document {
   optionId: string
   voterId: string
@@ -88,33 +95,77 @@ export async function getElection(electionId: string): Promise<Election> {
 }
 
 export async function startSession(session: ElectionSession): Promise<ElectionSession> {
-    const { db: databases } = await createSessionClient();
-    console.log("Election ID", session.electionId)
-    const response = await databases.updateDocument(databaseId, 'election_sessions', session.$id, { startTime: new Date().toISOString(), status: 'ongoing' }, [
-      //Read access for voters
+  const { db: databases } = await createSessionClient();
+  console.log("Election ID", session.electionId)
+  
+  //Update the session to ongoing, and give read access to all voters for the session, voting items and voting options.
+  const response = await databases.updateDocument(databaseId, 'election_sessions', session.$id, { 
+    startTime: new Date().toISOString(), 
+    status: 'ongoing',
+    votingItems: session.votingItems.map(item => ({
+      $id: item.$id,
+      $permissions: [
+        Permission.read(Role.team(session.electionId, 'owner')),
+        Permission.update(Role.team(session.electionId, 'owner')),
+        Permission.delete(Role.team(session.electionId, 'owner')),
+        Permission.read(Role.team(session.electionId, 'voter')),
+      ],
+      votingOptions: item.votingOptions.map(option => ({
+        $id: option.$id,
+        $permissions: [
+          Permission.read(Role.team(session.electionId, 'owner')),
+          Permission.update(Role.team(session.electionId, 'owner')),
+          Permission.delete(Role.team(session.electionId, 'owner')),
+          Permission.read(Role.team(session.electionId, 'voter')),
+        ],
+      }))
+    })),
+   }, [
+    Permission.read(Role.team(session.electionId, 'owner')),
+    Permission.update(Role.team(session.electionId, 'owner')),
+    Permission.delete(Role.team(session.electionId, 'owner')),
+    Permission.read(Role.team(session.electionId, 'voter')),
+  ])
+  revalidatePath('/admin/elections')
+  return response as ElectionSession
+}
 
-      Permission.read(Role.team(session.electionId, 'owner')),
-      Permission.update(Role.team(session.electionId, 'owner')),
-      Permission.delete(Role.team(session.electionId, 'owner')),
-      Permission.read(Role.team(session.electionId, 'voter')),
-    ])
-    if (response.election.status !== 'ongoing') {
-      const election = await databases.updateDocument(databaseId, 'elections', response.electionId, { status: 'ongoing' })
-    }
-    revalidatePath('/admin/elections')
-    return response as ElectionSession
+export async function deleteSession(sessionId: string): Promise<ElectionSession> {
+  const { db: databases } = await createSessionClient();
+  const response = await databases.deleteDocument(databaseId, 'election_sessions', sessionId)
+  revalidatePath('/admin/elections')
+  return response as ElectionSession
 }
 
 export async function stopSession(session: ElectionSession): Promise<ElectionSession> {
-    const { db: databases } = await createSessionClient();
-    const response = await databases.updateDocument(databaseId, 'election_sessions', session.$id, { endTime: new Date().toISOString(), status: 'past' },[
-      //No read access for voters
-      Permission.read(Role.team(session.electionId, 'owner')),
-      Permission.update(Role.team(session.electionId, 'owner')),
-      Permission.delete(Role.team(session.electionId, 'owner')),
-    ])
-    revalidatePath('/admin/elections')
-    return response as ElectionSession
+  const { db: databases } = await createSessionClient();
+  const response = await databases.updateDocument(databaseId, 'election_sessions', session.$id, { 
+    endTime: new Date().toISOString(), 
+    status: 'past',
+    votingItems: session.votingItems.map(item => ({
+      $id: item.$id,
+      $permissions: [
+        Permission.read(Role.team(session.electionId, 'owner')),
+        Permission.update(Role.team(session.electionId, 'owner')),
+        Permission.delete(Role.team(session.electionId, 'owner')),
+      ],
+      votingOptions: item.votingOptions.map(option => ({
+        $id: option.$id,
+        $permissions: [
+          Permission.read(Role.team(session.electionId, 'owner')),
+          Permission.update(Role.team(session.electionId, 'owner')),
+          Permission.delete(Role.team(session.electionId, 'owner')),
+        ],
+      }))
+    })),
+   },[
+    //No read access for voters
+    Permission.read(Role.team(session.electionId, 'owner')),
+    Permission.update(Role.team(session.electionId, 'owner')),
+    Permission.delete(Role.team(session.electionId, 'owner')),
+  ])
+  revalidatePath('/admin/elections')
+  return response as ElectionSession
 }
 
 export async function getElectionSessions(electionId: string): Promise<ElectionSession[]> {
@@ -131,6 +182,12 @@ export async function getVotingItems(sessionId: string): Promise<VotingItem[]> {
     Query.equal('votingSessionId', sessionId)
   ])
   return response.documents as VotingItem[]
+}
+
+export async function deleteVotingItem(itemId: string): Promise<void> {
+  const { db: databases } = await createSessionClient();
+  await databases.deleteDocument(databaseId, 'voting_item', itemId)
+  revalidatePath('/admin/elections')
 }
 
 export async function getVotingOptions(votingItemId: string): Promise<VotingOption[]> {
@@ -167,8 +224,21 @@ export async function toggleVoterStatus(id: string, status: boolean) {
 
 export async function updateVoter(id: string, voter: Partial<Voter>): Promise<Voter> {
   const { db: databases } = await createSessionClient();
-  const response = await databases.updateDocument(databaseId, 'election_users', id, voter)
-  return response as Voter
+  
+  // Ensure we're only updating fields that exist in the database
+  const updateData: Partial<Voter> = {
+    voter_id: voter.voter_id,
+    canVote: voter.canVote,
+    voteWeight: voter.voteWeight,
+    name: voter.name,
+    email: voter.email,
+  };
+
+  // Remove any undefined fields
+  Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
+  const response = await databases.updateDocument(databaseId, 'election_users', id, updateData);
+  return response as Voter;
 }
 
 export async function addElection(election: Omit<Election, '$id'>): Promise<Election> {
@@ -196,22 +266,28 @@ export async function addElectionSession(session: Omit<ElectionSession, '$id'>):
   return response as ElectionSession
 }
 
-export async function addVotingItem(votingItem: Omit<VotingItem, '$id'>): Promise<VotingItem> {
+export async function addVotingItem(electionId: string, votingItem: Omit<VotingItem, '$id'>): Promise<VotingItem> {
     const { db: databases } = await createSessionClient();
-  const response = await databases.createDocument(databaseId, 'voting_item', 'unique()', votingItem)
+  const response = await databases.createDocument(databaseId, 'voting_item', 'unique()', {
+    ...votingItem,
+  }, [
+    Permission.read(Role.team(electionId, 'owner')),
+    Permission.update(Role.team(electionId, 'owner')),
+    Permission.delete(Role.team(electionId, 'owner')),
+  ])
   
   let initialOptions = []
   if (votingItem.allowAbstain) {
-    initialOptions.push({ value: 'Abstain', description: '' })
+    initialOptions.push({ value: 'Abstain', description: '', votingItem: votingItem.$id })
   }
   if (votingItem.type === 'statute') {
-    initialOptions.push({ value: 'Yes', description: '' })
-    initialOptions.push({ value: 'No', description: '' })
+    initialOptions.push({ value: 'Yes', description: '', votingItem: votingItem.$id })
+    initialOptions.push({ value: 'No', description: '', votingItem: votingItem.$id })
   }
-  if (initialOptions.length > 0) {
+  if (response && initialOptions.length > 0) {
     for (let i = 0; i < initialOptions.length; i++) {
       const option = initialOptions[i]
-      const options = await addVotingOption({ ...option, votingItemId: response.$id, votingItem: response.$id })
+      const options = await addVotingOption(electionId, { ...option, votingItemId: response.$id, votingItem: response.$id })
       if (response) {
         initialOptions[i] = response
       }
@@ -222,19 +298,25 @@ export async function addVotingItem(votingItem: Omit<VotingItem, '$id'>): Promis
   return response as VotingItem
 }
 
-export async function addVotingOption(votingOption: Omit<VotingOption, '$id'>): Promise<VotingOption> {
+export async function addVotingOption(electionId: string, votingOption: Omit<VotingOption, '$id'>): Promise<VotingOption> {
     console.log('addVotingOption', votingOption)
     const { db: databases } = await createSessionClient();
-  const response = await databases.createDocument(databaseId, 'voting_option', 'unique()', votingOption)
+  const response = await databases.createDocument(databaseId, 'voting_option', 'unique()', {
+    ...votingOption,
+  }, [
+    Permission.read(Role.team(electionId, 'owner')),
+    Permission.update(Role.team(electionId, 'owner')),
+    Permission.delete(Role.team(electionId, 'owner')),
+  ])
   revalidatePath('/admin/elections')
   return response as VotingOption
 }
 
-export async function addOrRemoveAbstain(votingItemId: string, allowAbstain: boolean): Promise<void> {
+export async function addOrRemoveAbstain(electionId: string, votingItemId: string, allowAbstain: boolean): Promise<void> {
     const { db: databases } = await createSessionClient();
     const item = await updateVotingItem(votingItemId, { allowAbstain })
     if (item.allowAbstain === true) {
-        const abstainOption = await addVotingOption({ value: 'Abstain', description: '', votingItemId, votingItem: votingItemId })
+        const abstainOption = await addVotingOption(electionId, { value: 'Abstain', description: '', votingItemId, votingItem: votingItemId })
         revalidatePath('/admin/elections')
         return;
     } else {
@@ -248,14 +330,35 @@ export async function addOrRemoveAbstain(votingItemId: string, allowAbstain: boo
 }
 
 //Might want to swap order here. Create team membership first, then create document
-export async function addVoter(voter: Omit<Voter, '$id'>): Promise<Voter> {
-    const { db: databases, teams } = await createSessionClient();
-  const response = await databases.createDocument(databaseId, 'election_users', 'unique()', voter)
-  if (response.$id) {
-    const team = await teams.createMembership(response.$id, ['voter'], voter?.email, voter?.$id)
-  }
+export async function addVoter(electionId: string, voter: Omit<Voter, '$id'>): Promise<Voter> {
+    const { db: databases } = await createSessionClient();
+    const { teams } = await createAdminClient();
+
+    const team = await teams.createMembership(electionId, ['voter'], voter?.email, voter?.$id, undefined, 'https://localhost:3000/auth/login')
+
+  if (team.userId) {
+    const response = await databases.createDocument(databaseId, 'election_users', 'unique()', {
+      userId: team.userId,
+      voter_id: voter.voterId,
+      canVote: true,
+      electionId,
+      election: electionId,
+      voteWeight: voter.voteWeight,
+      user: team.userId,
+      name: voter.name,
+      email: voter.email
+    }, [
+      Permission.read(Role.team(electionId, 'owner')),
+      Permission.update(Role.team(electionId, 'owner')),
+      Permission.delete(Role.team(electionId, 'owner')),
+      Permission.read(Role.user(team.userId))
+    ])
+
   revalidatePath('/admin/elections')
   return response as Voter
+} else {
+  return null
+  }
 }
 
 export async function removeVoter(voterId: string): Promise<void> {
