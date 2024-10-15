@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { ID, OAuthProvider, Query } from "node-appwrite";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+
 interface DashboardCard {
     id: string;
     title: string;
