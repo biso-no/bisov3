@@ -334,7 +334,7 @@ export async function addVoter(electionId: string, voter: Omit<Voter, '$id'>): P
     const { db: databases } = await createSessionClient();
     const { teams } = await createAdminClient();
 
-    const team = await teams.createMembership(electionId, ['voter'], voter?.email, voter?.$id, undefined, 'https://localhost:3000/auth/login')
+    const team = await teams.createMembership(electionId, ['voter'], voter?.email, voter?.$id, undefined, `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login`)
 
   if (team.userId) {
     const response = await databases.createDocument(databaseId, 'election_users', 'unique()', {
