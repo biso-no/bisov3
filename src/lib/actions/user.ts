@@ -6,6 +6,8 @@ import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 import { ID, Models, OAuthProvider } from "node-appwrite";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+
 export async function getLoggedInUser() {
     try {
         const { account, db } = await createSessionClient();
@@ -41,7 +43,7 @@ export async function getUserById(userId: string) {
 export async function signIn(email: string) {
     try {
         const { account } = await createAdminClient();
-        const user = await account.createMagicURLToken(ID.unique(), email, 'https://localhost:3000/auth/callback');
+        const user = await account.createMagicURLToken(ID.unique(), email, `${BASE_URL}/auth/callback`);
         return user;
     } catch (error) {
         console.error(error);

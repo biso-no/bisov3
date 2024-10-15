@@ -61,6 +61,7 @@ export async function castVote(electionId: string, optionId: string, votingSessi
                 votingSessionId,
                 votingItemId,
                 electionId,
+                voter: voter.documents[0].$id,
                 weight: voter.documents[0].voteWeight
             }
         ) as Vote;

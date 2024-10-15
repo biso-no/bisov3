@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Clock, X, Play, LoaderIcon } from 'lucide-react'
+import { Clock, X, Play, LoaderIcon, Trash2 } from 'lucide-react'
 import {
   Election,
   ElectionSession,
@@ -34,18 +34,22 @@ export default function ElectionDashboard({
   fetchDetailedResults,
   fetchVoterParticipation,
   startSession,
-  stopSession
+  stopSession,
+  deleteSession,
+  deleteVotingItem
  }: { 
   initialElection: Election,
   addElectionSession: (session: Omit<ElectionSession, '$id'>) => Promise<ElectionSession>,
-  addVotingItem: (item: Omit<VotingItem, '$id'>) => Promise<VotingItem>,
-  addVotingOption: (option: Omit<VotingOption, '$id'>) => Promise<VotingOption>,
+  addVotingItem: (electionId: string, item: Omit<VotingItem, '$id'>) => Promise<VotingItem>,
+  addVotingOption: (electionId: string, option: Omit<VotingOption, '$id'>) => Promise<VotingOption>,
   removeVotingOption: (optionId: string) => Promise<void>,
-  addOrRemoveAbstain: (itemId: string, allowAbstain: boolean) => Promise<void>,
+  addOrRemoveAbstain: (electionId: string, itemId: string, allowAbstain: boolean) => Promise<void>,
   fetchDetailedResults: (electionId: string) => Promise<DetailedVoteResult[]>,
   fetchVoterParticipation: (electionId: string) => Promise<VoterParticipation>,
   startSession: (session: ElectionSession) => Promise<ElectionSession>,
-  stopSession: (session: ElectionSession) => Promise<ElectionSession>
+  stopSession: (session: ElectionSession) => Promise<ElectionSession>,
+  deleteSession: (sessionId: string) => Promise<ElectionSession>,
+  deleteVotingItem: (itemId: string) => Promise<void>
  }) {
   const [election, setElection] = useState(initialElection)
   const [activeTab, setActiveTab] = useState("overview")
@@ -124,7 +128,7 @@ export default function ElectionDashboard({
   }
 
   const handleAddVotingItem = async (sessionId: string, newItem: Omit<VotingItem, '$id' | 'sessionId'>) => {
-    const item = await addVotingItem({ ...newItem, votingSessionId: sessionId, session: sessionId })
+    const item = await addVotingItem(election.$id, { ...newItem, votingSessionId: sessionId, session: sessionId })
     setElection(prev => ({
       ...prev,
       sessions: prev.sessions.map(session =>
@@ -137,7 +141,7 @@ export default function ElectionDashboard({
   }
 
   const handleAddVotingOption = async (itemId: string, newOption: Omit<VotingOption, '$id' | 'votingItemId'>) => {
-    const option = await addVotingOption({ ...newOption, votingItemId: itemId, votingItem: itemId })
+    const option = await addVotingOption(election.$id, { ...newOption, votingItemId: itemId, votingItem: itemId })
     setElection(prev => ({
       ...prev,
       sessions: prev.sessions.map(session => ({
@@ -169,7 +173,7 @@ export default function ElectionDashboard({
   }
 
   const handleAddOrRemoveAbstain = async (itemId: string, allowAbstain: boolean) => {
-    await addOrRemoveAbstain(itemId, allowAbstain)
+    await addOrRemoveAbstain(election.$id, itemId, allowAbstain)
     setElection(prev => ({
       ...prev,
       sessions: prev.sessions.map(session => ({
@@ -203,6 +207,27 @@ export default function ElectionDashboard({
       )
     }))
   }, [])
+
+  const handleDeleteSession = async (sessionId: string) => {
+    await deleteSession(sessionId)
+    setElection(prev => ({
+      ...prev,
+      sessions: prev.sessions.filter(session => session.$id !== sessionId)
+    }))
+  }
+
+  const handleDeleteVotingItem = async (itemId: string) => {
+    await deleteVotingItem(itemId)
+    setElection(prev => ({
+      ...prev,
+      sessions: prev.sessions.map(session => ({
+        ...session,
+        votingItems: session.votingItems.filter(item => item.$id !== itemId)
+      }))
+    }))
+
+    router.refresh()
+  }
 
   const totalSessions = election.sessions.length
   const totalVotingItems = election.sessions.reduce((sum, session) => sum + session.votingItems.length, 0)
@@ -275,12 +300,27 @@ export default function ElectionDashboard({
                       {session.endTime && <p><Clock className="inline-block mr-2" /> End: {session.endTime}</p>}
                     </CardContent>
                     </div>
+                    <div className="flex space-x-6">
+                    <Button
+        variant="destructive"
+        size="sm"
+        onClick={() => handleDeleteSession(session.$id)}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <LoaderIcon className="animate-spin h-4 w-4" />
+        ) : (
+          <Trash2 className="h-4 w-4" />
+        )}
+        <span className="sr-only">Delete Session</span>
+        </Button>
                     <StartStopSessionButton 
                   session={session} 
                   onStatusChange={handleSessionStatusChange}
                   startSession={startSession}
                   stopSession={stopSession}
                 />
+                </div>
                     </div>
                   </Card>
                   <div className="mb-4">
@@ -288,9 +328,22 @@ export default function ElectionDashboard({
                   </div>
                   {session.votingItems.map((item) => (
                     <Card key={item.$id} className="mb-4">
-                      <CardHeader>
+                      <CardHeader className='max-w-sm'>
                         <CardTitle>{item.title}</CardTitle>
                         <CardDescription>{item.type === 'statute' ? 'Statute Change' : 'Position'}</CardDescription>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteVotingItem(item.$id)}
+                          disabled={isLoading}
+                        >
+                          {isLoading ? (
+                            <LoaderIcon className="animate-spin h-4 w-4" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">Delete Session</span>
+                          </Button>
                       </CardHeader>
                       <CardContent>
                         <div className="mb-2">
@@ -426,26 +479,6 @@ function AddSessionDialog({ onAddSession }: { onAddSession: (session: Omit<Elect
                 id="description"
                 value={newSession.description}
                 onChange={(e) => setNewSession({ ...newSession, description: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="startTime">Start Time</Label>
-              <Input
-                id="startTime"
-                type="datetime-local"
-                value={newSession.startTime}
-                onChange={(e) => setNewSession({ ...newSession, startTime: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="endTime">End Time</Label>
-              <Input
-                id="endTime"
-                type="datetime-local"
-                value={newSession.endTime}
-                onChange={(e) => setNewSession({ ...newSession, endTime: e.target.value })}
                 required
               />
             </div>
@@ -619,6 +652,7 @@ function StartStopSessionButton({
       setIsLoading(false)
     }
   }
+
 
   return (
     <div className="flex items-center space-x-2">
