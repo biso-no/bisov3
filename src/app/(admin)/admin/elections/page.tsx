@@ -6,7 +6,7 @@ import { createElection } from '@/app/actions/elections'
 export default async function ElectionsPage() {
   
     const elections = await getElections()
-
+    console.log(elections)
   return (
     <AdminDashboard
       isAdmin={true}

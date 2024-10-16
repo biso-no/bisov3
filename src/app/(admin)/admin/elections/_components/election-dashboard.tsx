@@ -60,38 +60,6 @@ export default function ElectionDashboard({
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const newVoteData = useVotesSubscription(election.$id)
 
-  const updateResultsWithNewVote = useCallback((newVote: any) => {
-    setDetailedResults(prevResults => {
-      const updatedResults = [...prevResults]
-      const existingResultIndex = updatedResults.findIndex(
-        result => result.votingItemId === newVote.votingItemId && result.optionId === newVote.optionId
-      )
-
-      if (existingResultIndex !== -1) {
-        updatedResults[existingResultIndex] = {
-          ...updatedResults[existingResultIndex],
-          voteCount: updatedResults[existingResultIndex].voteCount + 1
-        }
-      } else {
-        updatedResults.push({
-          votingItemId: newVote.votingItemId,
-          optionId: newVote.optionId,
-          voteCount: 1
-        })
-      }
-
-      return updatedResults
-    })
-
-    setVoterParticipation(prevParticipation => {
-      if (!prevParticipation) return null
-      return {
-        ...prevParticipation,
-        participatedVoters: prevParticipation.participatedVoters + 1
-      }
-    })
-  }, [])
-
   useEffect(() => {
     console.log("New vote data:", newVoteData)
     if (newVoteData) {
@@ -412,14 +380,14 @@ export default function ElectionDashboard({
                                 ></div>
                               </div>
                               <div className="ml-2 w-20 text-right">
-                                {optionVotes} ({percentage.toFixed(1)}%)
+                                {optionVotes} weighted votes ({percentage.toFixed(1)}%)
                               </div>
                             </div>
                           )
                         })}
                       </div>
                       <div className="mt-2 text-sm text-gray-600">
-                        Total votes: {getTotalVotes(item.$id)}
+                        Total weighted votes: {getTotalVotes(item.$id)}
                       </div>
                     </div>
                   ))}

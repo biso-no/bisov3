@@ -32,8 +32,9 @@ export async function middleware(req: NextRequest) {
   try {
     user = await account.get();
   } catch (error) {
+    
     // If the user is not authenticated and tries to access admin paths, redirect them to the login page
-    if (pathname.startsWith(adminPath)) {
+    if ((pathname.startsWith(adminPath) || pathname === '/' || pathname.startsWith('/elections')) && !user) {
       return NextResponse.redirect(new URL("/auth/login", req.url));
     }
     return res;
@@ -41,7 +42,9 @@ export async function middleware(req: NextRequest) {
 
   // If the user is authenticated and attempts to access auth pages, redirect them to the homepage
   if (user.$id && pathname.startsWith('/auth')) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/elections", req.url));
+  } else if (!user.$id && pathname.startsWith('/elections')) {
+    return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
   // Retrieve the user's teams and roles
@@ -49,6 +52,7 @@ export async function middleware(req: NextRequest) {
     Query.equal('name', Object.keys(roleAccessMap))
   ]);
   const userRoles = userTeams.teams.map((team) => team.name);
+  
 
   // Handle edit routes
   if (pathname.endsWith("/edit")) {

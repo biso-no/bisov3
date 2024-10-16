@@ -37,6 +37,28 @@ export async function signInWithAzure() {
     return redirect(redirectUrl);
 }
 
+export async function signInWithMagicLink(email: string) {
+    const { account } = await createAdminClient();
+
+    const origin = headers().get("origin");
+
+    const redirectUrl = await account.createMagicURLToken(
+        ID.unique(),
+        email,
+        `${BASE_URL}/auth/callback`
+        );
+
+    return redirectUrl ? true : false;
+}
+
+export async function createMagicLinkSession(userId: string, secret: string) {
+    const { account } = await createSessionClient();
+
+    const session = await account.updateMagicURLSession(userId, secret);
+
+    return session;
+}
+
   export async function getTeams(query: string[]) {
     const { account, teams } = await createSessionClient();
   

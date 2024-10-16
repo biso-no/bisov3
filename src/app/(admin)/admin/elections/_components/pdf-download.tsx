@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { pdf } from '@react-pdf/renderer';
 import ElectionResultsPDF from './pdf-results';
 import { Election, DetailedVoteResult } from '../actions';
+import { LoaderIcon } from 'lucide-react';
 
 interface PDFDownloadButtonProps {
   election: Election;
@@ -27,7 +28,7 @@ const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({ election, detaile
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      // Handle error (e.g., show an error message to the user)
+      alert('An error occurred while generating the PDF. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -35,7 +36,14 @@ const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({ election, detaile
 
   return (
     <Button onClick={handleDownload} disabled={isLoading}>
-      {isLoading ? 'Generating PDF...' : 'Download Results PDF'}
+      {isLoading ? (
+        <>
+          <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
+          Generating PDF...
+        </>
+      ) : (
+        'Download Results PDF'
+      )}
     </Button>
   );
 };

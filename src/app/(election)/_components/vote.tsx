@@ -12,32 +12,17 @@ import { Label } from "@/components/ui/label"
 import { toast } from "@/lib/hooks/use-toast"
 import type { Election, ElectionSession, VotingItem, VotingOption, Voter, Vote } from "@/lib/types/election"
 import { castVote, getVotes } from "../elections/actions"
+import { Models } from "node-appwrite"
 
-async function checkVotes(electionId: string) {
-  const hasVoted = await getVotes(electionId)
-  return hasVoted
-}
 
-export default function VoterComponent({ initialElection, initialVotes }: { initialElection: Election, initialVotes: boolean }) {
-  const [activeSession, setActiveSession] = useState<ElectionSession | null>(null)
+export default function VoterComponent({ initialElection, initialHasVoted, initialSession }: { initialElection: Election, initialHasVoted: boolean, initialSession: ElectionSession }) {
+  const [activeSession, setActiveSession] = useState<Models.Document | null>(initialSession)
   const [votes, setVotes] = useState<{ [itemId: string]: string[] }>({})
-  const [hasVoted, setHasVoted] = useState(initialVotes)
+  const [hasVoted, setHasVoted] = useState(initialHasVoted)
   const [progress, setProgress] = useState(0)
   const [election, setElection] = useState(initialElection)
 
-  useEffect(() => {
-    // Find the active session
-    const active = election?.sessions?.find(session => session.status === "ongoing")
-    setActiveSession(active || null)
-    checkVotes(election.$id)
-    .then(setHasVoted)
-    // Simulate progress for demonstration purposes
-    const timer = setInterval(() => {
-      setProgress(prevProgress => (prevProgress >= 100 ? 0 : prevProgress + 10))
-    }, 1000)
 
-    return () => clearInterval(timer)
-  }, [election.$id, election.sessions])
 
   const handleVote = (itemId: string, optionId: string) => {
     setVotes(prevVotes => ({

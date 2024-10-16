@@ -112,6 +112,7 @@ export async function startSession(session: ElectionSession): Promise<ElectionSe
       ],
       votingOptions: item.votingOptions.map(option => ({
         $id: option.$id,
+        votingItem: item.$id,
         $permissions: [
           Permission.read(Role.team(session.electionId, 'owner')),
           Permission.update(Role.team(session.electionId, 'owner')),
@@ -151,6 +152,7 @@ export async function stopSession(session: ElectionSession): Promise<ElectionSes
       ],
       votingOptions: item.votingOptions.map(option => ({
         $id: option.$id,
+        votingItem: item.$id,
         $permissions: [
           Permission.read(Role.team(session.electionId, 'owner')),
           Permission.update(Role.team(session.electionId, 'owner')),
@@ -332,26 +334,29 @@ export async function addOrRemoveAbstain(electionId: string, votingItemId: strin
 //Might want to swap order here. Create team membership first, then create document
 export async function addVoter(electionId: string, voter: Omit<Voter, '$id'>): Promise<Voter> {
     const { db: databases } = await createSessionClient();
-    const { teams } = await createAdminClient();
+    const { teams, db: adminDatabases } = await createAdminClient();
 
     const team = await teams.createMembership(electionId, ['voter'], voter?.email, voter?.$id, undefined, `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login`)
 
-  if (team.userId) {
-    const response = await databases.createDocument(databaseId, 'election_users', 'unique()', {
+    console.log("Team", team)
+    const docBody = {
       userId: team.userId,
       voter_id: voter.voterId,
       canVote: true,
-      electionId,
-      election: electionId,
+      electionId: team.teamId,
+      election: team.teamId,
       voteWeight: voter.voteWeight,
       user: team.userId,
       name: voter.name,
       email: voter.email
-    }, [
-      Permission.read(Role.team(electionId, 'owner')),
-      Permission.update(Role.team(electionId, 'owner')),
-      Permission.delete(Role.team(electionId, 'owner')),
-      Permission.read(Role.user(team.userId))
+    }
+    console.log("Team", docBody)
+  if (team.$id) {
+    const response = await adminDatabases.createDocument(databaseId, 'election_users', team.$id, docBody, [
+      Permission.read(Role.member(team.$id)),
+      Permission.read(Role.team(team.teamId, 'owner')),
+      Permission.update(Role.team(team.teamId, 'owner')),
+      Permission.delete(Role.team(team.teamId, 'owner')),
     ])
 
   revalidatePath('/admin/elections')
@@ -408,31 +413,31 @@ export async function updateVotingOption(optionId: string, votingOption: Partial
 }
 
 export async function fetchDetailedResults(electionId: string): Promise<DetailedVoteResult[]> {
-    const { db: databases } = await createSessionClient()
-    const response = await databases.listDocuments(databaseId, 'election_vote', [
-      Query.equal('electionId', electionId)
-    ])
-    
-    const voteMap = new Map<string, Map<string, number>>()
-    
-    response.documents.forEach(vote => {
-      if (!voteMap.has(vote.votingItemId)) {
-        voteMap.set(vote.votingItemId, new Map())
-      }
-      const itemMap = voteMap.get(vote.votingItemId)!
-      itemMap.set(vote.optionId, (itemMap.get(vote.optionId) || 0) + 1)
+  const { db: databases } = await createSessionClient()
+  const response = await databases.listDocuments(databaseId, 'election_vote', [
+    Query.equal('electionId', electionId)
+  ])
+  
+  const voteMap = new Map<string, Map<string, number>>()
+  
+  response.documents.forEach(vote => {
+    if (!voteMap.has(vote.votingItemId)) {
+      voteMap.set(vote.votingItemId, new Map())
+    }
+    const itemMap = voteMap.get(vote.votingItemId)!
+    const weight = vote.weight || 1 // Default to 1 if weight is not specified
+    itemMap.set(vote.optionId, (itemMap.get(vote.optionId) || 0) + weight)
+  })
+  
+  const results: DetailedVoteResult[] = []
+  voteMap.forEach((itemMap, votingItemId) => {
+    itemMap.forEach((voteCount, optionId) => {
+      results.push({ votingItemId, optionId, voteCount })
     })
-    
-    const results: DetailedVoteResult[] = []
-    voteMap.forEach((itemMap, votingItemId) => {
-      itemMap.forEach((voteCount, optionId) => {
-        results.push({ votingItemId, optionId, voteCount })
-      })
-    })
-    
-    return results
-  }
-
+  })
+  
+  return results
+}
   export async function fetchVoterParticipation(electionId: string): Promise<VoterParticipation> {
     const { db: databases } = await createSessionClient()
     const votersResponse = await databases.listDocuments(databaseId, 'election_users', [
