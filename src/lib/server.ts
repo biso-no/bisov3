@@ -31,7 +31,7 @@ export async function signInWithAzure() {
     const redirectUrl = await account.createOAuth2Token(
         OAuthProvider.Microsoft,
         `${origin}/auth/oauth/`,
-        `${BASE_URL}/auth/login`
+        `${origin}/auth/login`
         );
 
     return redirect(redirectUrl);
@@ -45,7 +45,7 @@ export async function signInWithMagicLink(email: string) {
     const redirectUrl = await account.createMagicURLToken(
         ID.unique(),
         email,
-        `${BASE_URL}/auth/callback`
+        `${origin}/auth/callback`
         );
 
     return redirectUrl ? true : false;
