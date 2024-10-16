@@ -21,6 +21,7 @@ export interface Election extends Models.Document {
     status: 'upcoming' | 'ongoing' | 'past';
     votingItems: VotingItem[]
     election: Election
+    electionVotes: Vote
   }
   
   export interface VotingItem extends Models.Document {

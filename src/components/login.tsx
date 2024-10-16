@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { signInWithAzure } from "@/lib/server"
+import { signInWithAzure, signInWithMagicLink } from "@/lib/server"
 
 export function Login() {
   const [email, setEmail] = useState("")
@@ -21,8 +21,7 @@ export function Login() {
       return
     }
     setIsLoading(true)
-    // Simulate API call for sending magic link or token
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await signInWithMagicLink(email)
     setIsLoading(false)
     setMessage({ type: "success", text: "Magic link sent! Please check your email." })
     // Here you would typically call your API to send the magic link or token

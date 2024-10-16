@@ -1,9 +1,9 @@
 "use server"
-import { createSessionClient } from "@/lib/appwrite";
+import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { VotingItemType, Vote } from "@/lib/types/election";
-import { ID, Query } from "node-appwrite";
+import { ID, Permission, Query, Role } from "node-appwrite";
 
 export async function getElection(electionId: string) {
     const { db } = await createSessionClient();
@@ -36,8 +36,28 @@ export async function getElections() {
     }
 }
 
+export async function getActiveSession(electionId: string) {
+    const { db } = await createSessionClient();
+    try {
+        const sessions = await db.listDocuments(
+            'app',
+            'election_sessions',
+            [
+                Query.equal('electionId', electionId),
+                Query.equal('status', 'ongoing')
+            ]
+        )
+        return sessions.documents[0]
+    } catch (error) {
+        console.error('Error fetching active session:', error);
+        return null;
+    }
+}
+
+
 export async function castVote(electionId: string, optionId: string, votingSessionId: string, votingItemId: string) {
     const { db, account } = await createSessionClient();
+    const { db: adminDb } = await createAdminClient();
     try {
         const user = await account.get();
         const voter = await db.listDocuments(
@@ -51,7 +71,7 @@ export async function castVote(electionId: string, optionId: string, votingSessi
         if (!voter) {
             return new Error('Voter not found');
         }
-        const vote = await db.createDocument(
+        const vote = await adminDb.createDocument(
             'app',
             'election_vote',
             ID.unique(),
@@ -62,8 +82,15 @@ export async function castVote(electionId: string, optionId: string, votingSessi
                 votingItemId,
                 electionId,
                 voter: voter.documents[0].$id,
-                weight: voter.documents[0].voteWeight
-            }
+                weight: voter.documents[0].voteWeight,
+                electionSession: votingSessionId,
+                votingOption: optionId,
+            },
+            [
+                Permission.read(Role.member(voter.documents[0].$id)),
+                Permission.read(Role.team(electionId, 'owner')),
+                Permission.delete(Role.member(voter.documents[0].$id)),
+            ]
         ) as Vote;
         revalidatePath('/elections/' + electionId);
         return vote;

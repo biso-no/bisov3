@@ -1,15 +1,16 @@
 import VoterComponent from "../../_components/vote";
-import { getElection, getVotes } from "../actions";
-import type { Election } from "@/app/(admin)/admin/elections/actions";
+import { getElection, getActiveSession } from "../actions";
+import type { Election, ElectionSession } from "@/lib/types/election";
 
 export default async function ElectionPage({ params }: { params: { id: string } }) {
-  console.log("ElectionPage params:", params);
   const election = await getElection(params.id) as Election;
+  const session = await getActiveSession(election.$id) as ElectionSession;
+  console.log("Election: ", JSON.stringify(session))
 
-  const hasVotedForActiveSession = await getVotes(params.id);
-  console.log("hasVotedForActiveSession:", hasVotedForActiveSession);
+  const hasVoted = session?.electionVotes.length > 0 ? true : false
+  console.log("hasVoted: ", hasVoted)
 
   return (
-    <VoterComponent initialElection={election} initialVotes={hasVotedForActiveSession} />
+    <VoterComponent initialElection={election} initialHasVoted={hasVoted} initialSession={session} />
   );
 }
