@@ -109,6 +109,7 @@ export default function UserDetails({ params }: { params: { userId: string } }) 
               <Input
                 id="email"
                 value={user.email}
+                disabled
                 onChange={(e) => setUser({ ...user, email: e.target.value })}
                
               />
