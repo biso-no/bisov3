@@ -43,6 +43,7 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
   const indexOfFirstUser = indexOfLastUser - usersPerPage
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser)
   const handleRowClick = (userId: string) => {
+    console.log(userId)
     router.push(`/admin/users/${userId}`)
   }
 
@@ -87,7 +88,7 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
         <TableBody>
           {currentUsers.map((user) => (
             <TableRow 
-            key={user.$id} 
+            key={user.$id}
             onClick={() => handleRowClick(user.$id)}
             className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
           >

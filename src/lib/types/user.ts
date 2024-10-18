@@ -9,6 +9,8 @@ export interface User extends Models.Document {
     email: string
     name: string
     campus: Campus
+    //campus: string
     isActive: boolean
     roles: string[]
 }
+

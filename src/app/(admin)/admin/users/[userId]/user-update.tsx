@@ -9,27 +9,45 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
+import { campusMap } from "@/lib/utils"
 import { getUser, updateUser } from "@/app/actions/admin"
 import { User,Campus } from "@/lib/types/user"
 
 
-export function UserDetails( { initialUser}: { initialUser: User} ) {
+export function UserDetails( { initialUser, updateUser}: { initialUser: User,updateUser} ) {
   const [user, setUser] = useState<User | null>(initialUser)
   const [isEditing, setIsEditing] = useState(false)
   const router = useRouter()
+  const [campus, setCampus] = useState<string | null>(initialUser.campus.$id)
+  //const [campus, setCampus] = useState<Campus | null>(initialUser.campus)
 
 
   const handleEditUser = async () => {
     if (!user) return
+    const values = {
+      name: user.name,
+      campus: campus,
+      campus_id: campus,
+      email: user.email,
+      isActive: user.isActive,
+      roles: user.roles
+    }
+
       try {
-        await updateUser(user.id, user)
-        router.push(`/admin/users/`)
+        await updateUser(user.$id, values)
+        router.refresh()
       } catch (error) {
         console.error("Error updating user:", error)
       }
   }
-
+  
+  
+  const handleCampusChange = async (e) => {
+    console.log(e)
+    setCampus(e)
+  }
+  
+  
 
   const handleRoleChange = (role: string) => {
     if (!user) return
@@ -40,6 +58,8 @@ export function UserDetails( { initialUser}: { initialUser: User} ) {
 
     setUser({ ...user, roles: newRoles })
   }
+
+
 
   if (!user) {
     return <div>Loading...</div>
@@ -88,9 +108,9 @@ export function UserDetails( { initialUser}: { initialUser: User} ) {
             </div>
             <div>
             <Label htmlFor="campus">Campus</Label>
-            <Select  value={user.campus} onValueChange={(e) => setUser({ ...user, campus: e})}>
+            <Select  value={campus} onValueChange={(e) => handleCampusChange(e)}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder={user.campus}/>
+            <SelectValue placeholder={user.campus.name}/>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="1">1</SelectItem>

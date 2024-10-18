@@ -1,7 +1,7 @@
 "use server"
 import { createSessionClient } from "@/lib/appwrite";
 import { User } from "@/lib/types/user";
-import { Query } from "node-appwrite";
+import { Models, Query } from "node-appwrite";
 
 export async function getUserRoles() {
 
@@ -23,3 +23,25 @@ export async function getUsers() {
 
   return response.documents as User[]
 }
+
+ //get one user
+ export async function getUser(userId: string) {
+  const { db } = await createSessionClient();
+  //console.log(userId)
+  const response = await db.getDocument(
+    'app', // databaseId
+    'user', // collectionId
+    userId // documentId
+
+);
+  return response as User;
+}
+
+export async function updateUser(userId: string, userInformation: Models.Document) {
+  const { db } = await createSessionClient();
+  return db.updateDocument(
+    'app', // databaseId
+    'user', // collectionId
+    userId, // documentId
+    userInformation)
+  }
