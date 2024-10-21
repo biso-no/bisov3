@@ -1,11 +1,11 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Progress } from "@/components/ui/progress"
-import { AlertCircle, CheckCircle2, Clock, Vote as VoteIcon } from "lucide-react"
+import { AlertCircle, CheckCircle2, Clock, RefreshCw, Vote as VoteIcon } from "lucide-react"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
@@ -15,12 +15,13 @@ import { castVote, getVotes } from "../elections/actions"
 import { Models } from "node-appwrite"
 
 
-export default function VoterComponent({ initialElection, initialHasVoted, initialSession }: { initialElection: Election, initialHasVoted: boolean, initialSession: ElectionSession }) {
+export default function VoterComponent({ initialElection, initialHasVoted, initialSession, getActiveSession }: { initialElection: Election, initialHasVoted: boolean, initialSession: ElectionSession, getActiveSession: (electionId: string) => Promise<Models.Document> }) {
   const [activeSession, setActiveSession] = useState<Models.Document | null>(initialSession)
   const [votes, setVotes] = useState<{ [itemId: string]: string[] }>({})
   const [hasVoted, setHasVoted] = useState(initialHasVoted)
   const [progress, setProgress] = useState(0)
   const [election, setElection] = useState(initialElection)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
 
 
@@ -30,6 +31,40 @@ export default function VoterComponent({ initialElection, initialHasVoted, initi
       [itemId]: [optionId]
     }))
   }
+
+  const refreshSession = useCallback(async () => {
+    setIsRefreshing(true)
+    try {
+      const latestSession = await getActiveSession(election.$id)
+      if (latestSession && latestSession.$id !== activeSession?.$id) {
+        setActiveSession(latestSession)
+        setHasVoted(false)
+        setVotes({})
+        toast({
+          title: "New session available",
+          description: "A new voting session has started.",
+          variant: "default",
+        })
+      }
+    } catch (error) {
+      console.error("Error refreshing session:", error)
+      toast({
+        title: "Error refreshing session",
+        description: "There was a problem checking for new sessions. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [getActiveSession, election.$id, activeSession?.$id])
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      refreshSession()
+    }, 60000) // Refresh every minute
+
+    return () => clearInterval(intervalId)
+  }, [refreshSession])
   
   const handleMultiVote = (item: VotingItem, optionId: string) => {
     setVotes(prevVotes => {
@@ -194,7 +229,23 @@ export default function VoterComponent({ initialElection, initialHasVoted, initi
         </div>
       </CardContent>
       <CardFooter className="flex justify-center">
-        <Button variant="outline">View Election Information</Button>
+        <Button 
+          variant="outline" 
+          onClick={refreshSession} 
+          disabled={isRefreshing}
+        >
+          {isRefreshing ? (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              Refreshing...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Check for New Session
+            </>
+          )}
+        </Button>
       </CardFooter>
     </Card>
   )

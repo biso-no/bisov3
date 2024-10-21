@@ -11,6 +11,6 @@ export default async function ElectionPage({ params }: { params: { id: string } 
   console.log("hasVoted: ", hasVoted)
 
   return (
-    <VoterComponent initialElection={election} initialHasVoted={hasVoted} initialSession={session} />
+    <VoterComponent initialElection={election} initialHasVoted={hasVoted} initialSession={session} getActiveSession={getActiveSession} />
   );
 }
