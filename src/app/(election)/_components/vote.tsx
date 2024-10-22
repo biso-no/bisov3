@@ -36,6 +36,7 @@ export default function VoterComponent({ initialElection, initialHasVoted, initi
     setIsRefreshing(true)
     try {
       const latestSession = await getActiveSession(election.$id)
+      console.log("Latest session:", latestSession)
       if (latestSession && latestSession.$id !== activeSession?.$id) {
         setActiveSession(latestSession)
         setHasVoted(false)

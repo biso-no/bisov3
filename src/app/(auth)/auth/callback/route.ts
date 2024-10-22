@@ -17,9 +17,9 @@ export async function GET(request: NextRequest) {
   cookies().set("x-biso-session", session.secret, {
     path: "/",
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "lax",
     secure: true,
   });
 
-  return redirect(`/apps`);
+  return redirect(`/elections`);
 }

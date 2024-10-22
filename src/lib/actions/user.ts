@@ -115,5 +115,5 @@ export async function signOut() {
     cookies().delete("x-biso-session");
     await account.deleteSession("current");
   
-    redirect("/signup");
+    redirect("/auth/login");
   }

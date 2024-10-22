@@ -333,10 +333,10 @@ export async function addOrRemoveAbstain(electionId: string, votingItemId: strin
 
 //Might want to swap order here. Create team membership first, then create document
 export async function addVoter(electionId: string, voter: Omit<Voter, '$id'>): Promise<Voter> {
-    const { db: databases } = await createSessionClient();
+    const { db: databases, teams: sessionTeams } = await createSessionClient();
     const { teams, db: adminDatabases } = await createAdminClient();
 
-    const team = await teams.createMembership(electionId, ['voter'], voter?.email, voter?.$id, undefined, `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login`)
+    const team = await sessionTeams.createMembership(electionId, ['voter'], voter?.email, voter?.$id, undefined, `${process.env.NEXT_PUBLIC_BASE_URL}/auth/invite`)
 
     console.log("Team", team)
     const docBody = {

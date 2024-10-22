@@ -1,5 +1,5 @@
 "use server";
-import { Client, Account, Databases, Teams, Storage } from "node-appwrite";
+import { Client, Account, Databases, Teams, Storage, Users } from "node-appwrite";
 import { cookies } from "next/headers";
 
 const APPWRITE_API_KEY = process.env.APPWRITE_API_KEY;
@@ -51,5 +51,8 @@ export async function createAdminClient() {
     get storage() {
       return new Storage(client);
     },
+    get users() {
+      return new Users(client);
+    }
   };
 }
