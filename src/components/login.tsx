@@ -63,7 +63,7 @@ export function Login() {
             "Sending..."
           ) : (
             <>
-              <Send className="mr-2 h-4 w-4" /> Send Magic Link
+              <Send className="mr-2 h-4 w-4" /> Send login link
             </>
           )}
         </Button>
@@ -78,7 +78,7 @@ export function Login() {
           </div>
         </div>
         <Button variant="outline" className="w-full" onClick={handleAdminLogin}>
-          <Key className="mr-2 h-4 w-4" /> Admin Login with Microsoft
+          <Key className="mr-2 h-4 w-4" /> Sign in with your BISO account
         </Button>
       </CardFooter>
       {message && (

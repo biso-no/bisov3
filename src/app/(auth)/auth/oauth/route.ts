@@ -13,12 +13,14 @@ export async function GET(request: NextRequest) {
   const { account } = await createAdminClient();
   const session = await account.createSession(userId, secret);
 
+  console.log("Session:", session)
+
   cookies().set("x-biso-session", session.secret, {
     path: "/",
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "lax",
     secure: true,
   });
 
-  return redirect(`/app`);
+  return redirect(`/admin`);
 }

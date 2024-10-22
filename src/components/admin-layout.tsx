@@ -21,6 +21,7 @@ import {
   Search,
   VoteIcon,
 } from 'lucide-react';
+import { signOut } from '@/lib/actions/user';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -81,6 +82,10 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
   const hasAccess = (itemRoles: string[]) => {
     return itemRoles.includes(selectedRole);
   };
+
+  const handleSignOut = async () => {
+    await signOut()
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -171,9 +176,9 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
             </div>
 
             <div className="flex items-center">
-              <Button variant="outline" className="mr-2">
+              <Button variant="outline" className="mr-2" onClick={handleSignOut}>
                 <CalendarIcon className="w-4 h-4 mr-2" />
-                <span>Schedule</span>
+                <span>Sign out</span>
               </Button>
             </div>
             
