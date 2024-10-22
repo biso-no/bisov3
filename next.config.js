@@ -6,4 +6,16 @@ module.exports = {
   },
   reactStrictMode: false,
   transpilePackages: ["@measured/puck", "lucide-react", "ui"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'appwrite.biso.no',
+      },
+      {
+        protocol: 'https',
+        hostname: 'biso.no',
+      },
+    ],
+  },
 };
