@@ -20,5 +20,5 @@ export async function GET(request: NextRequest) {
     secure: true,
   });
 
-  return redirect(`/admin`);
+  return redirect(`/app`);
 }
