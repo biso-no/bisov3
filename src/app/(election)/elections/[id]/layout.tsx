@@ -1,4 +1,4 @@
-import '@/app/globals.css';
+import { SignOutButton } from "@/components/sign-out-button";
 
 export default function ElectionLayout({
   children,
@@ -6,8 +6,11 @@ export default function ElectionLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div>
-        {children}
+    <div className="flex flex-col">
+      <div className="flex justify-end p-4">
+        <SignOutButton />
+      </div>
+      {children}
     </div>
-  )
+  );
 }

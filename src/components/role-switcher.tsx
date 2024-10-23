@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectGroup, SelectTrigger, SelectValue } from './ui/select';
 
 interface RoleSwitcherProps {
@@ -10,7 +9,7 @@ interface RoleSwitcherProps {
 export function RoleSwitcher({ roles, selectedRole, setSelectedRole }: RoleSwitcherProps) {
   if (!roles.includes('Admin')) return null; // Only show to Admins
 
-  const availableRoles = ['Admin', 'pr', 'finance', 'kk', 'hr']; // Define all possible roles
+  const availableRoles = ['Admin', 'pr', 'finance', 'Control Committee', 'hr']; // Define all possible roles
 
   return (
     <div className="p-4 flex justify-between items-center">

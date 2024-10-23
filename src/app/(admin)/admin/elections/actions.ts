@@ -102,6 +102,10 @@ export async function startSession(session: ElectionSession): Promise<ElectionSe
   const response = await databases.updateDocument(databaseId, 'election_sessions', session.$id, { 
     startTime: new Date().toISOString(), 
     status: 'ongoing',
+    election: {
+      $id: session.electionId,
+      status: 'ongoing'
+    },
     votingItems: session.votingItems.map(item => ({
       $id: item.$id,
       $permissions: [
@@ -112,7 +116,7 @@ export async function startSession(session: ElectionSession): Promise<ElectionSe
       ],
       votingOptions: item.votingOptions.map(option => ({
         $id: option.$id,
-        votingItem: item.$id,
+        votingItemId: item.$id,
         $permissions: [
           Permission.read(Role.team(session.electionId, 'owner')),
           Permission.update(Role.team(session.electionId, 'owner')),
@@ -337,7 +341,6 @@ export async function addVoter(electionId: string, voter: Omit<Voter, '$id'>): P
     const { teams, db: adminDatabases } = await createAdminClient();
 
     const team = await sessionTeams.createMembership(electionId, ['voter'], voter?.email, voter?.$id, undefined, `${process.env.NEXT_PUBLIC_BASE_URL}/auth/invite`)
-
     console.log("Team", team)
     const docBody = {
       userId: team.userId,
@@ -353,7 +356,7 @@ export async function addVoter(electionId: string, voter: Omit<Voter, '$id'>): P
     console.log("Team", docBody)
   if (team.$id) {
     const response = await adminDatabases.createDocument(databaseId, 'election_users', team.$id, docBody, [
-      Permission.read(Role.member(team.$id)),
+      Permission.read(Role.user(team.userId)),
       Permission.read(Role.team(team.teamId, 'owner')),
       Permission.update(Role.team(team.teamId, 'owner')),
       Permission.delete(Role.team(team.teamId, 'owner')),
