@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { MoreHorizontal, Pencil, Trash, UserPlus, Upload, Plus, X } from "lucide-react"
+import { MoreHorizontal, Pencil, Trash, UserPlus, Upload, Plus, X, Download } from "lucide-react"
+import * as XLSX from "xlsx"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
@@ -30,6 +31,14 @@ export default function VoterTable({ electionId }: { electionId: string }) {
   const [isMultiUserInput, setIsMultiUserInput] = useState(false)
   const [multiUserInputs, setMultiUserInputs] = useState<Omit<Voter, '$id' | 'canVote'>[]>([{ name: '', email: '', voterId: '', voteWeight: 1 }])
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isLoading, setIsLoading] = useState(false)
+const [notification, setNotification] = useState<{ message: string, type: 'error' | 'success' | 'info' } | null>(null)
+
+const showNotification = (message: string, type: 'error' | 'success' | 'info') => {
+  setNotification({ message, type })
+  setTimeout(() => setNotification(null), 5000)
+}
+
 
   useEffect(() => {
     const fetchVoters = async () => {
@@ -52,6 +61,56 @@ export default function VoterTable({ electionId }: { electionId: string }) {
 
   const handleEdit = (voter: Voter) => {
     setEditingVoter(voter)
+  }
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+  
+    setIsLoading(true)
+    try {
+      const data = await file.arrayBuffer()
+      const workbook = XLSX.read(data, { type: "array" })
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]]
+      const jsonData = XLSX.utils.sheet_to_json<{ [key: string]: any }>(worksheet)
+  
+      // Check if the required fields are present
+      if (!jsonData[0] || !('Name' in jsonData[0] && 'Email' in jsonData[0] && 'Voter ID' in jsonData[0])) {
+        showNotification("The uploaded file is missing required columns.", "error")
+        setIsLoading(false)
+        return
+      }
+  
+      // Map the excel data to the expected fields
+      const mappedVoters = jsonData.map((row) => ({
+        name: row['Name']?.toString().trim() || '',
+        email: row['Email']?.toString().trim() || '',
+        voterId: row['Voter ID']?.toString().trim() || '',
+        voteWeight: parseInt(row['Vote Weight']?.toString().trim() || '1'),
+      }))
+  
+      // Update the form state
+      setIsMultiUserInput(true)
+      setMultiUserInputs(mappedVoters)
+      showNotification("File uploaded successfully.", "success")
+    } catch (error) {
+      console.error("Error reading the Excel file:", error)
+      showNotification("Failed to read the Excel file.", "error")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  
+
+  const downloadTemplate = () => {
+    const workbook = XLSX.utils.book_new()
+    const worksheetData = [
+      ["Name", "Email", "Voter ID", "Vote Weight"], // Header row
+      ["John Doe", "john@example.com", "12345", "1"], // Example data row
+    ]
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData)
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template")
+    XLSX.writeFile(workbook, "Voter_Template.xlsx")
   }
 
   const handleDelete = async (id: string) => {
@@ -89,29 +148,6 @@ export default function VoterTable({ electionId }: { electionId: string }) {
       setMultiUserInputs([{ name: '', email: '', voterId: '', voteWeight: 1 }])
     } catch (error) {
       console.error("Error inviting voters:", error)
-    }
-  }
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const content = e.target?.result as string
-        const lines = content.split('\n')
-        const newVoters = lines.slice(1).map(line => {
-          const [name, email, voterId, voteWeight] = line.split(',')
-          return {
-            name: name.trim(),
-            email: email.trim(),
-            voterId: voterId.trim(),
-            voteWeight: parseInt(voteWeight.trim()),
-            canVote: true
-          }
-        })
-        handleInvite(newVoters)
-      }
-      reader.readAsText(file)
     }
   }
 
@@ -232,7 +268,7 @@ export default function VoterTable({ electionId }: { electionId: string }) {
                   <span className="flex items-center space-x-2">
                     <Upload className="w-6 h-6 text-gray-600" />
                     <span className="font-medium text-gray-600">
-                      Drop Excel/CSV file or click to upload
+                      Drop Excel file or click to upload
                     </span>
                   </span>
                   <input
@@ -240,12 +276,20 @@ export default function VoterTable({ electionId }: { electionId: string }) {
                     name="file-upload"
                     type="file"
                     className="hidden"
-                    accept=".csv,.xlsx,.xls"
+                    accept=".xlsx,.xls"
                     onChange={handleFileUpload}
                     ref={fileInputRef}
                   />
                 </div>
               </Label>
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75">
+                  <p>Loading...</p>
+                </div>
+              )}
+              <Button className="mt-4" onClick={downloadTemplate}>
+                <Download className="mr-2 h-4 w-4" /> Download Excel Template
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

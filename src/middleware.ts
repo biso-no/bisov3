@@ -27,6 +27,19 @@ export async function middleware(req: NextRequest) {
 
   const { account, teams } = await createSessionClient();
 
+  // Check if the path is /
+  if (pathname === '/') {
+    let user;
+    try {
+      user = await account.get();
+      // If the user is authenticated, redirect to /elections
+      return NextResponse.redirect(new URL("/elections", req.url));
+    } catch (error) {
+      // If the user is not authenticated, redirect to /auth/login
+      return NextResponse.redirect(new URL("/auth/login", req.url));
+    }
+  }
+
   // Check if the user is authenticated
   let user;
   try {
@@ -41,7 +54,7 @@ export async function middleware(req: NextRequest) {
 
   // If the user is authenticated and attempts to access auth pages, redirect them to the homepage
   if (user.$id && pathname.startsWith('/auth')) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/elections", req.url));
   }
 
   // Retrieve the user's teams and roles
@@ -51,7 +64,7 @@ export async function middleware(req: NextRequest) {
   const userRoles = userTeams.teams.map((team) => team.name);
 
   if (user.$id) {
-    userRoles.push('users')
+    userRoles.push('users');
   }
 
   // Handle edit routes
@@ -65,7 +78,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // Check if the user has access to the requested admin path
-  const hasAccess = userRoles.some(role => 
+  const hasAccess = userRoles.some(role =>
     roleAccessMap[role]?.some(path => pathname.startsWith(path))
   );
 
@@ -83,7 +96,7 @@ export async function middleware(req: NextRequest) {
   }
 
   if (!hasAccess && pathname.startsWith(adminPath)) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/elections", req.url));
   }
 
   return res;

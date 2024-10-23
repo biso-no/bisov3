@@ -68,6 +68,7 @@ export async function castVote(electionId: string, optionId: string, votingSessi
                 Query.equal('userId', user.$id)
             ]
         );
+        console.log("Voter", voter)
         if (!voter) {
             return new Error('Voter not found');
         }
@@ -87,9 +88,9 @@ export async function castVote(electionId: string, optionId: string, votingSessi
                 votingOption: optionId,
             },
             [
-                Permission.read(Role.member(voter.documents[0].$id)),
+                Permission.read(Role.user(user.$id)),
                 Permission.read(Role.team(electionId, 'owner')),
-                Permission.delete(Role.member(voter.documents[0].$id)),
+                Permission.delete(Role.team(electionId, 'owner')),
             ]
         ) as Vote;
         revalidatePath('/elections/' + electionId);
