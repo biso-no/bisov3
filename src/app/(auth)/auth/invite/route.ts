@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   const membershipId = request.nextUrl.searchParams.get("membershipId");
   const teamId = request.nextUrl.searchParams.get("teamId");
 
-  const { account, users, teams } = await createAdminClient();
+  const { account, teams } = await createSessionClient();
 
   const acceptedInvitation = await teams.updateMembershipStatus(
     teamId,
