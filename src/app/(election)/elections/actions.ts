@@ -113,6 +113,7 @@ export async function getVotes(electionId: string) {
                 Query.equal('status', 'ongoing'),
             ]
         );
+        console.log("Active session", activeSession)
 
         const user = await account.get();
         const voter = await db.listDocuments(

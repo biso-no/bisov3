@@ -11,7 +11,8 @@ import {
   startSession,
   stopSession,
   deleteSession,
-  deleteVotingItem
+  deleteVotingItem,
+  fetchNonVoters
 } from '../actions'
 
 export default async function ElectionPage({ params }: { params: { id: string } }) {
@@ -46,5 +47,6 @@ export default async function ElectionPage({ params }: { params: { id: string } 
             stopSession={stopSession}
             deleteSession={deleteSession}
             deleteVotingItem={deleteVotingItem}
+            fetchNonVoters={fetchNonVoters}
           />
 }

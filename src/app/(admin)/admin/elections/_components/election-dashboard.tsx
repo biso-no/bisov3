@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,6 +23,10 @@ import { useVotesSubscription } from '@/lib/admin/use-subscription'
 import VoterTable from './voter-table'
 import { campusMap } from '@/lib/utils'
 import PDFDownloadButton from './pdf-download'
+import NonVotersDisplay, { NonVotersDisplaySkeleton } from './not-voted'
+import type { NonVoter } from '@/lib/types/election'
+
+
 
 export default function ElectionDashboard({ 
   initialElection,
@@ -36,7 +40,8 @@ export default function ElectionDashboard({
   startSession,
   stopSession,
   deleteSession,
-  deleteVotingItem
+  deleteVotingItem,
+  fetchNonVoters
  }: { 
   initialElection: Election,
   addElectionSession: (session: Omit<ElectionSession, '$id'>) => Promise<ElectionSession>,
@@ -49,7 +54,8 @@ export default function ElectionDashboard({
   startSession: (session: ElectionSession) => Promise<ElectionSession>,
   stopSession: (session: ElectionSession) => Promise<ElectionSession>,
   deleteSession: (sessionId: string) => Promise<ElectionSession>,
-  deleteVotingItem: (itemId: string) => Promise<void>
+  deleteVotingItem: (itemId: string) => Promise<void>,
+  fetchNonVoters: (sessionId: string) => Promise<NonVoter[]>
  }) {
   const [election, setElection] = useState(initialElection)
   const [activeTab, setActiveTab] = useState("overview")
@@ -59,6 +65,7 @@ export default function ElectionDashboard({
   const router = useRouter()
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const newVoteData = useVotesSubscription(election.$id)
+  const [nonVotersBySession, setNonVotersBySession] = useState<Record<string, NonVoter[]>>({});
 
   useEffect(() => {
     console.log("New vote data:", newVoteData)
@@ -175,6 +182,37 @@ export default function ElectionDashboard({
       )
     }))
   }, [])
+
+  useEffect(() => {
+    const loadResults = async () => {
+      setIsLoading(true);
+      try {
+        const [fetchedResults, fetchedParticipation, nonVotersData] = await Promise.all([
+          fetchDetailedResults(election.$id),
+          fetchVoterParticipation(election.$id),
+          Promise.all(election.sessions.map(async (session) => ({
+            sessionId: session.$id,
+            nonVoters: await fetchNonVoters(session.$id)
+          })))
+        ]);
+        
+        setDetailedResults(fetchedResults);
+        setVoterParticipation(fetchedParticipation);
+        
+        // Transform non-voters data into an object keyed by session ID
+        const nonVotersMap = nonVotersData.reduce((acc, { sessionId, nonVoters }) => ({
+          ...acc,
+          [sessionId]: nonVoters
+        }), {});
+        setNonVotersBySession(nonVotersMap);
+      } catch (error) {
+        console.error("Failed to fetch results:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadResults();
+  }, [election.$id, fetchDetailedResults, fetchVoterParticipation, fetchNonVoters, election.sessions]);
 
   const handleDeleteSession = async (sessionId: string) => {
     await deleteSession(sessionId)
@@ -391,6 +429,13 @@ export default function ElectionDashboard({
                       </div>
                     </div>
                   ))}
+                  <Suspense fallback={<NonVotersDisplaySkeleton />}>
+                    <NonVotersDisplay
+                      sessionName={session.name}
+                      nonVoters={nonVotersBySession[session.$id] || []}
+                      isLoading={isLoading}
+                    />  
+                  </Suspense> 
                 </CardContent>
               </Card>
             ))

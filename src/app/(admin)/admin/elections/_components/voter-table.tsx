@@ -115,7 +115,7 @@ const showNotification = (message: string, type: 'error' | 'success' | 'info') =
 
   const handleDelete = async (id: string) => {
     try {
-      await removeVoter(id)
+      await removeVoter(electionId, id)
       setVoters(voters.filter(voter => voter.$id !== id))
     } catch (error) {
       console.error("Error deleting voter:", error)
