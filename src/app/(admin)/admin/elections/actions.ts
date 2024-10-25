@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { Models } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 import type { NonVoter } from '@/lib/types/election';
+import { headers } from 'next/headers';
 
 const databaseId = 'app'
 
@@ -341,7 +342,9 @@ export async function addVoter(electionId: string, voter: Omit<Voter, '$id'>): P
     const { db: databases, teams: sessionTeams } = await createSessionClient();
     const { teams, db: adminDatabases } = await createAdminClient();
 
-    const team = await sessionTeams.createMembership(electionId, ['voter'], voter?.email, voter?.$id, undefined, `${process.env.NEXT_PUBLIC_BASE_URL}/auth/invite`)
+    const origin = headers().get("origin");
+
+    const team = await sessionTeams.createMembership(electionId, ['voter'], voter?.email, voter?.$id, undefined, `${origin}/auth/invite`)
     console.log("Team", team)
     const docBody = {
       userId: team.userId,
