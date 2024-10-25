@@ -369,9 +369,16 @@ export async function addVoter(electionId: string, voter: Omit<Voter, '$id'>): P
   }
 }
 
-export async function removeVoter(voterId: string): Promise<void> {
-    const { db: databases } = await createSessionClient();
-  await databases.deleteDocument(databaseId, 'election_users', voterId)
+export async function removeVoter(electionId: string, voterId: string): Promise<void> {
+    const { db: databases, teams } = await createSessionClient();
+  const deletedDoc = await databases.deleteDocument(databaseId, 'election_users', voterId)
+
+  if (deletedDoc) {
+    const team = await teams.get(electionId)
+    if (team) {
+      await teams.deleteMembership(team.$id, voterId)
+    }
+  }
   revalidatePath('/admin/elections')
 }
 
