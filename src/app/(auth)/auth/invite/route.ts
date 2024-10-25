@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 
 const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
 const PROJECT_ID = "biso"
@@ -15,8 +17,10 @@ export async function GET(request: NextRequest) {
   const membershipId = request.nextUrl.searchParams.get("membershipId");
   const teamId = request.nextUrl.searchParams.get("teamId");
 
+  const origin = headers().get("origin");
+
   if (!userId || !secret || !membershipId || !teamId) {
-    return NextResponse.redirect(new URL('/auth/login?error=invalid_parameters', request.url));
+    return redirect('/auth/login?error=invalid_parameters')
   }
 
   try {
@@ -38,11 +42,11 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       console.error('Failed to accept invitation:', await response.text());
-      return NextResponse.redirect(new URL('/auth/login?error=invitation_failed', request.url));
+      return redirect('/auth/login?error=invitation_failed')
     }
 
     // Create response with redirect
-    const redirectResponse = NextResponse.redirect(new URL('/elections', request.url));
+    const redirectResponse = NextResponse.redirect(new URL('/elections', origin));
 
     // Extract cookies from response headers
     const setCookieHeader = response.headers.get('Set-Cookie');
@@ -89,6 +93,6 @@ export async function GET(request: NextRequest) {
     return redirectResponse;
   } catch (error) {
     console.error('Error handling team invitation:', error);
-    return NextResponse.redirect(new URL('/auth/login?error=unexpected_error', request.url));
+    return NextResponse.redirect(new URL('/auth/login?error=unexpected_error', origin));
   }
 }
