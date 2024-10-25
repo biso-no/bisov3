@@ -4,6 +4,7 @@ import { Client, Databases, Permission, Query, Role } from 'node-appwrite'
 import { revalidatePath } from 'next/cache'
 import { Models } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from "@/lib/appwrite";
+import type { NonVoter } from '@/lib/types/election';
 
 const databaseId = 'app'
 
@@ -466,3 +467,43 @@ export async function fetchDetailedResults(electionId: string): Promise<Detailed
       participatedVoters
     }
   }
+
+  //Fetch users who have not voted for the given session
+  export async function fetchNonVoters(sessionId: string): Promise<NonVoter[]> {
+    const { db } = await createSessionClient();
+    
+    try {
+      // Get the session with all its relationships
+      const session = await db.getDocument('app', 'election_sessions', sessionId);
+      
+      if (!session?.election?.electionUsers) {
+        throw new Error('Session or election users data not found');
+      }
+  
+      // Get all eligible voters from the election relationship
+      const eligibleVoters = session.election.electionUsers;
+  
+      // Get voters who have already voted from the session relationship
+      const votedVoterIds = new Set(
+        (session.electionVotes || []).map(vote => vote.voterId)
+      );
+  
+      // Filter out voters who have already voted
+      const nonVoters = eligibleVoters.filter(voter => 
+        !votedVoterIds.has(voter.$id)
+      );
+  
+      // Map to required format
+      return nonVoters.map(voter => ({
+        name: voter.name,
+        email: voter.email,
+        voterId: voter.voter_id
+      }));
+  
+    } catch (error) {
+      console.error('Error fetching non-voters:', error);
+      throw new Error('Failed to fetch non-voters');
+    }
+  }
+  
+  // Optional: Add a helper function to get voting statistics using the same data
