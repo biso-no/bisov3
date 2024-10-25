@@ -18,6 +18,7 @@ import {
 import { ChevronLeft, ChevronRight, Search, Grid, List } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
+
       
       const getUniqueDepartments = (posts: Post[]): Department[] => {
         const uniqueMap = new Map<string, Department>();
@@ -33,8 +34,22 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
       
         return Array.from(uniqueMap.values());
       };
-      
 
+      const getUniqueCampuses = (posts: Post[]): Campus[] => {
+        const uniqueMap = new Map<string, Campus>();
+      
+        posts.forEach((post) => {
+          const campus = post.campus;
+      
+          // Check if the department has a valid 'id' and add to the map if it's not already present
+          if (campus.name && !uniqueMap.has(campus.name)) {
+            uniqueMap.set(campus.name, campus);
+          }
+        });
+      
+        return Array.from(uniqueMap.values());
+      };
+      
 export function PostTable({posts}:{posts:Post[]}){
     const [uniqueCampuses, setUniqueCampuses] = useState<Campus[]>([]);
     const [uniqueDepartments, setUniqueDepartments] = useState<Department[]>([]);
@@ -43,26 +58,37 @@ export function PostTable({posts}:{posts:Post[]}){
 
     //search filters
     const [search, setSearch] = useState('')
-    const [department, setDepartment] = useState('')
-    const [campus, setCampus] = useState('')
+    const [department, setDepartment] = useState('all')
+    const [campus, setCampus] = useState('all')
+
+    //form
+    const [formData, setFormData] = useState({
+      search: "",
+      campus:"",
+      department:""
+    })
 
 
   // Extract unique campuses and departments when the component loads
   useEffect(() => {
-    const uniqueDepts = getUniqueDepartments(posts);
-    setUniqueDepartments(uniqueDepts);
+    const uniqueDepartments = getUniqueDepartments(posts);
+    const uniqueCampuses = getUniqueCampuses(posts);
+    setUniqueCampuses(uniqueCampuses);
+    setUniqueDepartments(uniqueDepartments);
   }, [posts]);
 
 
     const filteredPosts = useMemo(() => {
         return posts.filter(post => 
           post.title.toLowerCase().includes(search.toLowerCase()) 
-          //&&
-          //(department === '' || post.department === department) &&
-          //(campus === '' || post.campus === campus)
+          &&
+          (department === 'all' || post.department.Name === department) 
+          &&
+          (campus === 'all' || post.campus.name === campus)
         )
-      }, [search /*, department, campus*/])
+      }, [search , department, campus])
     
+    // dummy comment
     //pagination
     const paginatedPosts = useMemo(() => {
         const startIndex = (page - 1) * 3
@@ -71,10 +97,34 @@ export function PostTable({posts}:{posts:Post[]}){
     const totalPages = Math.ceil(filteredPosts.length / 3)
 
     //for the form for filter and view electin
+    const handleChange = (eOrField) => {
+      if (typeof eOrField === 'string') {
+          // This is for the Select components
+          return (value) => {
+              setFormData({
+                  ...formData,
+                  [eOrField]: value
+              });
+          };
+      } else {
+          // This is for the Input fields
+          const { name, value } = eOrField.target;
+          setFormData({
+              ...formData,
+              [name]: value
+          });
+      }
+  };
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
+        setSearch(formData.search)
+        setCampus(formData.campus)
+        setDepartment(formData.department)
         setPage(1) // Reset to first page when searching
       }
+
+
 
     //list view gried view
     const toggleViewType = () => {
@@ -90,19 +140,32 @@ export function PostTable({posts}:{posts:Post[]}){
       <form onSubmit={handleSearch} className="flex gap-4 mb-5">
       <Input
           type="text"
+          name="search"
           placeholder="Search posts..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={formData.search}
+          onChange={handleChange}
           className="flex-grow"
         />
-        <Select value={department} onValueChange={setDepartment}>
-          <SelectTrigger className="w-[180px]">
+        <Select value={formData.department} onValueChange={handleChange("department")} name="department">
+          <SelectTrigger className="w-[180px]" >
             <SelectValue placeholder="Department" />
           </SelectTrigger>
           <SelectContent>
           <SelectItem value="all">All Departments</SelectItem>
           {uniqueDepartments.map((dep: Department) => (
             <SelectItem value={dep.Name}>{dep.Name}</SelectItem>
+          ))}
+
+          </SelectContent>
+        </Select>
+        <Select value={formData.campus} onValueChange={handleChange("campus")} name="campus">
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Campus" />
+          </SelectTrigger>
+          <SelectContent>
+          <SelectItem value="all">All Campuses</SelectItem>
+          {uniqueCampuses.map((camp: Campus) => (
+            <SelectItem value={camp.name}>{camp.name}</SelectItem>
           ))}
 
           </SelectContent>
