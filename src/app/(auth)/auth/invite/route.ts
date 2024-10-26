@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const membershipId = request.nextUrl.searchParams.get("membershipId");
   const teamId = request.nextUrl.searchParams.get("teamId");
 
-  const origin = headers().get("origin");
+  const origin = "https://app.biso.no"
 
   if (!userId || !secret || !membershipId || !teamId) {
     return redirect('/auth/login?error=invalid_parameters')
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Create response with redirect
-    const redirectResponse = NextResponse.redirect(new URL('/elections', origin));
+    const redirectResponse = NextResponse.redirect(origin)
 
     // Extract cookies from response headers
     const setCookieHeader = response.headers.get('Set-Cookie');
