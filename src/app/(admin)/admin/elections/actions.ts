@@ -119,6 +119,7 @@ export async function startSession(session: ElectionSession): Promise<ElectionSe
       votingOptions: item.votingOptions.map(option => ({
         $id: option.$id,
         votingItemId: item.$id,
+        votingItem: item.$id,
         $permissions: [
           Permission.read(Role.team(session.electionId, 'owner')),
           Permission.update(Role.team(session.electionId, 'owner')),
@@ -158,6 +159,7 @@ export async function stopSession(session: ElectionSession): Promise<ElectionSes
       ],
       votingOptions: item.votingOptions.map(option => ({
         $id: option.$id,
+        votingItemId: item.$id,
         votingItem: item.$id,
         $permissions: [
           Permission.read(Role.team(session.electionId, 'owner')),
