@@ -108,31 +108,7 @@ export async function startSession(session: ElectionSession): Promise<ElectionSe
       $id: session.electionId,
       status: 'ongoing'
     },
-    votingItems: session.votingItems.map(item => ({
-      $id: item.$id,
-      $permissions: [
-        Permission.read(Role.team(session.electionId, 'owner')),
-        Permission.update(Role.team(session.electionId, 'owner')),
-        Permission.delete(Role.team(session.electionId, 'owner')),
-        Permission.read(Role.team(session.electionId, 'voter')),
-      ],
-      votingOptions: item.votingOptions.map(option => ({
-        $id: option.$id,
-        votingItemId: item.$id,
-        $permissions: [
-          Permission.read(Role.team(session.electionId, 'owner')),
-          Permission.update(Role.team(session.electionId, 'owner')),
-          Permission.delete(Role.team(session.electionId, 'owner')),
-          Permission.read(Role.team(session.electionId, 'voter')),
-        ],
-      }))
-    })),
-   }, [
-    Permission.read(Role.team(session.electionId, 'owner')),
-    Permission.update(Role.team(session.electionId, 'owner')),
-    Permission.delete(Role.team(session.electionId, 'owner')),
-    Permission.read(Role.team(session.electionId, 'voter')),
-  ])
+   })
   revalidatePath('/admin/elections')
   return response as ElectionSession
 }
@@ -149,29 +125,7 @@ export async function stopSession(session: ElectionSession): Promise<ElectionSes
   const response = await databases.updateDocument(databaseId, 'election_sessions', session.$id, { 
     endTime: new Date().toISOString(), 
     status: 'past',
-    votingItems: session.votingItems.map(item => ({
-      $id: item.$id,
-      $permissions: [
-        Permission.read(Role.team(session.electionId, 'owner')),
-        Permission.update(Role.team(session.electionId, 'owner')),
-        Permission.delete(Role.team(session.electionId, 'owner')),
-      ],
-      votingOptions: item.votingOptions.map(option => ({
-        $id: option.$id,
-        votingItem: item.$id,
-        $permissions: [
-          Permission.read(Role.team(session.electionId, 'owner')),
-          Permission.update(Role.team(session.electionId, 'owner')),
-          Permission.delete(Role.team(session.electionId, 'owner')),
-        ],
-      }))
-    })),
-   },[
-    //No read access for voters
-    Permission.read(Role.team(session.electionId, 'owner')),
-    Permission.update(Role.team(session.electionId, 'owner')),
-    Permission.delete(Role.team(session.electionId, 'owner')),
-  ])
+   })
   revalidatePath('/admin/elections')
   return response as ElectionSession
 }
@@ -266,7 +220,7 @@ export async function addElectionSession(session: Omit<ElectionSession, '$id'>):
     ...session,
     status: 'upcoming',
   }, [
-    Permission.read(Role.team(session.electionId, 'owner')),
+    Permission.read(Role.team(session.electionId)),
     Permission.update(Role.team(session.electionId, 'owner')),
     Permission.delete(Role.team(session.electionId, 'owner')),
   ])
@@ -279,9 +233,9 @@ export async function addVotingItem(electionId: string, votingItem: Omit<VotingI
   const response = await databases.createDocument(databaseId, 'voting_item', 'unique()', {
       ...votingItem,
   }, [
-      Permission.read(Role.team(electionId, 'owner')),
-      Permission.update(Role.team(electionId, 'owner')),
-      Permission.delete(Role.team(electionId, 'owner')),
+    Permission.read(Role.team(electionId)),
+    Permission.update(Role.team(electionId, 'owner')),
+    Permission.delete(Role.team(electionId, 'owner')),
   ])
 
   let options = []
@@ -327,7 +281,7 @@ export async function addVotingOption(electionId: string, votingOption: Omit<Vot
   const response = await databases.createDocument(databaseId, 'voting_option', 'unique()', {
     ...votingOption,
   }, [
-    Permission.read(Role.team(electionId, 'owner')),
+    Permission.read(Role.team(electionId)),
     Permission.update(Role.team(electionId, 'owner')),
     Permission.delete(Role.team(electionId, 'owner')),
   ])
