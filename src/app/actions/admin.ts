@@ -46,7 +46,7 @@ export async function getPost(postId: string){
 
 }
 
-export async function updatePost(postId: string, post: Post){
+export async function updatePost(postId: string, post){
   const { db } = await createSessionClient();
   const response = await db.getDocument('app', 'news', postId
   );
@@ -61,7 +61,10 @@ export async function updatePost(postId: string, post: Post){
       "content": post.content,
       "status": post.status,
       "image":post.image,
-      "department":post.department
+      "department_id":post.department,
+      "campus_id":post.campus,
+      "department":post.department,
+      "campus":post.campus
     }, // data (optional)
   )
 

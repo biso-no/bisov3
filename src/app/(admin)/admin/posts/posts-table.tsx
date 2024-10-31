@@ -18,7 +18,7 @@ import {
 import { ChevronLeft, ChevronRight, Search, Grid, List } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
-
+import { useRouter } from "next/navigation"
       
       const getUniqueDepartments = (posts: Post[]): Department[] => {
         const uniqueMap = new Map<string, Department>();
@@ -27,7 +27,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
           const department = post.department;
       
           // Check if the department has a valid 'id' and add to the map if it's not already present
-          if (department.Name && !uniqueMap.has(department.Name)) {
+          if (department && department.Name && !uniqueMap.has(department.Name)) {
             uniqueMap.set(department.Name, department);
           }
         });
@@ -42,7 +42,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
           const campus = post.campus;
       
           // Check if the department has a valid 'id' and add to the map if it's not already present
-          if (campus.name && !uniqueMap.has(campus.name)) {
+          if (campus && campus.name && !uniqueMap.has(campus.name)) {
             uniqueMap.set(campus.name, campus);
           }
         });
@@ -65,9 +65,10 @@ export function PostTable({posts}:{posts:Post[]}){
     const [formData, setFormData] = useState({
       search: "",
       campus:"",
-      department:""
+      department:"",
     })
 
+    const router = useRouter();
 
   // Extract unique campuses and departments when the component loads
   useEffect(() => {
@@ -131,7 +132,9 @@ export function PostTable({posts}:{posts:Post[]}){
         setViewType(viewType === 'list' ? 'grid' : 'list')
       }
     
-
+      const handleRowClick = (postId: string) => {
+        router.push(`/admin/posts/${postId}`)
+      }
     return( <div className="container mx-auto py-10">
       <h1 className="text-2xl font-bold mb-5">View Posts</h1>
       <div className="container mx-auto py-10">
@@ -194,12 +197,11 @@ export function PostTable({posts}:{posts:Post[]}){
           <TableHead>Campus</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Created At</TableHead>
-          <TableHead>Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {filteredPosts.map((post: Post) => (
-          <TableRow key={post.id}>
+          <TableRow key={post.id} onClick={() => handleRowClick(post.$id)}>
             <TableCell>{post.isSticky ? '📌 ' : ''}{post.title}</TableCell>
             <TableCell>{post.department?.Name}</TableCell>
             <TableCell>{post.campus?.name}</TableCell>
@@ -211,11 +213,6 @@ export function PostTable({posts}:{posts:Post[]}){
               </span>
             </TableCell>
             <TableCell>{format(new Date(post.created_at), 'MMM d, yyyy')}</TableCell>
-            <TableCell>
-              <Link href={`/posts/${post.id}`} className="text-blue-600 hover:underline">
-                View/Edit
-              </Link>
-            </TableCell>
           </TableRow>
         ))}
       </TableBody>
