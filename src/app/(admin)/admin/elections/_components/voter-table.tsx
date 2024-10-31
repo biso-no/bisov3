@@ -32,7 +32,9 @@ export default function VoterTable({ electionId }: { electionId: string }) {
   const [multiUserInputs, setMultiUserInputs] = useState<Omit<Voter, '$id' | 'canVote'>[]>([{ name: '', email: '', voterId: '', voteWeight: 1 }])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isLoading, setIsLoading] = useState(false)
-const [notification, setNotification] = useState<{ message: string, type: 'error' | 'success' | 'info' } | null>(null)
+  const [isInviting, setIsInviting] = useState(false)
+  const [notification, setNotification] = useState<{ message: string, type: 'error' | 'success' | 'info' } | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
 const showNotification = (message: string, type: 'error' | 'success' | 'info') => {
   setNotification({ message, type })
@@ -139,16 +141,39 @@ const showNotification = (message: string, type: 'error' | 'success' | 'info') =
   }
 
   const handleInvite = async (newVoters: Omit<Voter, 'id'>[]) => {
+    setIsInviting(true)
     try {
       const createdVoters = await Promise.all(newVoters.map(async (voter) => {
         const response = await addVoter(electionId, voter)
         return response as Voter
       }))
-      setVoters([...voters, ...createdVoters])
+      setVoters(prev => [...(prev || []), ...createdVoters])
       setMultiUserInputs([{ name: '', email: '', voterId: '', voteWeight: 1 }])
+      showNotification("Voters invited successfully!", "success")
+      setDialogOpen(false)
     } catch (error) {
       console.error("Error inviting voters:", error)
+      showNotification("Failed to invite voters. Please try again.", "error")
+    } finally {
+      setIsInviting(false)
     }
+  }
+
+  const handleSingleInvite = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    await handleInvite([{
+      name: formData.get('name') as string,
+      email: formData.get('email') as string,
+      voterId: formData.get('voterId') as string,
+      voteWeight: parseInt(formData.get('voteWeight') as string),
+      canVote: true
+    }])
+  }
+
+  const handleMultiInvite = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    await handleInvite(multiUserInputs.map(input => ({ ...input, canVote: true })))
   }
 
   const addMultiUserInput = () => {
@@ -168,9 +193,18 @@ const showNotification = (message: string, type: 'error' | 'success' | 'info') =
 
   return (
     <div className="container mx-auto py-10">
+      {notification && (
+        <div className={`fixed top-4 right-4 p-4 rounded shadow-lg ${
+          notification.type === 'error' ? 'bg-red-100 text-red-800' :
+          notification.type === 'success' ? 'bg-green-100 text-green-800' :
+          'bg-blue-100 text-blue-800'
+        }`}>
+          {notification.message}
+        </div>
+      )}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">Voter Table</h2>
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button><UserPlus className="mr-2 h-4 w-4" /> Invite Voters</Button>
           </DialogTrigger>
@@ -187,78 +221,103 @@ const showNotification = (message: string, type: 'error' | 'success' | 'info') =
               <Label htmlFor="multi-user-mode">Multi-user input mode</Label>
             </div>
             {isMultiUserInput ? (
-              <form onSubmit={(e) => {
-                e.preventDefault()
-                handleInvite(multiUserInputs.map(input => ({ ...input, canVote: true })))
-              }}>
+              <form onSubmit={handleMultiInvite}>
                 {multiUserInputs.map((input, index) => (
                   <div key={index} className="grid grid-cols-5 gap-4 mb-4 items-center">
                     <Input
                       placeholder="Name"
                       value={input.name}
                       onChange={(e) => updateMultiUserInput(index, 'name', e.target.value)}
+                      disabled={isInviting}
                     />
                     <Input
                       placeholder="Email"
                       type="email"
                       value={input.email}
                       onChange={(e) => updateMultiUserInput(index, 'email', e.target.value)}
+                      disabled={isInviting}
                     />
                     <Input
                       placeholder="Voter ID"
                       value={input.voterId}
                       onChange={(e) => updateMultiUserInput(index, 'voterId', e.target.value)}
+                      disabled={isInviting}
                     />
                     <Input
                       placeholder="Vote Weight"
                       type="number"
                       value={input.voteWeight}
                       onChange={(e) => updateMultiUserInput(index, 'voteWeight', parseInt(e.target.value))}
+                      disabled={isInviting}
                     />
-                    <Button type="button" variant="ghost" onClick={() => removeMultiUserInput(index)}>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      onClick={() => removeMultiUserInput(index)}
+                      disabled={isInviting}
+                    >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
-                <Button type="button" onClick={addMultiUserInput} className="mb-4">
+                <Button 
+                  type="button" 
+                  onClick={addMultiUserInput} 
+                  className="mb-4"
+                  disabled={isInviting}
+                >
                   <Plus className="h-4 w-4 mr-2" /> Add Another Voter
                 </Button>
                 <DialogFooter>
-                  <Button type="submit">Invite Multiple Voters</Button>
+                  <Button type="submit" disabled={isInviting}>
+                    {isInviting ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Inviting Voters...
+                      </span>
+                    ) : (
+                      'Invite Multiple Voters'
+                    )}
+                  </Button>
                 </DialogFooter>
               </form>
             ) : (
-              <form onSubmit={(e) => {
-                e.preventDefault()
-                const formData = new FormData(e.currentTarget)
-                handleInvite([{
-                  name: formData.get('name') as string,
-                  email: formData.get('email') as string,
-                  voterId: formData.get('voterId') as string,
-                  voteWeight: parseInt(formData.get('voteWeight') as string),
-                  canVote: true
-                }])
-              }}>
+              <form onSubmit={handleSingleInvite}>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="name" className="text-right">Name</Label>
-                    <Input id="name" name="name" className="col-span-3" />
+                    <Input id="name" name="name" className="col-span-3" disabled={isInviting} />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="email" className="text-right">Email</Label>
-                    <Input id="email" name="email" type="email" className="col-span-3" />
+                    <Input id="email" name="email" type="email" className="col-span-3" disabled={isInviting} />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="voterId" className="text-right">Voter ID</Label>
-                    <Input id="voterId" name="voterId" className="col-span-3" />
+                    <Input id="voterId" name="voterId" className="col-span-3" disabled={isInviting} />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="voteWeight" className="text-right">Vote Weight</Label>
-                    <Input id="voteWeight" name="voteWeight" type="number" defaultValue="1" className="col-span-3" />
+                    <Input id="voteWeight" name="voteWeight" type="number" defaultValue="1" className="col-span-3" disabled={isInviting} />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit">Invite</Button>
+                  <Button type="submit" disabled={isInviting}>
+                    {isInviting ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Inviting Voter...
+                      </span>
+                    ) : (
+                      'Invite'
+                    )}
+                  </Button>
                 </DialogFooter>
               </form>
             )}
@@ -279,6 +338,7 @@ const showNotification = (message: string, type: 'error' | 'success' | 'info') =
                     accept=".xlsx,.xls"
                     onChange={handleFileUpload}
                     ref={fileInputRef}
+                    disabled={isInviting}
                   />
                 </div>
               </Label>
@@ -287,7 +347,7 @@ const showNotification = (message: string, type: 'error' | 'success' | 'info') =
                   <p>Loading...</p>
                 </div>
               )}
-              <Button className="mt-4" onClick={downloadTemplate}>
+              <Button className="mt-4" onClick={downloadTemplate} disabled={isInviting}>
                 <Download className="mr-2 h-4 w-4" /> Download Excel Template
               </Button>
             </div>

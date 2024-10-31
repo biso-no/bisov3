@@ -103,64 +103,124 @@ export default function ElectionDashboard({
   }
 
   const handleAddVotingItem = async (sessionId: string, newItem: Omit<VotingItem, '$id' | 'sessionId'>) => {
-    const item = await addVotingItem(election.$id, { ...newItem, votingSessionId: sessionId, session: sessionId })
-    setElection(prev => ({
-      ...prev,
-      sessions: prev.sessions.map(session =>
-        session.$id === sessionId
-          ? { ...session, votingItems: [...session.votingItems, item] }
-          : session
-      )
-    }))
-    router.refresh()
-  }
+    try {
+        const item = await addVotingItem(election.$id, { 
+            ...newItem, 
+            votingSessionId: sessionId, 
+            session: sessionId 
+        })
+        
+        setElection(prev => ({
+            ...prev,
+            sessions: prev.sessions.map(session =>
+                session.$id === sessionId
+                    ? {
+                        ...session,
+                        votingItems: [...session.votingItems, item]
+                    }
+                    : session
+            )
+        }))
+    } catch (error) {
+        console.error("Failed to add voting item:", error)
+    }
+}
 
   const handleAddVotingOption = async (itemId: string, newOption: Omit<VotingOption, '$id' | 'votingItemId'>) => {
-    const option = await addVotingOption(election.$id, { ...newOption, votingItemId: itemId, votingItem: itemId })
-    setElection(prev => ({
-      ...prev,
-      sessions: prev.sessions.map(session => ({
-        ...session,
-        votingItems: session.votingItems.map(item =>
-          item.$id === itemId
-            ? { ...item, options: [...(item.options || []), option] }
-            : item
-        )
-      }))
-    }))
-    router.refresh()
-  }
+    try {
+      const option = await addVotingOption(election.$id, {
+        ...newOption,
+        votingItemId: itemId,
+        votingItem: itemId
+      })
 
-  
-  const handleRemoveVotingOption = async (optionId: string) => {
-    await removeVotingOption(optionId)
-    setElection(prev => ({
-      ...prev,
-      sessions: prev.sessions.map(session => ({
-        ...session,
-        votingItems: session.votingItems.map(item => ({
-          ...item,
-          options: item.options.filter(option => option.$id !== optionId)
+      setElection(prev => ({
+        ...prev,
+        sessions: prev.sessions.map(session => ({
+          ...session,
+          votingItems: session.votingItems.map(item =>
+            item.$id === itemId
+              ? {
+                  ...item,
+                  options: [...(item.options || []), option]
+                }
+              : item
+          )
         }))
       }))
-    }))
-    router.refresh()
+    } catch (error) {
+      console.error("Failed to add voting option:", error)
+    }
+  }
+  
+  const handleRemoveVotingOption = async (optionId: string) => {
+    try {
+      await removeVotingOption(optionId)
+      setElection(prev => ({
+        ...prev,
+        sessions: prev.sessions.map(session => ({
+          ...session,
+          votingItems: session.votingItems.map(item => ({
+            ...item,
+            options: (item.options || []).filter(option => option.$id !== optionId)
+          }))
+        }))
+      }))
+      router.refresh()
+    } catch (error) {
+      console.error("Failed to remove voting option:", error)
+    }
   }
 
   const handleAddOrRemoveAbstain = async (itemId: string, allowAbstain: boolean) => {
-    await addOrRemoveAbstain(election.$id, itemId, allowAbstain)
-    setElection(prev => ({
-      ...prev,
-      sessions: prev.sessions.map(session => ({
-        ...session,
-        votingItems: session.votingItems.map(item =>
-          item.$id === itemId
-            ? { ...item, allowAbstain }
-            : item
-        )
-      }))
-    }))
-    router.refresh()
+    try {
+      await addOrRemoveAbstain(election.$id, itemId, allowAbstain)
+      
+      if (allowAbstain) {
+        // Add Abstain option immediately in the UI
+        const abstainOption = await addVotingOption(election.$id, {
+          value: 'Abstain',
+          description: 'Abstain from voting',
+          votingItemId: itemId,
+          votingItem: itemId
+        })
+
+        setElection(prev => ({
+          ...prev,
+          sessions: prev.sessions.map(session => ({
+            ...session,
+            votingItems: session.votingItems.map(item =>
+              item.$id === itemId
+                ? {
+                    ...item,
+                    allowAbstain,
+                    options: [...(item.options || []), abstainOption]
+                  }
+                : item
+            )
+          }))
+        }))
+      } else {
+        // Remove Abstain option from UI
+        setElection(prev => ({
+          ...prev,
+          sessions: prev.sessions.map(session => ({
+            ...session,
+            votingItems: session.votingItems.map(item =>
+              item.$id === itemId
+                ? {
+                    ...item,
+                    allowAbstain,
+                    options: (item.options || []).filter(option => option.value !== 'Abstain')
+                  }
+                : item
+            )
+          }))
+        }))
+      }
+    } catch (error) {
+      console.error("Failed to update abstain option:", error)
+    }
   }
 
   const getTotalVotes = (itemId: string) => {

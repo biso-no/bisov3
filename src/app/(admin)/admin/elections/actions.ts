@@ -229,35 +229,50 @@ export async function addElectionSession(session: Omit<ElectionSession, '$id'>):
 }
 
 export async function addVotingItem(electionId: string, votingItem: Omit<VotingItem, '$id'>): Promise<VotingItem> {
-    const { db: databases } = await createSessionClient();
+  const { db: databases } = await createSessionClient();
   const response = await databases.createDocument(databaseId, 'voting_item', 'unique()', {
-    ...votingItem,
+      ...votingItem,
   }, [
     Permission.read(Role.team(electionId)),
     Permission.update(Role.team(electionId, 'owner')),
     Permission.delete(Role.team(electionId, 'owner')),
   ])
-  
-  let initialOptions = []
+
+  let options = []
   if (votingItem.allowAbstain) {
-    initialOptions.push({ value: 'Abstain', description: '', votingItem: votingItem.$id })
+      const abstainOption = await addVotingOption(electionId, {
+          value: 'Abstain',
+          description: '',
+          votingItemId: response.$id,
+          votingItem: response.$id
+      })
+      options.push(abstainOption)
   }
+  
   if (votingItem.type === 'statute') {
-    initialOptions.push({ value: 'Yes', description: '', votingItem: votingItem.$id })
-    initialOptions.push({ value: 'No', description: '', votingItem: votingItem.$id })
-  }
-  if (response && initialOptions.length > 0) {
-    for (let i = 0; i < initialOptions.length; i++) {
-      const option = initialOptions[i]
-      const options = await addVotingOption(electionId, { ...option, votingItemId: response.$id, votingItem: response.$id })
-      if (response) {
-        initialOptions[i] = response
-      }
-    }
+      const yesOption = await addVotingOption(electionId, {
+          value: 'Yes',
+          description: '',
+          votingItemId: response.$id,
+          votingItem: response.$id
+      })
+      const noOption = await addVotingOption(electionId, {
+          value: 'No',
+          description: '',
+          votingItemId: response.$id,
+          votingItem: response.$id
+      })
+      options.push(yesOption, noOption)
   }
 
+  // Return the complete item with its options
+  const completeItem = {
+      ...response,
+      options
+  } as unknown as VotingItem
+
   revalidatePath('/admin/elections')
-  return response as VotingItem
+  return completeItem
 }
 
 export async function addVotingOption(electionId: string, votingOption: Omit<VotingOption, '$id'>): Promise<VotingOption> {
