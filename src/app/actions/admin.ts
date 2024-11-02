@@ -63,6 +63,8 @@ export async function updatePost(postId: string, post){
       "image":post.image,
       "department_id":post.department,
       "campus_id":post.campus,
+      "created_at":post.created_at,
+      "updated_at":post.updated_at,
       "department":post.department,
       "campus":post.campus
     }, // data (optional)
@@ -70,7 +72,7 @@ export async function updatePost(postId: string, post){
 
 }
 
-export async function createPost(postId: string, post: Post){
+export async function createPost(post){
   const { db } = await createSessionClient();
 
   const result = await db.createDocument(
@@ -83,7 +85,12 @@ export async function createPost(postId: string, post: Post){
       "content": post.content,
       "status": post.status,
       "image":post.image,
-      "department":post.department
+      "department_id":post.department,
+      "campus_id":post.campus,
+      "created_at":post.created_at,
+      "updated_at":post.updated_at,
+      "department":post.department,
+      "campus":post.campus
     }, // data (optional)
 );
 
