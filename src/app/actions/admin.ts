@@ -4,6 +4,7 @@ import { User } from "@/lib/types/user";
 import { Post } from "@/lib/types/post";
 import { Query } from "node-appwrite";
 import { Client, Databases} from "appwrite";
+import { revalidatePath } from "next/cache";
 
 
 export async function getUserRoles() {
@@ -50,7 +51,7 @@ export async function updatePost(postId: string, post){
   const { db } = await createSessionClient();
   const response = await db.getDocument('app', 'news', postId
   );
-
+  revalidatePath('/admin/posts')
   return db.updateDocument(
     'app', // databaseId
     'news', // collectionId
@@ -93,7 +94,7 @@ export async function createPost(post){
       "campus":post.campus
     }, // data (optional)
 );
-
+  revalidatePath('/admin/posts')
   return result
 
 }
@@ -107,7 +108,7 @@ const result = await db.deleteDocument(
   'news', // collectionId
   postId // documentId
 );
-
+revalidatePath('/admin/posts')
 return result
 
 }
