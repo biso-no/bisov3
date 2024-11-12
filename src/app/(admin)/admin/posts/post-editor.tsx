@@ -136,26 +136,24 @@ export default function PostEditor({ post, departments, campuses }: PostEditorPr
                   </FormItem>
                 )}
               />
-              <Controller
-                name="content"
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Content</FormLabel>
-                    <FormControl>
-                      <JoditEditor
-                        value={field.value}
-                        config={editorConfig}
-                        onBlur={field.onBlur}
-                        onChange={React.useCallback((newContent: string) => {
-                          field.onChange(newContent)
-                        }, [field])}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <Controller
+                  name="content"
+                  control={form.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Content</FormLabel>
+                      <FormControl>
+                        <JoditEditor
+                          value={field.value}
+                          config={editorConfig}
+                          onBlur={field.onBlur}
+                          onChange={(newContent: string) => field.onChange(newContent)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
             </div>
             <Sidebar className="w-80 border-l">
               <SidebarHeader className="px-4 py-2">
