@@ -32,40 +32,45 @@ export default function VoterComponent({ initialElection, initialHasVoted, initi
     }))
   }
 
+  const checkIfHasVoted = async () => {
+    const currentVotes = await getVotes(election.$id);
+    setHasVoted(currentVotes)
+  };
+  
+  useEffect(() => {
+    checkIfHasVoted();
+  }, [activeSession]);
+  
+
   const refreshSession = useCallback(async () => {
-    setIsRefreshing(true)
+    setIsRefreshing(true);
     try {
-      const latestSession = await getActiveSession(election.$id)
-      console.log("Latest session:", latestSession)
+      const latestSession = await getActiveSession(election.$id);
       if (latestSession && latestSession.$id !== activeSession?.$id) {
-        setActiveSession(latestSession)
-        setHasVoted(false)
-        setVotes({})
+        setActiveSession(latestSession);
+        setHasVoted(false); // Reset the hasVoted state for new session
+        setVotes({});
         toast({
           title: "New session available",
           description: "A new voting session has started.",
           variant: "default",
-        })
+        });
+      } else {
+        // Check if the user has votes in the current session
+        await checkIfHasVoted();
       }
     } catch (error) {
-      console.error("Error refreshing session:", error)
+      console.error("Error refreshing session:", error);
       toast({
         title: "Error refreshing session",
         description: "There was a problem checking for new sessions. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsRefreshing(false)
+      setIsRefreshing(false);
     }
-  }, [getActiveSession, election.$id, activeSession?.$id])
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      refreshSession()
-    }, 60000) // Refresh every minute
-
-    return () => clearInterval(intervalId)
-  }, [refreshSession])
+  }, [getActiveSession, election.$id, activeSession?.$id]);
+  
   
   const handleMultiVote = (item: VotingItem, optionId: string) => {
     setVotes(prevVotes => {
@@ -141,6 +146,7 @@ export default function VoterComponent({ initialElection, initialHasVoted, initi
             description: "Thank you for participating in this election.",
             variant: "default",
           })
+          setVotes({})
           setHasVoted(true)
         } catch (error) {
           console.error("Error submitting vote:", error)
@@ -172,34 +178,38 @@ export default function VoterComponent({ initialElection, initialHasVoted, initi
             <div key={item.$id} className="mb-6 last:mb-0">
               <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
               {item.type === "position" ? (
-               <RadioGroup 
-               onValueChange={(value) => handleVote(item.$id, value)}
-               value={votes[item.$id]?.[0] || ''}
-             >
-                  {item.votingOptions?.map((option) => (
-                    <div key={option.$id} className="flex items-center space-x-2 mb-2">
-                      <RadioGroupItem value={option.$id} id={option.$id} />
-                      <Label htmlFor={option.$id}>{option.value} - {option.description}</Label>
-                    </div>
-                  ))}
+                <RadioGroup
+                  onValueChange={(value) => handleVote(item.$id, value)}
+                  value={votes[item.$id]?.[0] || ''}
+                >
+                  {item.votingOptions
+                    ?.sort((a, b) => (a.value === 'Abstain' ? 1 : b.value === 'Abstain' ? -1 : 0))
+                    .map((option) => (
+                      <div key={option.$id} className="flex items-center space-x-2 mb-2">
+                        <RadioGroupItem value={option.$id} id={option.$id} />
+                        <Label htmlFor={option.$id}>{option.value} - {option.description}</Label>
+                      </div>
+                    ))}
                 </RadioGroup>
               ) : (
                 <div className="space-y-2">
-                  {item.votingOptions?.map((option) => (
-                    <div key={option.$id} className="flex items-center space-x-2">
+                  {item.votingOptions
+                    ?.sort((a, b) => (a.value === 'Abstain' ? 1 : b.value === 'Abstain' ? -1 : 0))
+                    .map((option) => (
+                      <div key={option.$id} className="flex items-center space-x-2">
                         <Checkbox
-                        id={option.$id}
-                        checked={(votes[item.$id] || []).includes(option.$id)}
-                        onCheckedChange={() => handleMultiVote(item, option.$id)}
+                          id={option.$id}
+                          checked={(votes[item.$id] || []).includes(option.$id)}
+                          onCheckedChange={() => handleMultiVote(item, option.$id)}
                         />
-                      <Label htmlFor={option.$id}>{option.value} - {option.description}</Label>
-                    </div>
-                  ))}
+                        <Label htmlFor={option.$id}>{option.value} - {option.description}</Label>
+                      </div>
+                    ))}
                 </div>
               )}
               <p className="text-sm text-muted-foreground mt-2">
-                {isVoteComplete(item) 
-                  ? "✅ Vote complete" 
+                {isVoteComplete(item)
+                  ? "✅ Vote complete"
                   : `Select ${(votes[item.$id] || []).includes('abstain') ? 'at least 1' : item.maxSelections} option${item.maxSelections > 1 ? 's' : ''} or abstain`}
               </p>
             </div>
@@ -211,6 +221,7 @@ export default function VoterComponent({ initialElection, initialHasVoted, initi
       </CardFooter>
     </Card>
   )
+  
 
   const WaitingScreen = () => (
     <Card className="text-center">

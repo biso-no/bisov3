@@ -1,9 +1,15 @@
-import { createAdminClient, createSessionClient } from "@/lib/appwrite";
-import { cookies } from "next/headers";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 
-//Callback url: http://localhost:3000/auth/callback?membershipId=67176e718fb8ea6a586c&userId=670fb777283897fd3b9a&secret=fbe9f208dc4a55d71f894e4e0bec2d9718788b35bcb6d36b73d143e01f9cc2d8ad052bcc47d72fb991806e0eab41b69178be968338fa193106bd6f4ea6022e8a44b147fd6f0b5a58e31b80973a6b9be369a41711812b8c3384fc9c771aa4528cbe673fb6dea7f57c63be59d5996decc79732d17de163bc09f336980cbed67251&teamId=67176e640024dd5c2c89
+const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
+const PROJECT_ID = "biso"
+const API_KEY = process.env.NEXT_PUBLIC_APPWRITE_API_KEY;
+
+// Cookie name mapping
+const COOKIE_NAME_MAP = {
+  'a_session_biso': 'x-biso-session'
+};
 
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
@@ -11,18 +17,82 @@ export async function GET(request: NextRequest) {
   const membershipId = request.nextUrl.searchParams.get("membershipId");
   const teamId = request.nextUrl.searchParams.get("teamId");
 
-  const { account, users, teams } = await createAdminClient();
+  const origin = "https://app.biso.no"
 
-  const acceptedInvitation = await teams.updateMembershipStatus(
-    teamId,
-    membershipId,
-    userId,
-    secret
-  );
-
-  if (acceptedInvitation.joined) {
-    return redirect(`/auth/login?joined=true`);
+  if (!userId || !secret || !membershipId || !teamId) {
+    return redirect('/auth/login?error=invalid_parameters')
   }
 
-  return redirect(`/auth/login?joined=false`);
+  try {
+    const response = await fetch(
+      `${APPWRITE_ENDPOINT}/teams/${teamId}/memberships/${membershipId}/status`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Appwrite-Project': PROJECT_ID,
+          'X-Appwrite-Key': API_KEY,
+        },
+        body: JSON.stringify({
+          userId,
+          secret,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Failed to accept invitation:', await response.text());
+      return redirect('/auth/login?error=invitation_failed')
+    }
+
+    // Create response with redirect
+    const redirectResponse = NextResponse.redirect(origin)
+
+    // Extract cookies from response headers
+    const setCookieHeader = response.headers.get('Set-Cookie');
+    const fallbackCookies = response.headers.get('X-Fallback-Cookies');
+
+    if (setCookieHeader) {
+      // Parse and set the cookies from Set-Cookie header
+      const cookiesList = setCookieHeader.split(',').map(cookie => cookie.trim());
+      for (const cookieStr of cookiesList) {
+        // Extract the cookie name and value
+        const [cookiePart] = cookieStr.split(';');
+        const [name, value] = cookiePart.split('=');
+        
+        // Use mapped name if exists, otherwise use original name
+        const mappedName = COOKIE_NAME_MAP[name] || name;
+        
+        redirectResponse.cookies.set(mappedName, value, {
+          path: "/",
+          httpOnly: true,
+          sameSite: "lax",
+          secure: true,
+        });
+      }
+    } else if (fallbackCookies) {
+      // Parse and set cookies from X-Fallback-Cookies
+      try {
+        const fallbackCookiesObj = JSON.parse(fallbackCookies);
+        for (const [name, value] of Object.entries(fallbackCookiesObj)) {
+          // Use mapped name if exists, otherwise use original name
+          const mappedName = COOKIE_NAME_MAP[name] || name;
+          
+          redirectResponse.cookies.set(mappedName, value as string, {
+            path: "/",
+            httpOnly: true,
+            sameSite: "lax",
+            secure: true,
+          });
+        }
+      } catch (e) {
+        console.error('Failed to parse fallback cookies:', e);
+      }
+    }
+
+    return redirectResponse;
+  } catch (error) {
+    console.error('Error handling team invitation:', error);
+    return NextResponse.redirect(new URL('/auth/login?error=unexpected_error', origin));
+  }
 }

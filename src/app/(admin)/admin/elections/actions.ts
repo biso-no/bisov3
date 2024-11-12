@@ -4,6 +4,8 @@ import { Client, Databases, Permission, Query, Role } from 'node-appwrite'
 import { revalidatePath } from 'next/cache'
 import { Models } from 'node-appwrite'
 import { createAdminClient, createSessionClient } from "@/lib/appwrite";
+import type { NonVoter } from '@/lib/types/election';
+import { headers } from 'next/headers';
 
 const databaseId = 'app'
 
@@ -102,31 +104,11 @@ export async function startSession(session: ElectionSession): Promise<ElectionSe
   const response = await databases.updateDocument(databaseId, 'election_sessions', session.$id, { 
     startTime: new Date().toISOString(), 
     status: 'ongoing',
-    votingItems: session.votingItems.map(item => ({
-      $id: item.$id,
-      $permissions: [
-        Permission.read(Role.team(session.electionId, 'owner')),
-        Permission.update(Role.team(session.electionId, 'owner')),
-        Permission.delete(Role.team(session.electionId, 'owner')),
-        Permission.read(Role.team(session.electionId, 'voter')),
-      ],
-      votingOptions: item.votingOptions.map(option => ({
-        $id: option.$id,
-        votingItem: item.$id,
-        $permissions: [
-          Permission.read(Role.team(session.electionId, 'owner')),
-          Permission.update(Role.team(session.electionId, 'owner')),
-          Permission.delete(Role.team(session.electionId, 'owner')),
-          Permission.read(Role.team(session.electionId, 'voter')),
-        ],
-      }))
-    })),
-   }, [
-    Permission.read(Role.team(session.electionId, 'owner')),
-    Permission.update(Role.team(session.electionId, 'owner')),
-    Permission.delete(Role.team(session.electionId, 'owner')),
-    Permission.read(Role.team(session.electionId, 'voter')),
-  ])
+    election: {
+      $id: session.electionId,
+      status: 'ongoing'
+    },
+   })
   revalidatePath('/admin/elections')
   return response as ElectionSession
 }
@@ -143,29 +125,7 @@ export async function stopSession(session: ElectionSession): Promise<ElectionSes
   const response = await databases.updateDocument(databaseId, 'election_sessions', session.$id, { 
     endTime: new Date().toISOString(), 
     status: 'past',
-    votingItems: session.votingItems.map(item => ({
-      $id: item.$id,
-      $permissions: [
-        Permission.read(Role.team(session.electionId, 'owner')),
-        Permission.update(Role.team(session.electionId, 'owner')),
-        Permission.delete(Role.team(session.electionId, 'owner')),
-      ],
-      votingOptions: item.votingOptions.map(option => ({
-        $id: option.$id,
-        votingItem: item.$id,
-        $permissions: [
-          Permission.read(Role.team(session.electionId, 'owner')),
-          Permission.update(Role.team(session.electionId, 'owner')),
-          Permission.delete(Role.team(session.electionId, 'owner')),
-        ],
-      }))
-    })),
-   },[
-    //No read access for voters
-    Permission.read(Role.team(session.electionId, 'owner')),
-    Permission.update(Role.team(session.electionId, 'owner')),
-    Permission.delete(Role.team(session.electionId, 'owner')),
-  ])
+   })
   revalidatePath('/admin/elections')
   return response as ElectionSession
 }
@@ -260,7 +220,7 @@ export async function addElectionSession(session: Omit<ElectionSession, '$id'>):
     ...session,
     status: 'upcoming',
   }, [
-    Permission.read(Role.team(session.electionId, 'owner')),
+    Permission.read(Role.team(session.electionId)),
     Permission.update(Role.team(session.electionId, 'owner')),
     Permission.delete(Role.team(session.electionId, 'owner')),
   ])
@@ -269,35 +229,50 @@ export async function addElectionSession(session: Omit<ElectionSession, '$id'>):
 }
 
 export async function addVotingItem(electionId: string, votingItem: Omit<VotingItem, '$id'>): Promise<VotingItem> {
-    const { db: databases } = await createSessionClient();
+  const { db: databases } = await createSessionClient();
   const response = await databases.createDocument(databaseId, 'voting_item', 'unique()', {
-    ...votingItem,
+      ...votingItem,
   }, [
-    Permission.read(Role.team(electionId, 'owner')),
+    Permission.read(Role.team(electionId)),
     Permission.update(Role.team(electionId, 'owner')),
     Permission.delete(Role.team(electionId, 'owner')),
   ])
-  
-  let initialOptions = []
+
+  let options = []
   if (votingItem.allowAbstain) {
-    initialOptions.push({ value: 'Abstain', description: '', votingItem: votingItem.$id })
+      const abstainOption = await addVotingOption(electionId, {
+          value: 'Abstain',
+          description: '',
+          votingItemId: response.$id,
+          votingItem: response.$id
+      })
+      options.push(abstainOption)
   }
+  
   if (votingItem.type === 'statute') {
-    initialOptions.push({ value: 'Yes', description: '', votingItem: votingItem.$id })
-    initialOptions.push({ value: 'No', description: '', votingItem: votingItem.$id })
-  }
-  if (response && initialOptions.length > 0) {
-    for (let i = 0; i < initialOptions.length; i++) {
-      const option = initialOptions[i]
-      const options = await addVotingOption(electionId, { ...option, votingItemId: response.$id, votingItem: response.$id })
-      if (response) {
-        initialOptions[i] = response
-      }
-    }
+      const yesOption = await addVotingOption(electionId, {
+          value: 'Yes',
+          description: '',
+          votingItemId: response.$id,
+          votingItem: response.$id
+      })
+      const noOption = await addVotingOption(electionId, {
+          value: 'No',
+          description: '',
+          votingItemId: response.$id,
+          votingItem: response.$id
+      })
+      options.push(yesOption, noOption)
   }
 
+  // Return the complete item with its options
+  const completeItem = {
+      ...response,
+      options
+  } as unknown as VotingItem
+
   revalidatePath('/admin/elections')
-  return response as VotingItem
+  return completeItem
 }
 
 export async function addVotingOption(electionId: string, votingOption: Omit<VotingOption, '$id'>): Promise<VotingOption> {
@@ -306,7 +281,7 @@ export async function addVotingOption(electionId: string, votingOption: Omit<Vot
   const response = await databases.createDocument(databaseId, 'voting_option', 'unique()', {
     ...votingOption,
   }, [
-    Permission.read(Role.team(electionId, 'owner')),
+    Permission.read(Role.team(electionId)),
     Permission.update(Role.team(electionId, 'owner')),
     Permission.delete(Role.team(electionId, 'owner')),
   ])
@@ -336,8 +311,9 @@ export async function addVoter(electionId: string, voter: Omit<Voter, '$id'>): P
     const { db: databases, teams: sessionTeams } = await createSessionClient();
     const { teams, db: adminDatabases } = await createAdminClient();
 
-    const team = await sessionTeams.createMembership(electionId, ['voter'], voter?.email, voter?.$id, undefined, `${process.env.NEXT_PUBLIC_BASE_URL}/auth/invite`)
+    const origin = headers().get("origin");
 
+    const team = await sessionTeams.createMembership(electionId, ['voter'], voter?.email, voter?.$id, undefined, `${origin}/auth/invite`)
     console.log("Team", team)
     const docBody = {
       userId: team.userId,
@@ -353,7 +329,7 @@ export async function addVoter(electionId: string, voter: Omit<Voter, '$id'>): P
     console.log("Team", docBody)
   if (team.$id) {
     const response = await adminDatabases.createDocument(databaseId, 'election_users', team.$id, docBody, [
-      Permission.read(Role.member(team.$id)),
+      Permission.read(Role.user(team.userId)),
       Permission.read(Role.team(team.teamId, 'owner')),
       Permission.update(Role.team(team.teamId, 'owner')),
       Permission.delete(Role.team(team.teamId, 'owner')),
@@ -366,9 +342,16 @@ export async function addVoter(electionId: string, voter: Omit<Voter, '$id'>): P
   }
 }
 
-export async function removeVoter(voterId: string): Promise<void> {
-    const { db: databases } = await createSessionClient();
-  await databases.deleteDocument(databaseId, 'election_users', voterId)
+export async function removeVoter(electionId: string, voterId: string): Promise<void> {
+    const { db: databases, teams } = await createSessionClient();
+  const deletedDoc = await databases.deleteDocument(databaseId, 'election_users', voterId)
+
+  if (deletedDoc) {
+    const team = await teams.get(electionId)
+    if (team) {
+      await teams.deleteMembership(team.$id, voterId)
+    }
+  }
   revalidatePath('/admin/elections')
 }
 
@@ -456,3 +439,43 @@ export async function fetchDetailedResults(electionId: string): Promise<Detailed
       participatedVoters
     }
   }
+
+  //Fetch users who have not voted for the given session
+  export async function fetchNonVoters(sessionId: string): Promise<NonVoter[]> {
+    const { db } = await createSessionClient();
+    
+    try {
+      // Get the session with all its relationships
+      const session = await db.getDocument('app', 'election_sessions', sessionId);
+      
+      if (!session?.election?.electionUsers) {
+        throw new Error('Session or election users data not found');
+      }
+  
+      // Get all eligible voters from the election relationship
+      const eligibleVoters = session.election.electionUsers;
+  
+      // Get voters who have already voted from the session relationship
+      const votedVoterIds = new Set(
+        (session.electionVotes || []).map(vote => vote.voterId)
+      );
+  
+      // Filter out voters who have already voted
+      const nonVoters = eligibleVoters.filter(voter => 
+        !votedVoterIds.has(voter.$id)
+      );
+  
+      // Map to required format
+      return nonVoters.map(voter => ({
+        name: voter.name,
+        email: voter.email,
+        voterId: voter.voter_id
+      }));
+  
+    } catch (error) {
+      console.error('Error fetching non-voters:', error);
+      throw new Error('Failed to fetch non-voters');
+    }
+  }
+  
+  // Optional: Add a helper function to get voting statistics using the same data
