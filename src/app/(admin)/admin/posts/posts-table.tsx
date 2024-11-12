@@ -223,7 +223,7 @@ export function PostTable({ posts }: { posts: Post[] }) {
             {viewType === "list" ? "Grid View" : "List View"}
           </Button>
         </form>
-        <Button className="w-full" onClick={() => handleRowCreate()}>
+        <Button className="w-full" onClick={() => router.push("/admin/posts/new")}>
           <PlusCircle  />
           Add New Post
         </Button>
@@ -253,7 +253,7 @@ export function PostTable({ posts }: { posts: Post[] }) {
                   <TableCell>
                     <span
                       className={`px-2 py-1 rounded-full text-xs ${
-                        post.status === "published"
+                        post.status === "publish"
                           ? "bg-green-200 text-green-800"
                           : "bg-yellow-200 text-yellow-800"
                       }`}
@@ -262,7 +262,7 @@ export function PostTable({ posts }: { posts: Post[] }) {
                     </span>
                   </TableCell>
                   <TableCell>
-                    {format(new Date(post.created_at), "MMM d, yyyy")}
+                    {format(new Date(post.$createdAt), "MMM d, yyyy")}
                   </TableCell>
                   <TableCell >
                     <div className="flex justify-between">
@@ -307,7 +307,7 @@ export function PostTable({ posts }: { posts: Post[] }) {
                     <strong>Status:</strong>
                     <span
                       className={`ml-2 px-2 py-1 rounded-full text-xs ${
-                        post.status === "published"
+                        post.status === "publish"
                           ? "bg-green-200 text-green-800"
                           : "bg-yellow-200 text-yellow-800"
                       }`}
@@ -317,7 +317,7 @@ export function PostTable({ posts }: { posts: Post[] }) {
                   </p>
                   <p>
                     <strong>Created At:</strong>{" "}
-                    {format(new Date(post.created_at), "MMM d, yyyy")}
+                    {format(new Date(post.$createdAt), "MMM d, yyyy")}
                   </p>
                 </CardContent>
                 <CardFooter>

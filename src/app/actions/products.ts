@@ -4,6 +4,7 @@ import { ID, Models, Query } from "node-appwrite";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ProductStatus } from "../(admin)/admin/shop/products/_components/edit-product";
+import { Department } from "@/lib/types/post";
 
 const databaseId = 'app';
 const collectionId = 'products';
@@ -163,12 +164,15 @@ export async function getCampuses() {
     return campuses.documents;
 }
 
-export async function getDepartments(campus?: string) {
+export async function getDepartments(campus?: string, limit?: number) {
     const { db } = await createSessionClient();
 
     let query = [Query.select(['Name', '$id', 'campus_id'])];
     if (campus) {
         query.push(Query.equal('campus_id', campus));
+    } 
+    if (limit) {
+        query.push(Query.limit(limit));
     }
 
     const departments = await db.listDocuments(
@@ -177,5 +181,5 @@ export async function getDepartments(campus?: string) {
         query
     );
 
-    return departments.documents;
+    return departments.documents as Department[];
 }
