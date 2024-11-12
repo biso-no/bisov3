@@ -12,7 +12,6 @@ export interface Post extends Models.Document{
     title: string;
     url: string;
     content: string;
-    created_at: string;
     status: string;
     image:string;
     department: Department;
