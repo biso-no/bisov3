@@ -14,6 +14,7 @@ import { Edit, Search } from 'lucide-react';
 import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function AdminExpenseTable({ expenses }: { expenses: Expense[] }) {
   const router = useRouter();
@@ -63,8 +64,35 @@ export function AdminExpenseTable({ expenses }: { expenses: Expense[] }) {
     router.push(`/admin/expenses/${selected_expense_id}`)
   }
 
+  const pendingCount = useMemo(() => {
+    return expenses.filter(expense => expense.status === "pending").length;
+  }, [expenses]);
+
+  const submittedCount = useMemo(() => {
+    return expenses.filter(expense => expense.status === "submitted").length;
+  }, [expenses]);
+
   return (
     <div className="container mx-auto py-10">
+      <div className="grid gap-4 md:grid-cols-2 mb-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Expenses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingCount}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Submitted Expenses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{submittedCount}</div>
+          </CardContent>
+        </Card>
+      </div>
+
       <h1 className="text-2xl font-bold mb-5">Expenses</h1>
       <form onSubmit={handleSearch} className="flex gap-4 mb-5">
         <Input
