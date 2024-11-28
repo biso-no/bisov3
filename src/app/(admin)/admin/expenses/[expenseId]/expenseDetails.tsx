@@ -130,8 +130,8 @@ export function AdminExpenseDetails({
               <span>Submitted By</span>
             </div>
             <div className="space-y-1">
-              <div className="font-medium">{expenseData.userId}</div>
-              <div className="text-sm text-muted-foreground">{expenseData.userId}</div>
+              <div className="font-medium">{expenseData.user===null?null:expenseData.user.name}</div>
+              <div className="text-sm text-muted-foreground">{expenseData.user===null?null:expenseData.user.$id}</div>
             </div>
           </div>
 

@@ -36,6 +36,43 @@ export function ExpenseDetails() {
   const [step, setStep] = useState(1)
   const [formType, setFormType] = useState<'travel' | 'non-travel' | null>(null)
 
+
+  const [step1, setStep1] =useState({
+    expenseType: null
+  })
+
+  const validateStep1 = (data) => {
+    if (!data.expenseType) return "Name is required.";
+    return null;
+  };
+
+  const [step2, setStep2] =useState({
+    bankAccountNumber: null,
+    confirmBankAccountNumber: null,
+  })
+
+  const [step3, setStep3] =useState({
+    expenseDescription: null,
+    activity: null,
+    expenseDate: null,
+    expenseLocation: null,
+  })
+
+  const [step4_travel, setStep4_travel] =useState({
+    totalAmount: null,
+    mva: null,
+  })
+  const [step4_non_travel, setStep4_non_travel] =useState({
+    totalAmount: null,
+    mva: null,
+    travelPurpose: null,
+    travelStartDate: null,
+    travelEndDate: null,
+    totalKilometers: null,
+    tollFees: null,
+  })
+
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {},
