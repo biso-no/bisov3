@@ -2,6 +2,8 @@
 import { createSessionClient } from "@/lib/appwrite";
 import { User } from "@/lib/types/user";
 import { Expense } from "@/lib/types/expense";
+import { Department } from "@/lib/types/department";
+import { Campus } from "@/lib/types/campus";
 import { Query } from "node-appwrite";
 
 export async function getUserRoles() {
@@ -45,4 +47,23 @@ export async function updateExpenseStatus(id, expenseData){
   const response = await db.updateDocument('app', 'expense', id,expenseData);
 
   
+}
+
+
+export async function getDepartments(){
+  const { db } = await createSessionClient();
+  const response = await db.listDocuments('app', 'departments', [
+    Query.limit(100)
+  ]);
+
+  return response.documents as Department[]
+}
+
+export async function getCampuses(){
+  const { db } = await createSessionClient();
+  const response = await db.listDocuments('app', 'campus', [
+    Query.limit(100)
+  ]);
+
+  return response.documents as Campus[]
 }
