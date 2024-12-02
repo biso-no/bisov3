@@ -1,4 +1,5 @@
 "use client";
+
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,21 +12,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-//import { useFormContext } from "@/context/form-context"
-import { documentSchema } from "./zodSchemas";
-import * as z from "zod";
-import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -35,10 +21,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heading3, PlusCircleIcon } from "lucide-react";
+import { documentSchema } from "./zodSchemas";
+import * as z from "zod";
+import { useState } from "react";
+import { PlusCircle, Trash2, FileText, Calendar, DollarSign, Upload } from 'lucide-react';
 
 export function DocumentsDetailsStep() {
-  //const { data, setFormData } = useFormContext()
   const [attachments, setAttachments] = useState<{
     total: number;
     attachments: {
@@ -54,120 +42,126 @@ export function DocumentsDetailsStep() {
 
   const [addFormVisible, setAddFormVisible] = useState(false);
 
-  //amount: z.number().min(0, "Amount must be positive"),
-  //date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
-  //description: z.string().min(1, "Description is required"),
-  //image: z.any()
-
   const form = useForm({
     resolver: zodResolver(documentSchema),
     defaultValues: {
-      amount: 0, // Ensure amount is a number
-      date: "", // Default date value
+      amount: 0,
+      date: "",
       description: "",
       image: null,
     },
   });
 
-  /*
-  const onSubmit = (values: { bankAccount: string; hasPrepayment: boolean }) => {
-    setFormData(values)
-  }
-*/
   const onSubmit = (values: z.infer<typeof documentSchema>) => {
-    console.log("here");
-    // Create a new ExpenseAttachment object from form values
     const newAttachment = {
       amount: values.amount,
-      date: new Date(values.date), // Convert date string to a Date object
+      date: new Date(values.date),
       description: values.description,
-      image: values.image, // File object from the form
+      image: values.image,
     };
 
-    // Update the attachments state by appending the new attachment
     setAttachments((prev) => ({
       total: prev.total + values.amount,
       attachments: [...prev.attachments, newAttachment],
     }));
 
-    // Hide the form and reset its fields
     setAddFormVisible(false);
     form.reset();
-    return;
   };
 
   const handleClick = () => {
     setAddFormVisible(!addFormVisible);
     form.reset();
-    return;
   };
 
-  const deleteAttachment = (docIndex) => {
+  const deleteAttachment = (docIndex: number) => {
     setAttachments((prev) => ({
       total: prev.total - prev.attachments[docIndex].amount,
       attachments: prev.attachments.filter((_, index) => index !== docIndex),
     }));
   };
+
   return (
-    <div>
+    <div className="space-y-6">
       <Card>
-        <CardHeader>{attachments.total} NOK</CardHeader>
-        <CardContent className="grid">
-            <div>
-            {attachments.attachments.length} documents
-            </div>
-          
-          {!addFormVisible && (
-            <Button onClick={handleClick}>
-              Add Document <PlusCircleIcon></PlusCircleIcon>
-            </Button>
-          )}
+        <CardHeader>
+          <CardTitle>Documents Summary</CardTitle>
+          <CardDescription>
+            Total amount: {attachments.total.toFixed(2)} NOK
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-center">
+            <p>{attachments.attachments.length} document(s) attached</p>
+            {!addFormVisible && (
+              <Button onClick={handleClick} variant="outline">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Document
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
-      <h1 className="text-lg font-bold">Documents</h1>
-      {attachments.attachments.length ? (
-        attachments.attachments.map((doc, index) => (
-          <Card key={index}>
-            <CardHeader>
-              <CardTitle>
-                NOK {doc.amount} - {doc.description}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>
-                <strong>Date:</strong> {format(new Date(doc.date), "yyyy-MM-dd")}
-              </p>
-              <Button onClick={()=> deleteAttachment(index)}>Delete</Button>
-            </CardContent>
-          </Card>
-        ))
-      ) : (
-        <p>No documents added yet</p>
+
+      {attachments.attachments.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold">Attached Documents</h2>
+          {attachments.attachments.map((doc, index) => (
+            <Card key={index}>
+              <CardHeader>
+                <CardTitle className="flex justify-between items-center">
+                  <span>{doc.description}</span>
+                  <span className="text-lg font-normal">{doc.amount.toFixed(2)} NOK</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center space-x-4">
+                  <Calendar className="h-5 w-5 text-gray-500" />
+                  <span>{format(new Date(doc.date), "MMMM d, yyyy")}</span>
+                </div>
+                {doc.image && (
+                  <div className="flex items-center space-x-4 mt-2">
+                    <FileText className="h-5 w-5 text-gray-500" />
+                    <span>{doc.image.name}</span>
+                  </div>
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button onClick={() => deleteAttachment(index)} variant="destructive" size="sm">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
       )}
 
       {addFormVisible && (
         <Card>
+          <CardHeader>
+            <CardTitle>Add New Document</CardTitle>
+          </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-              >
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
                   control={form.control}
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Amount</FormLabel>
+                      <FormLabel>Amount (NOK)</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="Enter amount"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(e.target.valueAsNumber)
-                          }
-                        />
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                          <Input
+                            type="number"
+                            placeholder="Enter amount"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                            className="pl-10"
+                          />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -180,11 +174,15 @@ export function DocumentsDetailsStep() {
                     <FormItem>
                       <FormLabel>Date</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          placeholder="Enter date"
-                          {...field}
-                        />
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                          <Input
+                            type="date"
+                            placeholder="Enter date"
+                            {...field}
+                            className="pl-10"
+                          />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -197,7 +195,7 @@ export function DocumentsDetailsStep() {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Input placeholder="description" {...field} />
+                        <Input placeholder="Enter description" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -208,28 +206,43 @@ export function DocumentsDetailsStep() {
                   name="image"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>BAttachment</FormLabel>
+                      <FormLabel>Attachment</FormLabel>
                       <FormControl>
-                        <Input
-                          type="file"
-                          onChange={(e) =>
-                            field.onChange(e.target.files?.[0] || null)
-                          }
-                        />
+                        <div className="relative">
+                          <Upload className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                          <Input
+                            type="file"
+                            onChange={(e) => field.onChange(e.target.files?.[0] || null)}
+                            className="pl-10"
+                          />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <div className="flex">
+                <div className="flex justify-end space-x-4">
+                  <Button type="button" variant="outline" onClick={handleClick}>Cancel</Button>
                   <Button type="submit">Submit</Button>
-                  <Button onClick={handleClick}>Cancel</Button>
                 </div>
               </form>
             </Form>
           </CardContent>
         </Card>
       )}
+
+      {attachments.attachments.length === 0 && !addFormVisible && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center h-40">
+            <p className="text-gray-500 mb-4">No documents added yet</p>
+            <Button onClick={handleClick} variant="outline">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Your First Document
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
+

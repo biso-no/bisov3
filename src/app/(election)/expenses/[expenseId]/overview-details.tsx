@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Building, Calendar, CreditCard, DollarSign, FileText, MapPin } from 'lucide-react';
 
 export default function ExpenseOverview() {
   const expenseOverview = {
@@ -21,65 +22,72 @@ export default function ExpenseOverview() {
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 max-w-3xl mx-auto">
       {/* Expense Overview Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Expense Overview</CardTitle>
+      <Card className="shadow-lg">
+        <CardHeader className="bg-primary text-primary-foreground">
+          <CardTitle className="flex items-center text-2xl">
+            <FileText className="mr-2" />
+            Expense Overview
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 bg-blue-50 p-4 rounded-md">
-          <div className="flex justify-between">
-            <span>Bank Account:</span>
-            <span>{expenseOverview.bankAccount || "N/A"}</span>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InfoItem icon={<CreditCard />} label="Bank Account" value={expenseOverview.bankAccount || "N/A"} />
+            <InfoItem icon={<MapPin />} label="Campus" value={expenseOverview.campus} />
+            <InfoItem icon={<Building />} label="Department" value={expenseOverview.department} />
+            <InfoItem icon={<FileText />} label="Description" value={expenseOverview.description || "N/A"} />
           </div>
-          <div className="flex justify-between">
-            <span>Campus:</span>
-            <span>{expenseOverview.campus}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Department:</span>
-            <span>{expenseOverview.department}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Description:</span>
-            <span>{expenseOverview.description || "N/A"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Total Amount:</span>
+          <Separator className="my-4" />
+          <div className="flex justify-between items-center pt-2 text-lg font-semibold">
+            <span className="flex items-center">
+              <DollarSign className="mr-2" />
+              Total Amount:
+            </span>
             <span>{expenseOverview.totalAmount} kr</span>
           </div>
         </CardContent>
       </Card>
 
-      <Separator className="my-4" />
-
       {/* Expense Attachments Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Expense Attachments</CardTitle>
+      <Card className="shadow-lg">
+        <CardHeader className="bg-primary text-primary-foreground">
+          <CardTitle className="flex items-center text-2xl">
+            <FileText className="mr-2" />
+            Expense Attachments
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 bg-blue-50 p-4 rounded-md">
-          {expenseAttachments.map((attachment, index) => (
-            <div
-              key={index}
-              className="p-2 border border-gray-200 rounded-md space-y-2"
-            >
-              <div className="flex justify-between">
-                <span>Amount:</span>
-                <span>{attachment.amount} kr</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Date:</span>
-                <span>{attachment.date}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Description:</span>
-                <span>{attachment.description}</span>
-              </div>
+        <CardContent className="p-6">
+          {expenseAttachments.length > 0 ? (
+            <div className="space-y-4">
+              {expenseAttachments.map((attachment, index) => (
+                <Card key={index} className="bg-secondary">
+                  <CardContent className="p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <InfoItem icon={<DollarSign />} label="Amount" value={`${attachment.amount} kr`} />
+                      <InfoItem icon={<Calendar />} label="Date" value={attachment.date} />
+                      <InfoItem icon={<FileText />} label="Description" value={attachment.description} />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          ))}
+          ) : (
+            <p className="text-center text-gray-500">No attachments found.</p>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 }
+
+function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-center space-x-2">
+      {icon}
+      <span className="font-medium">{label}:</span>
+      <span className="text-gray-600">{value}</span>
+    </div>
+  );
+}
+
