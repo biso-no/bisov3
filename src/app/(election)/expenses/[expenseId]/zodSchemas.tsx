@@ -1,9 +1,9 @@
 import * as z from "zod";
 
 export const bankDetailsSchema = z.object({
-  bankAccount: z.string().min(1, "Bank account is required"),
-  hasPrepayment: z.boolean(),
-  prepaymentAmount: z.number().optional(),
+  bank_account: z.string().min(1, "Bank account is required"),
+  has_prepayment: z.boolean().optional(),
+  prepayment_amount: z.number().optional(),
   description: z.string().min(1, "description is required"),
 });
 export const departmentCampusSchema = z.object({

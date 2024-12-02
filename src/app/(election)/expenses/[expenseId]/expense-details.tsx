@@ -21,6 +21,8 @@ import { DepartmentDetailsStep } from "./department-details";
 import { DocumentsDetailsStep } from "./document-details";
 import ExpenseOverview from "./overview-details";
 
+import { useFormContext } from "./formContext";
+
 const formSchema = z.object({
   expenseType: z.enum(["travel", "non-travel"]),
   bankAccountNumber: z
@@ -45,21 +47,24 @@ const formSchema = z.object({
 });
 
 export function ExpenseDetails() {
-  const [step, setStep] = useState(1);
+  const formContext = useFormContext()
+  const step = formContext.step
+  const nextStep = formContext.nextStep
+  const prevStep = formContext.prevStep
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {},
   });
 
-  const nextStep = () => setStep(step + 1);
-  const prevStep = () => setStep(step - 1);
+
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
   }
 
   const renderStep = () => {
+    
     switch (step) {
       case 1:
         return <BankDetailsStep />;
@@ -74,32 +79,15 @@ export function ExpenseDetails() {
     }
   };
 
+
+
   return (
     <div>
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Reimbursement Form</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Progress value={step * 25} className="w-full mb-6" />
-          {renderStep()}
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          {step > 1 && (
-            <Button type="button" variant="outline" onClick={prevStep}>
-              <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-            </Button>
-          )}
-          {step < 4 ? (
-            <Button type="button" onClick={nextStep} className="ml-auto">
-              Next <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
-          ) : (
-            <Button type="submit" className="ml-auto">
-              Submit
-            </Button>
-          )}
-        </CardFooter>
+        {renderStep()}
       </Card>
     </div>
   );

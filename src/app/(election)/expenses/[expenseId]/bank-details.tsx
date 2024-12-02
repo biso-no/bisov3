@@ -12,116 +12,132 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+//import { useFormContext } from "@/context/form-context"
 import { bankDetailsSchema } from "./zodSchemas";
 import * as z from "zod";
 import { useState, useEffect } from "react";
 import { useAppContext } from "../../../contexts";
-import { CreditCard, DollarSign, FileText } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useFormContext } from "./formContext";
 
 export function BankDetailsStep() {
+  //const { data, setFormData } = useFormContext()
+
   const [isVisible, setIsVisible] = useState(false);
 
   const appContext = useAppContext();
   const departments = appContext.departments;
   const campuses = appContext.campuses;
 
-  const [data, setData] = useState({
-    bankAccount: "100000",
-    hasPrepayment: false,
-    prepaymentAmount: null
-  });
+  const formContext = useFormContext();
+  const step = formContext.step;
+  const nextStep = formContext.nextStep;
+  const updateFormData = formContext.updateFormData;
+  const prevStep = formContext.prevStep;
+  const formData = formContext.formData;
+
 
   const form = useForm({
     resolver: zodResolver(bankDetailsSchema),
     defaultValues: {
-      bankAccount: data.bankAccount,
-      hasPrepayment: data.hasPrepayment,
-      prepaymentAmount: null,
-      description: null
+      bank_account: formData.bank_account,
+      has_prepayment: formData.has_prepayment,
+      prepayment_amount: formData.prepayment_amount,
+      description: formData.description,
     },
   });
 
   useEffect(() => {
     if (!isVisible) {
-      form.setValue("prepaymentAmount", null);
+      form.setValue("prepayment_amount", 0); // Reset prepaymentAmount to null
+      console.log("Prepayment Amount field hidden and reset to null.");
     }
   }, [isVisible, form]);
 
+  /*
+  const onSubmit = (values: { bankAccount: string; hasPrepayment: boolean }) => {
+    setFormData(values)
+  }
+*/
   const onSubmit = (values: z.infer<typeof bankDetailsSchema>) => {
-    console.log(values);
+    updateFormData(values);
+    nextStep()
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Bank Details</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <CardContent>
+            <Progress value={step * 25} className="w-full mb-6" />
+
+            <FormField
+              control={form.control}
+              name="bank_account"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bank Account</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Bank Account" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="has_prepayment"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between">
+                  <FormLabel>Did you receive a prepayment?</FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={(value) => {
+                        field.onChange(value); // Update the form state
+                        setIsVisible(value); // Update your local state
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {isVisible && (
               <FormField
                 control={form.control}
-                name="bankAccount"
+                name="prepayment_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bank Account</FormLabel>
+                    <FormLabel>Prepayment Amount</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                        <Input className="pl-10" placeholder="Bank Account" {...field} />
-                      </div>
+                      <Input type="number" placeholder="Prepayment Amount" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="hasPrepayment"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Received Prepayment?</FormLabel>
-                    <FormControl>
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={(value) => {
-                            field.onChange(value);
-                            setIsVisible(value);
-                          }}
-                        />
-                        <span>{field.value ? 'Yes' : 'No'}</span>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {isVisible && (
-                <FormField
-                  control={form.control}
-                  name="prepaymentAmount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Prepayment Amount</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                          <Input className="pl-10" placeholder="Prepayment Amount" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </div>
-
+            )}
             <FormField
               control={form.control}
               name="description"
@@ -129,23 +145,27 @@ export function BankDetailsStep() {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <FileText className="absolute left-3 top-3 text-gray-400" />
-                      <Textarea 
-                        placeholder="Enter description" 
-                        className="pl-10 min-h-[100px]" 
-                        {...field} 
-                      />
-                    </div>
+                    <Input placeholder="description" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            {step > 1 && (
+              <Button type="button" variant="outline" onClick={prevStep}>
+                <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+              </Button>
+            )}
+            {step < 4 && (
+              <Button type="submit" className="ml-auto">
+                Next
+              </Button>
+            )}
+          </CardFooter>
+        </form>
+      </Form>
+    </div>
   );
 }
-
