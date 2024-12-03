@@ -21,18 +21,48 @@ import { format } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
+import { addAttachmentImage } from "@/app/actions/admin";
+import { Models } from "appwrite";
+import { attachmentImage } from "@/lib/types/attachmentImage";
 
-export default function ExpenseOverview() {
+
+export default function ExpenseOverview({image}) {
   const formContext = useFormContext();
   const step = formContext.step;
   const nextStep = formContext.nextStep;
   const updateFormData = formContext.updateFormData;
   const prevStep = formContext.prevStep;
   const formData = formContext.formData;
-
-  const handleSubmit = () =>{
-    console.log(formData)
-  }
+ 
+  const handleSubmit = async () => {
+    try {
+      console.log("Form Data:", formData.expense_attachments[0]?.image);
+  
+      // Extract the file from the first attachment
+      const file = formData.expense_attachments[0]?.image;
+      if (!file) {
+        throw new Error("No file found in attachments");
+      }
+      if (!(file instanceof File)) {
+        console.error("The provided file is not of type File.");
+        return;
+      }
+      
+  
+      // Call the upload function
+      const uploadedImage = await image(file);
+  
+      console.log("Image uploaded successfully:", uploadedImage);
+  
+      // Optionally process the uploaded file's metadata or ID further
+    } catch (error) {
+      console.error("Error during file upload:", error);
+    }
+  };
+  
+  
+  
+  
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <CardContent>

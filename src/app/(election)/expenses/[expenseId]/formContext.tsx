@@ -23,8 +23,7 @@ export type attachments = {
     amount: number, // Ensure amount is a number
     date: Date, // Default date value
     description: string,
-    image: Image,
-
+    image: File,
 }
 
 

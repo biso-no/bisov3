@@ -4,7 +4,10 @@ import { User } from "@/lib/types/user";
 import { Expense } from "@/lib/types/expense";
 import { Department } from "@/lib/types/department";
 import { Campus } from "@/lib/types/campus";
+import { attachmentImage } from "@/lib/types/attachmentImage";
 import { Query } from "node-appwrite";
+import { Client, Databases, ID } from "appwrite";
+import { Models } from "appwrite";
 
 export async function getUserRoles() {
 
@@ -42,6 +45,47 @@ export async function getExpense(id){
 
   return response as Expense
 }
+export async function addExpense() {
+  const { db } = await createSessionClient();
+  const response = await db.listDocuments('app', 'expense', [
+    Query.limit(100)
+  ]);
+
+  return response.documents as User[]
+}
+
+export async function addExpenseAttachment(data) {
+  const { db } = await createSessionClient();
+  const response = await db.createDocument(
+    'app', // databaseId
+    'expense_attachments', // collectionId
+    ID.unique(),
+    {
+     amount: data.amount, // Ensure amount is a number
+      date:data.date, // Default date value
+      description:data.description,
+      url:data.image,
+      type:"jpeg"
+    }, // data
+);
+
+  return response.documents as User[]
+}
+
+export async function addAttachmentImage(image:File) {
+  const { storage } = await createSessionClient();
+
+  const result = await storage.createFile(
+    "expenses", // Bucket ID
+    ID.unique(), // File ID
+    image
+  );
+
+  return result; // This will be the uploaded file's metadata
+}
+
+
+
 export async function updateExpenseStatus(id, expenseData){
   const { db } = await createSessionClient();
   const response = await db.updateDocument('app', 'expense', id,expenseData);
@@ -67,3 +111,4 @@ export async function getCampuses(){
 
   return response.documents as Campus[]
 }
+
