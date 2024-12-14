@@ -8,6 +8,8 @@ import { attachmentImage } from "@/lib/types/attachmentImage";
 import { Query } from "node-appwrite";
 import { Client, Databases, ID } from "appwrite";
 import { Models } from "appwrite";
+import { getUser } from "@/lib/admin/db";
+import { getLoggedInUser } from "@/lib/actions/user";
 
 export async function getUserRoles() {
 
@@ -45,14 +47,31 @@ export async function getExpense(id){
 
   return response as Expense
 }
-export async function addExpense() {
-  const { db } = await createSessionClient();
-  const response = await db.listDocuments('app', 'expense', [
-    Query.limit(100)
-  ]);
 
-  return response.documents as User[]
+
+export async function addExpense(formData) {
+  const { db } = await createSessionClient();
+  const response = await db.createDocument(
+    'app', // databaseId
+    'expense', // collectionId
+    ID.unique(),
+    {
+      campus:formData.campus,
+      department:formData.department,
+      bank_account: formData.bank_account,
+      description:formData.description,
+      expenseAttachments:formData.expense_attachments_ids,
+      total:formData.total,
+      prepayment_amount:formData.prepayment_amount,
+      user:formData.user,
+      userId:formData.userId
+    }, // data
+);
+
+  return response
 }
+
+
 
 export async function addExpenseAttachment(data) {
   const { db } = await createSessionClient();
@@ -64,21 +83,22 @@ export async function addExpenseAttachment(data) {
      amount: data.amount, // Ensure amount is a number
       date:data.date, // Default date value
       description:data.description,
-      url:data.image,
+      url:data.url,
       type:"jpeg"
     }, // data
 );
 
-  return response.documents as User[]
+  return response
 }
 
-export async function addAttachmentImage(image:File) {
+export async function addAttachmentImage(formFileData:FormData) {
+  
   const { storage } = await createSessionClient();
 
   const result = await storage.createFile(
     "expenses", // Bucket ID
     ID.unique(), // File ID
-    image
+    formFileData.get("file") as File
   );
 
   return result; // This will be the uploaded file's metadata
@@ -90,7 +110,6 @@ export async function updateExpenseStatus(id, expenseData){
   const { db } = await createSessionClient();
   const response = await db.updateDocument('app', 'expense', id,expenseData);
 
-  
 }
 
 

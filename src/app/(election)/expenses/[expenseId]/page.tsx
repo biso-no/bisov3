@@ -8,7 +8,7 @@ export default async function Expense() {
   //const {profile}=await getLoggedInUser()
   
   return (
-    <FormContextProvider><ExpenseDetails image={addAttachmentImage}/></FormContextProvider>
+    <FormContextProvider><ExpenseDetails /></FormContextProvider>
     
   )
 }

@@ -18,55 +18,38 @@ import {
 } from "lucide-react";
 import { useFormContext } from "./formContext";
 import { format } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { addAttachmentImage } from "@/app/actions/admin";
-import { Models } from "appwrite";
-import { attachmentImage } from "@/lib/types/attachmentImage";
+import { handleSubmit } from "./handleSubmit";
+import { useRouter } from "next/navigation"
 
-
-export default function ExpenseOverview({image}) {
+export default function ExpenseOverview() {
   const formContext = useFormContext();
   const step = formContext.step;
   const nextStep = formContext.nextStep;
   const updateFormData = formContext.updateFormData;
   const prevStep = formContext.prevStep;
   const formData = formContext.formData;
- 
-  const handleSubmit = async () => {
+  const router = useRouter()
+
+  // Event handler for form submission
+  const onSubmit = async () => {
     try {
-      console.log("Form Data:", formData.expense_attachments[0]?.image);
-  
-      // Extract the file from the first attachment
-      const file = formData.expense_attachments[0]?.image;
-      if (!file) {
-        throw new Error("No file found in attachments");
-      }
-      if (!(file instanceof File)) {
-        console.error("The provided file is not of type File.");
-        return;
-      }
-      
-  
-      // Call the upload function
-      const uploadedImage = await image(file);
-  
-      console.log("Image uploaded successfully:", uploadedImage);
-  
-      // Optionally process the uploaded file's metadata or ID further
+      console.log("Submitting form...");
+      await handleSubmit(formData, updateFormData);
+      router.push(`../expenses`)
+      console.log("Form submitted successfully.");
     } catch (error) {
-      console.error("Error during file upload:", error);
+      console.error("Error submitting form:", error);
     }
   };
-  
-  
-  
-  
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
       <CardContent>
         <Progress value={step * 25} className="w-full mb-6" />
+
         {/* Expense Overview Section */}
         <Card className="shadow-lg">
           <CardHeader className="bg-primary text-primary-foreground">
@@ -153,6 +136,7 @@ export default function ExpenseOverview({image}) {
           </CardContent>
         </Card>
       </CardContent>
+
       <CardFooter className="flex justify-between">
         {step > 1 && (
           <Button type="button" variant="outline" onClick={prevStep}>
@@ -163,7 +147,7 @@ export default function ExpenseOverview({image}) {
           <Button
             type="button"
             className="ml-auto"
-            onClick={() => handleSubmit()}
+            onClick={onSubmit} // Calls onSubmit when the button is clicked
           >
             Submit
           </Button>

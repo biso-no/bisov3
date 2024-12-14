@@ -14,6 +14,7 @@ description:string,
 expense_attachments: attachments[],
 total:number,
 prepayment_amount:number,
+expense_attachments_ids: []
 //invoice_id:number,
 //user:
 //userId:
@@ -41,6 +42,7 @@ export const FormContextProvider = ({ children }) => {
     expense_attachments: [],
     total:0,
     prepayment_amount:0, 
+    expense_attachments_ids: []
   })
 // adding this code 👇🏽
 const updateFormData = (values: Partial<ExpenseForm>) => {

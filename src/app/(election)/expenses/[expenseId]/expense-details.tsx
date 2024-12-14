@@ -46,7 +46,7 @@ const formSchema = z.object({
   tollFees: z.string().optional(),
 });
 
-export function ExpenseDetails({image}) {
+export function ExpenseDetails() {
   const formContext = useFormContext()
   const step = formContext.step
   const nextStep = formContext.nextStep
@@ -73,7 +73,7 @@ export function ExpenseDetails({image}) {
       case 3:
         return <DocumentsDetailsStep />;
       case 4:
-        return <ExpenseOverview image={image} />;
+        return <ExpenseOverview />;
       default:
         return null;
     }
