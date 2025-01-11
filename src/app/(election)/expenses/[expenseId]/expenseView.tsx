@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { ExpenseDetails } from "./expense-details";
 import { useFormContext } from "./formContext";
 import { getExpense } from "@/app/actions/admin";
+import LoadingPage from "./loading-page";
 
 export default function ExpenseView({ expenseId }) {
   const formContext = useFormContext();
@@ -38,7 +39,7 @@ export default function ExpenseView({ expenseId }) {
   //[expenseId, updateFormData]);
 
   if (loading) {
-    return <div>Loading...</div>; // Prevent rendering until data is ready
+    return <LoadingPage></LoadingPage> ; // Prevent rendering until data is ready
   }
 
   return <ExpenseDetails expenseId={expenseId}/>;
