@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { ExpenseDetails } from "./expense-details";
 import { useFormContext } from "./formContext";
@@ -32,7 +33,7 @@ export default function ExpenseView({ expenseId }) {
       setLoading(false);
     };
 
-    fetchExpense();
+     fetchExpense();
   }, [expenseId]);
   //[expenseId, updateFormData]);
 

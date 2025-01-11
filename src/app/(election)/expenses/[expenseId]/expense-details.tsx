@@ -1,5 +1,4 @@
-
-
+"use client"
 import { useState } from "react";
 import {
   Card,
@@ -15,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { Form } from "@/components/ui/form";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 import { BankDetailsStep } from "./bank-details";
 import { DepartmentDetailsStep } from "./department-details";
@@ -47,15 +47,19 @@ const formSchema = z.object({
 });
 
 export function ExpenseDetails(expenseId) {
+  const router = useRouter(); 
   const formContext = useFormContext();
-  const step = formContext.step
+  const step = formContext.step;
+  const handleClose = () => {
+    try {
 
-    //const {profile}=await getLoggedInUser()
-
-
+      router.push(`/expenses`)
+    } catch (error) {
+      console.error("Error returning to page:", error);
+    }
+  };
 
   const renderStep = () => {
-    
     switch (step) {
       case 1:
         return <BankDetailsStep />;
@@ -64,7 +68,7 @@ export function ExpenseDetails(expenseId) {
       case 3:
         return <DocumentsDetailsStep expenseId={expenseId} />;
       case 4:
-        return <ExpenseOverview expenseId={expenseId}/>;
+        return <ExpenseOverview expenseId={expenseId} />;
       default:
         return null;
     }
@@ -72,9 +76,18 @@ export function ExpenseDetails(expenseId) {
 
 
 
+
+
   return (
     <div>
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card className="w-full max-w-2xl mx-auto relative">
+        <Button
+          onClick={handleClose}
+          className="absolute top-2 right-2"
+          variant="ghost"
+        >
+          Close
+        </Button>
         <CardHeader>
           <CardTitle>Reimbursement Form</CardTitle>
         </CardHeader>
