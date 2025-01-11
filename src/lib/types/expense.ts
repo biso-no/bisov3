@@ -1,4 +1,5 @@
 import { Models } from "node-appwrite";
+import { ExpenseAttachment } from "./expenseAttachment";
 export interface Campus extends Models.Document {
     name: string
 }
@@ -14,5 +15,7 @@ export interface Expense extends Models.Document{
     bank_account: string,
     total: string,
     status: string,
-    user:User
+    user:User,
+    date:string,
+    expenseAttachments: ExpenseAttachment[]
 }

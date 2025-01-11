@@ -81,9 +81,10 @@ export function DepartmentDetailsStep() {
                         <Select
                           onValueChange={(value) => field.onChange(value)}
                           value={field.value || ""}
+                          defaultValue={formData.department }
                         >
                           <SelectTrigger className="w-full pl-10">
-                            <SelectValue placeholder="Select a department" />
+                            <SelectValue placeholder={formData.department ||"Select a department" } />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectGroup>

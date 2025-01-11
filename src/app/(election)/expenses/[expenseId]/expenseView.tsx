@@ -1,0 +1,44 @@
+import { useState, useEffect } from "react";
+import { ExpenseDetails } from "./expense-details";
+import { useFormContext } from "./formContext";
+import { getExpense } from "@/app/actions/admin";
+
+export default function ExpenseView({ expenseId }) {
+  const formContext = useFormContext();
+  const { updateFormData } = formContext;
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchExpense = async () => {
+      if (expenseId !== "new") {
+        try {
+          const expense = await getExpense(expenseId);
+          const ids = expense.expenseAttachments.map((element) => element.$id);
+          updateFormData({
+            campus: expense.campus,
+            department: expense.department,
+            bank_account: expense.bank_account,
+            description: expense.description,
+            expense_attachments: expense.expenseAttachments,
+            total: expense.total,
+            prepayment_amount: expense.prepayment_amount,
+            expense_attachments_ids: ids,
+          });
+          console.log("Expense found");
+        } catch {
+          console.log("Expense with id", expenseId, "does not exist");
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchExpense();
+  }, [expenseId]);
+  //[expenseId, updateFormData]);
+
+  if (loading) {
+    return <div>Loading...</div>; // Prevent rendering until data is ready
+  }
+
+  return <ExpenseDetails expenseId={expenseId}/>;
+}

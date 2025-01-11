@@ -1,3 +1,4 @@
+"use client"
 import { Image } from "@react-pdf/renderer";
 import React, { createContext, useContext, useState, useEffect } from "react";
 // Define the context
@@ -53,6 +54,7 @@ const updateFormData = (values: Partial<ExpenseForm>) => {
     console.log("formData updated:", formData);
   }, [formData]);
 
+  
   return (
     <formContext.Provider value={{ formData,updateFormData, step,nextStep, prevStep}}>
       {children}
@@ -61,10 +63,9 @@ const updateFormData = (values: Partial<ExpenseForm>) => {
 };
 
 export const useFormContext = () => {
-    const context = useContext(formContext)
-    if (!context) {
-      throw new Error('useFormContext must be used within a formContextProvider')
-    }
-  
-    return context
+  const context = useContext(formContext);
+  if (!context) {
+      throw new Error("useFormContext must be used within a FormContextProvider");
   }
+  return context;
+};

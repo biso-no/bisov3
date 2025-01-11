@@ -1,4 +1,4 @@
-"use client";
+
 
 import { useState } from "react";
 import {
@@ -20,7 +20,7 @@ import { BankDetailsStep } from "./bank-details";
 import { DepartmentDetailsStep } from "./department-details";
 import { DocumentsDetailsStep } from "./document-details";
 import ExpenseOverview from "./overview-details";
-
+import { getExpense } from "@/app/actions/admin";
 import { useFormContext } from "./formContext";
 
 const formSchema = z.object({
@@ -46,22 +46,13 @@ const formSchema = z.object({
   tollFees: z.string().optional(),
 });
 
-export function ExpenseDetails() {
-  const formContext = useFormContext()
+export function ExpenseDetails(expenseId) {
+  const formContext = useFormContext();
   const step = formContext.step
-  const nextStep = formContext.nextStep
-  const prevStep = formContext.prevStep
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {},
-  });
+    //const {profile}=await getLoggedInUser()
 
 
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-  }
 
   const renderStep = () => {
     
@@ -71,9 +62,9 @@ export function ExpenseDetails() {
       case 2:
         return <DepartmentDetailsStep />;
       case 3:
-        return <DocumentsDetailsStep />;
+        return <DocumentsDetailsStep expenseId={expenseId} />;
       case 4:
-        return <ExpenseOverview />;
+        return <ExpenseOverview expenseId={expenseId}/>;
       default:
         return null;
     }

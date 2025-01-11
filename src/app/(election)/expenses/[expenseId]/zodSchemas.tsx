@@ -17,6 +17,8 @@ export const documentSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
   description: z.string().min(1, "Description is required"),
   image: z.any(),
+  url:z.string(),
+  id:z.string()
 });
 
 

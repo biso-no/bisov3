@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { handleSubmit } from "./handleSubmit";
 import { useRouter } from "next/navigation"
 
-export default function ExpenseOverview() {
+export default function ExpenseOverview(expenseId) {
   const formContext = useFormContext();
   const step = formContext.step;
   const nextStep = formContext.nextStep;
@@ -37,7 +37,7 @@ export default function ExpenseOverview() {
   const onSubmit = async () => {
     try {
       console.log("Submitting form...");
-      await handleSubmit(formData, updateFormData);
+      await handleSubmit(formData, updateFormData,expenseId);
       router.push(`../expenses`)
       console.log("Form submitted successfully.");
     } catch (error) {
