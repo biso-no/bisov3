@@ -179,7 +179,7 @@ export function AdminExpenseDetails({
                   {expenseData.user?.name || 'N/A'}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {expenseData.user?.id || 'N/A'}
+                  {expenseData.user?.$id || 'N/A'}
                 </div>
               </div>
             </motion.div>
