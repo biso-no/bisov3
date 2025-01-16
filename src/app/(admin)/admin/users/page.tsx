@@ -1,3 +1,4 @@
+"use client"
 import { UserTable } from "./user-table";
 import { getUsers } from "@/app/actions/admin";
 

@@ -314,6 +314,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
             <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b 
                            bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <Breadcrumb />
+<<<<<<< HEAD
               <motion.div 
                 className="relative ml-auto flex-1 md:grow-0"
                 animate={{ width: isSearchOpen ? '100%' : 'auto' }}
@@ -328,6 +329,8 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
                   onBlur={() => setIsSearchOpen(false)}
                 />
               </motion.div>
+=======
+>>>>>>> origin/master
             </header>
             {children}
           </div>

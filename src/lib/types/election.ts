@@ -66,3 +66,9 @@ export interface Election extends Models.Document {
       totalVoters: number
       participatedVoters: number
     }
+
+export interface NonVoter {
+  voterId: string;
+  name: string;
+  email: string
+}

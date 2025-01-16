@@ -5,7 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-
 export const campusMap = {
   1: 'Oslo',
   2: 'Bergen',

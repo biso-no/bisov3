@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,6 +23,10 @@ import { useVotesSubscription } from '@/lib/admin/use-subscription'
 import VoterTable from './voter-table'
 import { campusMap } from '@/lib/utils'
 import PDFDownloadButton from './pdf-download'
+import NonVotersDisplay, { NonVotersDisplaySkeleton } from './not-voted'
+import type { NonVoter } from '@/lib/types/election'
+
+
 
 export default function ElectionDashboard({ 
   initialElection,
@@ -36,7 +40,8 @@ export default function ElectionDashboard({
   startSession,
   stopSession,
   deleteSession,
-  deleteVotingItem
+  deleteVotingItem,
+  fetchNonVoters
  }: { 
   initialElection: Election,
   addElectionSession: (session: Omit<ElectionSession, '$id'>) => Promise<ElectionSession>,
@@ -49,7 +54,8 @@ export default function ElectionDashboard({
   startSession: (session: ElectionSession) => Promise<ElectionSession>,
   stopSession: (session: ElectionSession) => Promise<ElectionSession>,
   deleteSession: (sessionId: string) => Promise<ElectionSession>,
-  deleteVotingItem: (itemId: string) => Promise<void>
+  deleteVotingItem: (itemId: string) => Promise<void>,
+  fetchNonVoters: (sessionId: string) => Promise<NonVoter[]>
  }) {
   const [election, setElection] = useState(initialElection)
   const [activeTab, setActiveTab] = useState("overview")
@@ -59,6 +65,7 @@ export default function ElectionDashboard({
   const router = useRouter()
   const [isPdfLoading, setIsPdfLoading] = useState(false);
   const newVoteData = useVotesSubscription(election.$id)
+  const [nonVotersBySession, setNonVotersBySession] = useState<Record<string, NonVoter[]>>({});
 
   useEffect(() => {
     console.log("New vote data:", newVoteData)
@@ -96,64 +103,124 @@ export default function ElectionDashboard({
   }
 
   const handleAddVotingItem = async (sessionId: string, newItem: Omit<VotingItem, '$id' | 'sessionId'>) => {
-    const item = await addVotingItem(election.$id, { ...newItem, votingSessionId: sessionId, session: sessionId })
-    setElection(prev => ({
-      ...prev,
-      sessions: prev.sessions.map(session =>
-        session.$id === sessionId
-          ? { ...session, votingItems: [...session.votingItems, item] }
-          : session
-      )
-    }))
-    router.refresh()
-  }
+    try {
+        const item = await addVotingItem(election.$id, { 
+            ...newItem, 
+            votingSessionId: sessionId, 
+            session: sessionId 
+        })
+        
+        setElection(prev => ({
+            ...prev,
+            sessions: prev.sessions.map(session =>
+                session.$id === sessionId
+                    ? {
+                        ...session,
+                        votingItems: [...session.votingItems, item]
+                    }
+                    : session
+            )
+        }))
+    } catch (error) {
+        console.error("Failed to add voting item:", error)
+    }
+}
 
   const handleAddVotingOption = async (itemId: string, newOption: Omit<VotingOption, '$id' | 'votingItemId'>) => {
-    const option = await addVotingOption(election.$id, { ...newOption, votingItemId: itemId, votingItem: itemId })
-    setElection(prev => ({
-      ...prev,
-      sessions: prev.sessions.map(session => ({
-        ...session,
-        votingItems: session.votingItems.map(item =>
-          item.$id === itemId
-            ? { ...item, options: [...(item.options || []), option] }
-            : item
-        )
-      }))
-    }))
-    router.refresh()
-  }
+    try {
+      const option = await addVotingOption(election.$id, {
+        ...newOption,
+        votingItemId: itemId,
+        votingItem: itemId
+      })
 
-  
-  const handleRemoveVotingOption = async (optionId: string) => {
-    await removeVotingOption(optionId)
-    setElection(prev => ({
-      ...prev,
-      sessions: prev.sessions.map(session => ({
-        ...session,
-        votingItems: session.votingItems.map(item => ({
-          ...item,
-          options: item.options.filter(option => option.$id !== optionId)
+      setElection(prev => ({
+        ...prev,
+        sessions: prev.sessions.map(session => ({
+          ...session,
+          votingItems: session.votingItems.map(item =>
+            item.$id === itemId
+              ? {
+                  ...item,
+                  options: [...(item.options || []), option]
+                }
+              : item
+          )
         }))
       }))
-    }))
-    router.refresh()
+    } catch (error) {
+      console.error("Failed to add voting option:", error)
+    }
+  }
+  
+  const handleRemoveVotingOption = async (optionId: string) => {
+    try {
+      await removeVotingOption(optionId)
+      setElection(prev => ({
+        ...prev,
+        sessions: prev.sessions.map(session => ({
+          ...session,
+          votingItems: session.votingItems.map(item => ({
+            ...item,
+            options: (item.options || []).filter(option => option.$id !== optionId)
+          }))
+        }))
+      }))
+      router.refresh()
+    } catch (error) {
+      console.error("Failed to remove voting option:", error)
+    }
   }
 
   const handleAddOrRemoveAbstain = async (itemId: string, allowAbstain: boolean) => {
-    await addOrRemoveAbstain(election.$id, itemId, allowAbstain)
-    setElection(prev => ({
-      ...prev,
-      sessions: prev.sessions.map(session => ({
-        ...session,
-        votingItems: session.votingItems.map(item =>
-          item.$id === itemId
-            ? { ...item, allowAbstain }
-            : item
-        )
-      }))
-    }))
-    router.refresh()
+    try {
+      await addOrRemoveAbstain(election.$id, itemId, allowAbstain)
+      
+      if (allowAbstain) {
+        // Add Abstain option immediately in the UI
+        const abstainOption = await addVotingOption(election.$id, {
+          value: 'Abstain',
+          description: 'Abstain from voting',
+          votingItemId: itemId,
+          votingItem: itemId
+        })
+
+        setElection(prev => ({
+          ...prev,
+          sessions: prev.sessions.map(session => ({
+            ...session,
+            votingItems: session.votingItems.map(item =>
+              item.$id === itemId
+                ? {
+                    ...item,
+                    allowAbstain,
+                    options: [...(item.options || []), abstainOption]
+                  }
+                : item
+            )
+          }))
+        }))
+      } else {
+        // Remove Abstain option from UI
+        setElection(prev => ({
+          ...prev,
+          sessions: prev.sessions.map(session => ({
+            ...session,
+            votingItems: session.votingItems.map(item =>
+              item.$id === itemId
+                ? {
+                    ...item,
+                    allowAbstain,
+                    options: (item.options || []).filter(option => option.value !== 'Abstain')
+                  }
+                : item
+            )
+          }))
+        }))
+      }
+    } catch (error) {
+      console.error("Failed to update abstain option:", error)
+    }
   }
 
   const getTotalVotes = (itemId: string) => {
@@ -175,6 +242,37 @@ export default function ElectionDashboard({
       )
     }))
   }, [])
+
+  useEffect(() => {
+    const loadResults = async () => {
+      setIsLoading(true);
+      try {
+        const [fetchedResults, fetchedParticipation, nonVotersData] = await Promise.all([
+          fetchDetailedResults(election.$id),
+          fetchVoterParticipation(election.$id),
+          Promise.all(election.sessions.map(async (session) => ({
+            sessionId: session.$id,
+            nonVoters: await fetchNonVoters(session.$id)
+          })))
+        ]);
+        
+        setDetailedResults(fetchedResults);
+        setVoterParticipation(fetchedParticipation);
+        
+        // Transform non-voters data into an object keyed by session ID
+        const nonVotersMap = nonVotersData.reduce((acc, { sessionId, nonVoters }) => ({
+          ...acc,
+          [sessionId]: nonVoters
+        }), {});
+        setNonVotersBySession(nonVotersMap);
+      } catch (error) {
+        console.error("Failed to fetch results:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadResults();
+  }, [election.$id, fetchDetailedResults, fetchVoterParticipation, fetchNonVoters, election.sessions]);
 
   const handleDeleteSession = async (sessionId: string) => {
     await deleteSession(sessionId)
@@ -391,6 +489,13 @@ export default function ElectionDashboard({
                       </div>
                     </div>
                   ))}
+                  <Suspense fallback={<NonVotersDisplaySkeleton />}>
+                    <NonVotersDisplay
+                      sessionName={session.name}
+                      nonVoters={nonVotersBySession[session.$id] || []}
+                      isLoading={isLoading}
+                    />  
+                  </Suspense> 
                 </CardContent>
               </Card>
             ))
