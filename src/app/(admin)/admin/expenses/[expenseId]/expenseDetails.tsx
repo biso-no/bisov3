@@ -104,13 +104,13 @@ export function AdminExpenseDetails({
             <div className="space-y-2">
               <Label>Total Amount</Label>
               <div className="text-2xl font-bold">
-                ${expenseData.total}
+                {expenseData.total} kr
               </div>
             </div>
             <div className="space-y-2">
               <Label>Prepayment Amount</Label>
               <div className="text-2xl font-bold text-muted-foreground">
-                ${expenseData.prepayment_amount.toFixed(2)}
+                {expenseData.prepayment_amount.toFixed(2)} kr
               </div>
             </div>
           </div>
