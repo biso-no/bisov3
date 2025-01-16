@@ -11,7 +11,6 @@ import { Client, Databases, ID } from "appwrite";
 import { Models } from "appwrite";
 import { getUser } from "@/lib/admin/db";
 import { getLoggedInUser } from "@/lib/actions/user";
-import { Client, Databases} from "appwrite";
 import { revalidatePath } from "next/cache";
 
 
