@@ -15,6 +15,7 @@ import {
   DollarSign,
   FileText,
   MapPin,
+  Banknote
 } from "lucide-react";
 import { useFormContext } from "./formContext";
 import { format } from "date-fns";
@@ -84,7 +85,7 @@ export default function ExpenseOverview(expenseId) {
             <Separator className="my-4" />
             <div className="flex justify-between items-center pt-2 text-lg font-semibold">
               <span className="flex items-center">
-                <DollarSign className="mr-2" />
+                <Banknote className="mr-2" />
                 Total Amount:
               </span>
               <span>{formData.total} kr</span>
