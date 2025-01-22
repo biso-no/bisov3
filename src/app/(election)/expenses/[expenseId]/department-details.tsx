@@ -1,181 +1,203 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Card,
   CardContent,
-  CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
-import { departmentCampusSchema } from "./zodSchemas";
-import { useAppContext } from "../../../contexts";
-import { Campus } from "@/lib/types/campus";
-import { Department } from "@/lib/types/department";
-import { Building, MapPin } from "lucide-react";
-import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useFormContext } from "./formContext";
 import { Progress } from "@/components/ui/progress";
+import {
+  Building,
+  MapPin,
+  ChevronRight,
+  Search,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useFormContext } from "./formContext";
+import { getCampuses } from "@/app/actions/campus";
 
-export function DepartmentDetailsStep() {
-  const appContext = useAppContext();
-  const allDepartments = appContext.departments;
-  const campuses = appContext.campuses;
-
-  const formContext = useFormContext();
-  const step = formContext.step;
-  const nextStep = formContext.nextStep;
-  const updateFormData = formContext.updateFormData;
-  const prevStep = formContext.prevStep;
-  const formData = formContext.formData;
-
-  const [filteredDepartments, setFilteredDepartments] = useState<Department[]>([]);
-
-  const form = useForm({
-    resolver: zodResolver(departmentCampusSchema),
-    defaultValues: {
-      department: formData.department ,
-      campus: formData.campus,
-    },
-  });
-
-  
-
-  const selectedCampusId = form.watch("campus");
+export function DepartmentSelectionStep() {
+  const { updateFormData, formData, nextStep, prevStep } = useFormContext();
+  const [selectedCampus, setSelectedCampus] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredDepartments, setFilteredDepartments] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [hoveredCampus, setHoveredCampus] = useState(null);
+  const [campuses, setCampuses] = useState([]);
 
   useEffect(() => {
-    if (selectedCampusId) {
-      const filtered = allDepartments.filter(
-        (department) => department.campus?.$id === selectedCampusId
+    async function fetchCampuses() {
+      const fetchedCampuses = await getCampuses(true);
+      setCampuses(fetchedCampuses);
+    }
+    fetchCampuses();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCampus && searchQuery) {
+      const filtered = selectedCampus.departments.filter(dept =>
+        dept.Name.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredDepartments(filtered);
-      form.setValue("department",formData.department || "")
-    } else {
-      setFilteredDepartments([]);
+    } else if (selectedCampus) {
+      setFilteredDepartments(selectedCampus.departments);
     }
-  }, [selectedCampusId, allDepartments]);
+  }, [searchQuery, selectedCampus]);
 
-  const onSubmit = (values: z.infer<typeof departmentCampusSchema>) => {
-    updateFormData(values);
-    nextStep();
+  const handleCampusSelect = (campus) => {
+    setSelectedCampus(campus);
+    setSelectedDepartment(null);
+    setSearchQuery("");
+  };
+
+  const handleDepartmentSelect = (department) => {
+    setSelectedDepartment(department);
+    updateFormData({
+      campus: selectedCampus.name,
+      department: department.Name,
+    });
   };
 
   return (
-    <div>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <CardContent>
-            <Progress value={step * 25} className="w-full mb-6" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="campus"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Campus</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-                        <Select
-                          onValueChange={(value) => field.onChange(value)}
-                          value={field.value || ""}
-                        >
-                          <SelectTrigger className="w-full pl-10">
-                            <SelectValue placeholder="Select a Campus" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectLabel>Campuses</SelectLabel>
-                              {campuses.map((campus: Campus) => (
-                                <SelectItem
-                                  key={campus.$id}
-                                  value={campus.$id}
-                                >
-                                  {campus.name}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {selectedCampusId && (
-                <FormField
-                  control={form.control}
-                  name="department"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Department</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
-                          <Select
-                            onValueChange={(value) => field.onChange(value)}
-                            value={field.value || ""}
+    <div className="space-y-6">
+      <Progress value={50} className="w-full" />
+      
+      <div className="grid grid-cols-12 gap-6">
+        {/* Campus Selection - Left Panel */}
+        <div className="col-span-4">
+          <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+            <MapPin className="h-5 w-5" />
+            Select Campus
+          </h3>
+          
+          <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+            {campuses.map((campus) => (
+              <motion.div
+                key={campus.$id}
+                initial={false}
+                animate={{
+                  scale: hoveredCampus === campus.$id ? 1.02 : 1,
+                  backgroundColor: selectedCampus?.$id === campus.$id ? "rgb(243 244 246)" : "transparent"
+                }}
+                className="relative rounded-lg overflow-hidden"
+                onHoverStart={() => setHoveredCampus(campus.$id)}
+                onHoverEnd={() => setHoveredCampus(null)}
+              >
+                <button
+                  onClick={() => handleCampusSelect(campus)}
+                  className={`w-full p-4 text-left transition-all relative z-10 rounded-lg
+                    ${selectedCampus?.$id === campus.$id 
+                      ? 'bg-primary/5 border-primary' 
+                      : 'hover:bg-gray-50'}`}
+                >
+                  <div className="relative z-10">
+                    <h4 className="font-medium">{campus.name}</h4>
+                    <p className="text-sm text-gray-500">
+                      {campus.departments.length} departments
+                    </p>
+                  </div>
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Department Selection - Right Panel */}
+        <div className="col-span-8">
+          <AnimatePresence mode="wait">
+            {selectedCampus ? (
+              <motion.div
+                key="department-list"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+              >
+                <Card>
+                  <CardHeader className="border-b">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <Building className="h-5 w-5" />
+                        {selectedCampus.name}
+                      </CardTitle>
+                    </div>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        placeholder="Search departments..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="max-h-[300px] overflow-y-auto">
+                    <div className="space-y-2 py-2">
+                      <AnimatePresence>
+                        {filteredDepartments.map((dept, index) => (
+                          <motion.div
+                            key={dept.$id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ delay: index * 0.05 }}
                           >
-                            <SelectTrigger className="w-full pl-10">
-                              <SelectValue placeholder="Select a Department" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectLabel>Departments</SelectLabel>
-                                {filteredDepartments.map((department: Department) => (
-                                  <SelectItem
-                                    key={department.$id}
-                                    value={department.$id}
-                                  >
-                                    {department.Name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            {step > 1 && (
-              <Button type="button" variant="outline" onClick={prevStep}>
-                <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-              </Button>
+                            <button
+                              onClick={() => handleDepartmentSelect(dept)}
+                              className={`w-full p-4 text-left rounded-lg transition-all
+                                ${selectedDepartment?.$id === dept.$id
+                                  ? 'bg-primary/10 ring-2 ring-primary/20'
+                                  : 'hover:bg-gray-50'}`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <h4 className="font-medium">{dept.Name}</h4>
+                                  {dept.building && (
+                                    <p className="text-sm text-gray-500">{dept.building}</p>
+                                  )}
+                                </div>
+                                <ChevronRight className={`h-5 w-5 text-gray-400 transition-transform
+                                  ${selectedDepartment?.$id === dept.$id ? 'rotate-90' : ''}`} 
+                                />
+                              </div>
+                            </button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="placeholder"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="h-full flex items-center justify-center"
+              >
+                <div className="text-center text-gray-500">
+                  <Building className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Select a campus to view departments</p>
+                </div>
+              </motion.div>
             )}
-            {step < 4 && (
-              <Button type="submit" className="ml-auto">
-                Next
-              </Button>
-            )}
-          </CardFooter>
-        </form>
-      </Form>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={prevStep}>
+          Back
+        </Button>
+        <Button
+          onClick={nextStep}
+          disabled={!selectedDepartment}
+        >
+          Continue
+        </Button>
+      </div>
     </div>
   );
 }

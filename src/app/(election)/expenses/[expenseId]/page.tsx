@@ -9,7 +9,6 @@ export default async function Expense({ params }: { params: { expenseId: string 
     <FormContextProvider>
       <ExpenseView expenseId={params.expenseId}/>
       </FormContextProvider>
-    //<FormContextProvider><ExpenseDetails/></FormContextProvider>
     
   )
     

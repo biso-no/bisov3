@@ -1,665 +1,309 @@
-/*
 "use client";
-
-import { format } from "date-fns";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import React, { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardContent,
+  CardFooter,
 } from "@/components/ui/card";
-
-import { documentSchema } from "./zodSchemas";
-import * as z from "zod";
-import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import {
-  PlusCircle,
-  Trash2,
+  Upload,
   FileText,
   Calendar,
   DollarSign,
-  Upload,
+  Edit2,
+  Loader2,
+  X,
+  Plus,
+  AlertCircle,
+  Check,
 } from "lucide-react";
-
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useFormContext } from "./formContext";
-import { Progress } from "@/components/ui/progress";
-
-
-export function DocumentsDetailsStep() {
-
-
-
-  const formContext = useFormContext();
-  const step = formContext.step;
-  const nextStep = formContext.nextStep;
-  const updateFormData = formContext.updateFormData;
-  const prevStep = formContext.prevStep;
-  const formData = formContext.formData;
-
-  const [attachments, setAttachments] = useState<{
-    total: number;
-    attachments: {
-      amount: number;
-      date: Date;
-      description: string;
-      image: File | null;
-    }[];
-  }>({
-    total: formData.total,
-    attachments: formData.expense_attachments,
-  });
-
-  useEffect(() => {
-    updateFormData({
-      expense_attachments: attachments.attachments,
-      total:attachments.total,
-    });
-  }, [attachments]);
-
-
-  const [addFormVisible, setAddFormVisible] = useState(false);
-
-  const doc_form = useForm({
-    resolver: zodResolver(documentSchema),
-    defaultValues: {
-      amount: 0,
-      date: "",
-      description: "",
-      image: null,
-    },
-  });
-
-  const onSubmit = (values: z.infer<typeof documentSchema>) => {
-    const newAttachment = {
-      amount: values.amount,
-      date: new Date(values.date),
-      description: values.description,
-      image: values.image,
-    };
-
-    setAttachments((prev) => ({
-      total: prev.total + values.amount,
-      attachments: [...prev.attachments, newAttachment],
-    }));
-
-    setAddFormVisible(false);
-    doc_form.reset();
-  };
-
-
-
-  const handleClick = () => {
-    setAddFormVisible(!addFormVisible);
-    doc_form.reset();
-  };
-
-  const deleteAttachment = (docIndex: number) => {
-    setAttachments((prev) => ({
-      total: prev.total - prev.attachments[docIndex].amount,
-      attachments: prev.attachments.filter((_, index) => index !== docIndex),
-    }));
-  };
-  const handleSubmit = () => {
-    doc_form.reset();
-    nextStep()
-  };
-  return (
-    <div className="space-y-6">
-      <CardContent>
-        <Progress value={step * 25} className="w-full mb-6" />
-        <Card>
-          <CardHeader>
-            <CardTitle>Documents Summary</CardTitle>
-            <CardDescription>
-              Total amount: {attachments.total.toFixed(2)} NOK
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <p>{attachments.attachments.length} document(s) attached</p>
-              {!addFormVisible && (
-                <Button onClick={handleClick} variant="outline">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add Document
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {attachments.attachments.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Attached Documents</h2>
-            {attachments.attachments.map((doc, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    <span>{doc.description}</span>
-                    <span className="text-lg font-normal">
-                      {doc.amount.toFixed(2)} NOK
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-4">
-                    <Calendar className="h-5 w-5 text-gray-500" />
-                    <span>{format(new Date(doc.date), "MMMM d, yyyy")}</span>
-                  </div>
-                  {doc.image && (
-                    <div className="flex items-center space-x-4 mt-2">
-                      <FileText className="h-5 w-5 text-gray-500" />
-                      <span>{doc.image.name}</span>
-                    </div>
-                  )}
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    onClick={() => deleteAttachment(index)}
-                    variant="destructive"
-                    size="sm"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {addFormVisible && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Add New Document</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Form {...doc_form}>
-                <form
-                  onSubmit={doc_form.handleSubmit(onSubmit)}
-                  className="space-y-6"
-                >
-                  <FormField
-                    control={doc_form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Amount (NOK)</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                            <Input
-                              type="number"
-                              placeholder="Enter amount"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(e.target.valueAsNumber)
-                              }
-                              className="pl-10"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={doc_form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Date</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                            <Input
-                              type="date"
-                              placeholder="Enter date"
-                              {...field}
-                              className="pl-10"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={doc_form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter description" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={doc_form.control}
-                    name="image"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Attachment</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Upload className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                            <Input
-                              type="file"
-                              onChange={(e) =>
-                                field.onChange(e.target.files?.[0] || null)
-                              }
-                              className="pl-10"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end space-x-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleClick}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit">Submit</Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        )}
-
-        {attachments.attachments.length === 0 && !addFormVisible && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center h-40">
-              <p className="text-gray-500 mb-4">No documents added yet</p>
-              <Button onClick={handleClick} variant="outline">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Your First Document
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        {step > 1 && (
-          <Button type="button" variant="outline" onClick={prevStep}>
-            <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-          </Button>
-        )}
-        {step < 4 && (
-          <Button type="button" className="ml-auto" onClick={() => handleSubmit()}
->
-            Next
-          </Button>
-        )}
-      </CardFooter>
-    </div>
-  );
-}
-*/
-
-"use client";
-
+import { useDropzone } from "react-dropzone";
 import { format } from "date-fns";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
 
-import { documentSchema } from "./zodSchemas";
-import * as z from "zod";
-import { useEffect, useState } from "react";
-import {
-  PlusCircle,
-  Trash2,
-  FileText,
-  Calendar,
-  DollarSign,
-  Upload,
-} from "lucide-react";
+const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useFormContext } from "./formContext";
-import { Progress } from "@/components/ui/progress";
+export function DocumentUploadStep() {
+  const { updateFormData, formData, nextStep, prevStep } = useFormContext();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [documents, setDocuments] = useState([]);
+  const [editingDoc, setEditingDoc] = useState(null);
+  const [totalAmount, setTotalAmount] = useState(0);
 
-export function DocumentsDetailsStep({expenseId}) {
-  const formContext = useFormContext();
-  const step = formContext.step;
-  const nextStep = formContext.nextStep;
-  const updateFormData = formContext.updateFormData;
-  const prevStep = formContext.prevStep;
-  const formData = formContext.formData;
+  const onDrop = useCallback(async (acceptedFiles) => {
+    for (const file of acceptedFiles) {
+      setIsProcessing(true);
+      try {
+        // Create preview URL
+        const preview = URL.createObjectURL(file);
+        
+        // Upload to your server and process with OCR/AI
+        const formData = new FormData();
+        formData.append("file", file);
+        
+        const response = await fetch("/api/process-receipt", {
+          method: "POST",
+          body: formData,
+        });
+        
+        const result = await response.json();
+        
+        // Add new document with AI-extracted data
+        const newDoc = {
+          id: Date.now(),
+          file,
+          amount: result.amount || 0,
+          date: result.date || new Date(),
+          description: result.description || "",
+          isProcessed: true,
+          confidence: result.confidence || 1,
+        };
 
-  const [attachments, setAttachments] = useState<{
-    total: number;
-    attachments: {
-      amount: number;
-      date: Date;
-      description: string;
-      image: File | null;
-      url: string
-      id: string
-    }[];
-  }>({
-    total: formData.total,
-    attachments: formData.expense_attachments,
-  });
+        setDocuments(prev => [...prev, newDoc]);
+        setTotalAmount(prev => prev + (result.amount || 0));
+        
+      } catch (error) {
+        console.error("Error processing document:", error);
+        // Add document with empty data for manual input
+        const newDoc = {
+          id: Date.now(),
+          file,
+          amount: 0,
+          date: new Date(),
+          description: "",
+          isProcessed: false,
+          confidence: 0,
+        };
+        setDocuments(prev => [...prev, newDoc]);
+      } finally {
+        setIsProcessing(false);
+      }
+    }
+  }, []);
 
-  useEffect(() => {
-    updateFormData({
-      expense_attachments: attachments.attachments,
-      total: attachments.total,
-    });
-  }, [attachments]);
-
-  const [addFormVisible, setAddFormVisible] = useState(false);
-
-  const doc_form = useForm({
-    resolver: zodResolver(documentSchema),
-    defaultValues: {
-      amount: 0,
-      date: "",
-      description: "",
-      image: null,
-      url:"",
-      id:""
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png'],
+      'application/pdf': ['.pdf']
     },
+    multiple: true
   });
 
-  const onSubmit = (values: z.infer<typeof documentSchema>) => {
-    const newAttachment = {
-      amount: values.amount,
-      date: new Date(values.date),
-      description: values.description,
-      image: values.image,
-      url:values.url,
-      id:values.id
-    };
-
-    setAttachments((prev) => ({
-      total: prev.total + values.amount,
-      attachments: [...prev.attachments, newAttachment],
-    }));
-
-    setAddFormVisible(false);
-    doc_form.reset();
+  const handleEdit = (doc) => {
+    setEditingDoc(doc);
   };
 
-  const handleClick = () => {
-    setAddFormVisible(!addFormVisible);
-    doc_form.reset();
+  const handleSave = (docId, updatedData) => {
+    setDocuments(prev => prev.map(doc => {
+      if (doc.id === docId) {
+        return { ...doc, ...updatedData, isEdited: true };
+      }
+      return doc;
+    }));
+    setEditingDoc(null);
+    
+    // Update total amount
+    const newTotal = documents.reduce((sum, doc) => sum + doc.amount, 0);
+    setTotalAmount(newTotal);
   };
 
-  const deleteAttachment = (docIndex: number) => {
-    setAttachments((prev) => ({
-      total: prev.total - prev.attachments[docIndex].amount,
-      attachments: prev.attachments.filter((_, index) => index !== docIndex),
-    }));
+  const handleDelete = (docId) => {
+    setDocuments(prev => prev.filter(doc => doc.id !== docId));
+    // Update total amount
+    const newTotal = documents.reduce((sum, doc) => sum + (doc.id !== docId ? doc.amount : 0), 0);
+    setTotalAmount(newTotal);
   };
 
   const handleSubmit = () => {
-    doc_form.reset();
+    updateFormData({
+      expense_attachments: documents,
+      total: totalAmount
+    });
     nextStep();
   };
 
   return (
     <div className="space-y-6">
-      <CardContent>
-        <Progress value={step * 25} className="w-full mb-6" />
+      <Progress value={75} className="w-full" />
+      
+      <motion.div
+        initial="initial"
+        animate="animate"
+        variants={fadeInUp}
+        className="space-y-6"
+      >
+        {/* Upload Zone */}
         <Card>
           <CardHeader>
-            <CardTitle>Documents Summary</CardTitle>
-            <CardDescription>
-              Total amount: {attachments.total.toFixed(2)} NOK
-            </CardDescription>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Upload Documents
+              </span>
+              <span className="text-sm font-normal text-gray-500">
+                Total: {totalAmount.toFixed(2)} NOK
+              </span>
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <p>{attachments.attachments.length} document(s) attached</p>
-              {!addFormVisible && (
-                <Button onClick={handleClick} variant="outline">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add Document
-                </Button>
+          <CardContent className="p-6">
+            <div
+              {...getRootProps()}
+              className={cn(
+                "border-2 border-dashed rounded-lg p-8 transition-colors duration-200 ease-in-out relative",
+                isDragActive ? "border-primary bg-primary/5" : "border-gray-200 hover:border-primary/50",
+                isProcessing && "pointer-events-none opacity-50"
               )}
+            >
+              <input {...getInputProps()} />
+              <div className="flex flex-col items-center justify-center text-center">
+                {isProcessing ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-gray-500">Processing documents...</p>
+                  </div>
+                ) : (
+                  <>
+                    <Upload className="h-8 w-8 text-gray-400 mb-4" />
+                    <p className="text-sm text-gray-600">
+                      Drag and drop your documents here or click to browse
+                    </p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Supported formats: JPEG, PNG, PDF
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {attachments.attachments.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold">Attached Documents</h2>
-            {attachments.attachments.map((doc, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <CardTitle className="flex justify-between items-center">
-                    <span>{doc.description}</span>
-                    <span className="text-lg font-normal">
-                      {doc.amount.toFixed(2)} NOK
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-4">
-                    <Calendar className="h-5 w-5 text-gray-500" />
-                    <span>{format(new Date(doc.date), "MMMM d, yyyy")}</span>
+        {/* Document List */}
+        <AnimatePresence mode="popLayout">
+          {documents.map((doc) => (
+            <motion.div
+              key={doc.id}
+              variants={fadeInUp}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              layout
+            >
+              <Card className="relative overflow-hidden">
+                {doc.confidence < 0.8 && !doc.isEdited && (
+                  <div className="absolute top-0 right-0 m-4">
+                    <div className="bg-yellow-50 text-yellow-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      Please verify details
+                    </div>
                   </div>
-                  {expenseId=="new" && doc.image && (
-                    <div className="flex items-center space-x-4 mt-2">
-                      <FileText className="h-5 w-5 text-gray-500" />
-                      <span>{doc.image.name}</span>
-                      <a
-                        href={URL.createObjectURL(doc.image)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 underline"
-                      >
-                        View Attachment
-                      </a>
+                )}
+                
+                <CardContent className="p-6">
+                  <div className="flex gap-6">
+                    {/* Document Preview */}
+                    <div className="w-32 h-32 rounded-lg border bg-gray-50 flex items-center justify-center overflow-hidden">
+                      {doc.preview ? (
+                        <Image 
+                          src={doc.preview} 
+                          alt="Document preview" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <FileText className="h-8 w-8 text-gray-400" />
+                      )}
                     </div>
-                  )}
 
-                  {expenseId!="new" && (
-                    <div className="flex items-center space-x-4 mt-2">
-
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 underline"
-                      >
-                        View Attachment
-                      </a>
-                    </div>
-                  )}
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    onClick={() => deleteAttachment(index)}
-                    variant="destructive"
-                    size="sm"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {addFormVisible && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Add New Document</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Form {...doc_form}>
-                <form
-                  onSubmit={doc_form.handleSubmit(onSubmit)}
-                  className="space-y-6"
-                >
-                  <FormField
-                    control={doc_form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Amount (NOK)</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    {/* Document Details */}
+                    <div className="flex-1 space-y-4">
+                      {editingDoc?.id === doc.id ? (
+                        <div className="space-y-4">
+                          <Input
+                            defaultValue={doc.description}
+                            placeholder="Description"
+                            onChange={(e) => handleSave(doc.id, { description: e.target.value })}
+                          />
+                          <div className="grid grid-cols-2 gap-4">
                             <Input
                               type="number"
-                              placeholder="Enter amount"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(e.target.valueAsNumber)
-                              }
-                              className="pl-10"
+                              defaultValue={doc.amount}
+                              placeholder="Amount"
+                              onChange={(e) => handleSave(doc.id, { amount: parseFloat(e.target.value) })}
                             />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={doc_form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Date</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                             <Input
                               type="date"
-                              placeholder="Enter date"
-                              {...field}
-                              className="pl-10"
+                              defaultValue={format(doc.date, "yyyy-MM-dd")}
+                              onChange={(e) => handleSave(doc.id, { date: new Date(e.target.value) })}
                             />
                           </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={doc_form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter description" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={doc_form.control}
-                    name="image"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Attachment</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Upload className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                            <Input
-                              type="file"
-                              onChange={(e) =>
-                                field.onChange(e.target.files?.[0] || null)
-                              }
-                              className="pl-10"
-                            />
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-start justify-between">
+                            <h3 className="font-medium">{doc.description || "No description"}</h3>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEdit(doc)}
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(doc.id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end space-x-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleClick}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit">Submit</Button>
+                          <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="h-4 w-4" />
+                              {doc.amount.toFixed(2)} NOK
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4" />
+                              {format(doc.date, "PP")}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
-        {attachments.attachments.length === 0 && !addFormVisible && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center h-40">
-              <p className="text-gray-500 mb-4">No documents added yet</p>
-              <Button onClick={handleClick} variant="outline">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Your First Document
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        {step > 1 && (
-          <Button type="button" variant="outline" onClick={prevStep}>
-            <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+        {/* Actions */}
+        <div className="flex justify-between">
+          <Button variant="outline" onClick={prevStep}>
+            Back
           </Button>
-        )}
-        {step < 4 && (
           <Button
-            type="button"
-            className="ml-auto"
-            onClick={() => handleSubmit()}
+            onClick={handleSubmit}
+            disabled={documents.length === 0 || isProcessing}
           >
-            Next
+            Continue
           </Button>
-        )}
-      </CardFooter>
+        </div>
+      </motion.div>
     </div>
   );
 }
