@@ -38,6 +38,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useFormContext } from "./formContext";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export function BankDetailsStep() {
   //const { data, setFormData } = useFormContext()
@@ -61,8 +62,7 @@ export function BankDetailsStep() {
     defaultValues: {
       bank_account: formData.bank_account,
       has_prepayment: formData.has_prepayment,
-      prepayment_amount: formData.prepayment_amount,
-      description: formData.description,
+      prepayment_amount: formData.prepayment_amount
     },
   });
 
@@ -138,19 +138,6 @@ export function BankDetailsStep() {
                 )}
               />
             )}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Input placeholder="description" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </CardContent>
           <CardFooter className="flex justify-between">
             {step > 1 && (

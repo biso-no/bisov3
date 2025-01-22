@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import Breadcrumb from './breadcrumb';
 import { RoleSwitcher } from './role-switcher';
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "motion/react"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   LayoutDashboard,
   FileText,

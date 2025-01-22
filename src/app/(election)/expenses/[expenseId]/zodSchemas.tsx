@@ -3,8 +3,7 @@ import * as z from "zod";
 export const bankDetailsSchema = z.object({
   bank_account: z.string().min(1, "Bank account is required"),
   has_prepayment: z.boolean().optional(),
-  prepayment_amount: z.number().optional(),
-  description: z.string().min(1, "description is required"),
+  prepayment_amount: z.number().optional()
 });
 export const departmentCampusSchema = z.object({
   department: z.string().min(1, "Department is required"),

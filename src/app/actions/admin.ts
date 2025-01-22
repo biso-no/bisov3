@@ -128,6 +128,24 @@ export async function getExpenses() {
 
   return response.documents as Expense[]
 }
+
+export async function getExpensesByLoggedInUser() {
+       
+  
+   
+  //console.log(user.user.$id)
+  //console.log("here")
+  const { db, account} = await createSessionClient();
+  const user = await account.get();
+  //console.log(user.$id)
+  const response = await db.listDocuments('app', 'expense', [Query.equal("userId", user.$id),
+    Query.limit(100)
+  ]);
+
+  return response.documents as Expense[]
+}
+
+
 export async function getExpense(id) {
   const { db } = await createSessionClient();
   const response = await db.getDocument('app', 'expense', id);
@@ -140,7 +158,8 @@ export async function getExpense(id) {
 
 
 export async function addExpense(formData) {
-  const { db } = await createSessionClient();
+  const { db, account} = await createSessionClient();
+  const user = await account.get();
   const response = await db.createDocument(
     'app', // databaseId
     'expense', // collectionId
@@ -153,8 +172,8 @@ export async function addExpense(formData) {
       expenseAttachments: formData.expense_attachments_ids,
       total: formData.total,
       prepayment_amount: formData.prepayment_amount,
-      user: formData.user,
-      userId: formData.userId
+      user: user.$id,
+      userId: user.$id
     }, // data
   );
 
@@ -163,7 +182,8 @@ export async function addExpense(formData) {
 
 export async function updateExpense(expenseId, formData) {
   console.log(expenseId)
-  const { db } = await createSessionClient();
+  const { db, account } = await createSessionClient();
+  const user = await account.get();
   const response = await db.updateDocument(
     'app', // databaseId
     'expense', // collectionId
@@ -176,8 +196,8 @@ export async function updateExpense(expenseId, formData) {
       expenseAttachments: formData.expense_attachments_ids,
       total: formData.total,
       prepayment_amount: formData.prepayment_amount,
-      user: formData.user,
-      userId: formData.userId
+      user: user.$id,
+      userId: user.$id
     }, // data
   );
 }
@@ -237,7 +257,7 @@ export async function updateExpense(expenseId, formData) {
   export async function getDepartments() {
     const { db } = await createSessionClient();
     const response = await db.listDocuments('app', 'departments', [
-      Query.limit(100)
+      Query.limit(1000)
     ]);
 
     return response.documents as Department[]

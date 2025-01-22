@@ -1,8 +1,8 @@
 import { ExpenseTable } from "./expense-table";
-import { getExpenses } from "@/app/actions/admin";
+import { getExpensesByLoggedInUser } from "@/app/actions/admin";
 
 export default async function Expenses() {
-  const expenses = await getExpenses()
+  const expenses = await getExpensesByLoggedInUser()
   return (
     <ExpenseTable expenses={expenses} />
   )

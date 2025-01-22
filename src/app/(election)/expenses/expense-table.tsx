@@ -31,6 +31,8 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
     router.push(`../expenses/${id}`)
   }
   const onSubmitExpense = (id: string) => {
+    console.log("submitted exense id:")
+    console.log(id)
     updateExpenseStatus(id, "submitted")
   }
 
@@ -67,7 +69,7 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
                 <TableCell className="text-right space-x-2">
 
                   {expense.status === "pending" && (
-                    <div>
+                    <div className="mx-auto">
                       <Button
                         variant="outline"
                         size="sm"

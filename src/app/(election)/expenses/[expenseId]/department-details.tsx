@@ -53,7 +53,7 @@ export function DepartmentDetailsStep() {
   const form = useForm({
     resolver: zodResolver(departmentCampusSchema),
     defaultValues: {
-      department: formData.department,
+      department: formData.department ,
       campus: formData.campus,
     },
   });
@@ -68,7 +68,7 @@ export function DepartmentDetailsStep() {
         (department) => department.campus?.$id === selectedCampusId
       );
       setFilteredDepartments(filtered);
-      form.setValue("department", "")
+      form.setValue("department",formData.department || "")
     } else {
       setFilteredDepartments([]);
     }
