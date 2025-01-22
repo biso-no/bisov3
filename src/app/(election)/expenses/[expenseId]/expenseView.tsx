@@ -39,7 +39,7 @@ export default function ExpenseView({ expenseId }) {
   //[expenseId, updateFormData]);
 
   if (loading) {
-    return <LoadingPage></LoadingPage> ; // Prevent rendering until data is ready
+    return <LoadingPage />
   }
 
   return <ExpenseDetails expenseId={expenseId}/>;
