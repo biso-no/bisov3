@@ -1,5 +1,11 @@
 name: Manual PR Preview
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to deploy'
+        required: true
+        type: string
 
 jobs:
   deploy:
@@ -14,7 +20,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "."
-          target: "/root/apps/pr-previews/pr-${{ github.event.pull_request.number }}"
+          target: "/root/apps/pr-previews/pr-${{ inputs.pr_number }}"
           
       - name: Deploy
         uses: appleboy/ssh-action@master
@@ -23,7 +29,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            mkdir -p /root/apps/pr-previews/pr-${{ github.event.pull_request.number }}
-            cd /root/apps/pr-previews/pr-${{ github.event.pull_request.number }}
-            ../generate-compose.sh ${{ github.event.pull_request.number }}
-            docker compose -f docker-compose.pr-${{ github.event.pull_request.number }}.yml up -d --build
+            mkdir -p /root/apps/pr-previews/pr-${{ inputs.pr_number }}
+            cd /root/apps/pr-previews/pr-${{ inputs.pr_number }}
+            ../generate-compose.sh ${{ inputs.pr_number }}
+            docker compose -f docker-compose.pr-${{ inputs.pr_number }}.yml up -d --build
