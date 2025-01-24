@@ -1,53 +1,21 @@
-name: PR Preview
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
-
+    types: [opened, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
 jobs:
-  deploy:
+  pr_agent_job:
+    if: ${{ github.event.sender.type != 'Bot' }}
     runs-on: ubuntu-latest
-    env:
-      APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
-      NEXT_PUBLIC_APPWRITE_ENDPOINT: ${{ secrets.NEXT_PUBLIC_APPWRITE_ENDPOINT }}
-      NEXT_PUBLIC_APPWRITE_PROJECT: ${{ secrets.NEXT_PUBLIC_APPWRITE_PROJECT }}
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+    name: Run pr agent on every pull request, respond to user comments
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Copy files to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "."
-          target: "/root/apps/pr-previews/pr-${{ github.event.pull_request.number }}"
-          
-      - name: Deploy
-        uses: appleboy/ssh-action@master
+      - name: PR Agent action step
+        id: pragent
+        uses: Codium-ai/pr-agent@main
         env:
-          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
-          NEXT_PUBLIC_APPWRITE_ENDPOINT: ${{ secrets.NEXT_PUBLIC_APPWRITE_ENDPOINT }}
-          NEXT_PUBLIC_APPWRITE_PROJECT: ${{ secrets.NEXT_PUBLIC_APPWRITE_PROJECT }}
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          envs: APPWRITE_API_KEY,NEXT_PUBLIC_APPWRITE_ENDPOINT,NEXT_PUBLIC_APPWRITE_PROJECT
-          script: |
-            export APPWRITE_API_KEY=$APPWRITE_API_KEY
-            export NEXT_PUBLIC_APPWRITE_ENDPOINT=$NEXT_PUBLIC_APPWRITE_ENDPOINT
-            export NEXT_PUBLIC_APPWRITE_PROJECT=$NEXT_PUBLIC_APPWRITE_PROJECT
-            mkdir -p /root/apps/pr-previews/pr-${{ github.event.pull_request.number }}
-            cd /root/apps/pr-previews/pr-${{ github.event.pull_request.number }}
-            ../generate-compose.sh ${{ github.event.pull_request.number }}
-            docker compose -f docker-compose.pr-${{ github.event.pull_request.number }}.yml up -d --build
-           
-      - name: Comment PR with preview URL
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: context.issue.number,
-              body: `Preview deployed at: pr-${context.issue.number}.yourdomain.com`
-            })
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
