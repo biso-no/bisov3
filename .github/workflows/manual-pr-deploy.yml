@@ -23,6 +23,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
+            mkdir -p /root/apps/pr-previews/pr-${{ github.event.pull_request.number }}
             cd /root/apps/pr-previews/pr-${{ github.event.pull_request.number }}
-            ./generate-compose.sh ${{ github.event.pull_request.number }}
-            docker-compose -f docker-compose.pr-${{ github.event.pull_request.number }}.yml up -d --build
+            ../generate-compose.sh ${{ github.event.pull_request.number }}
+            docker compose -f docker-compose.pr-${{ github.event.pull_request.number }}.yml up -d --build
