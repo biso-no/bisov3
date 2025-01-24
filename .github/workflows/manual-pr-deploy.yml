@@ -14,18 +14,16 @@ jobs:
       APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
       NEXT_PUBLIC_APPWRITE_ENDPOINT: ${{ secrets.NEXT_PUBLIC_APPWRITE_ENDPOINT }}
       NEXT_PUBLIC_APPWRITE_PROJECT: ${{ secrets.NEXT_PUBLIC_APPWRITE_PROJECT }}
+      SECRET_ENV_VARIABLE: ${{ secrets.SECRET_ENV_VARIABLE }}
 
     steps:
-      # Checkout the repository
       - uses: actions/checkout@v4
 
-      # Fetch the PR branch
       - name: Fetch PR Branch
         run: |
           git fetch origin pull/${{ inputs.pr_number }}/head:pr-${{ inputs.pr_number }}
           git checkout pr-${{ inputs.pr_number }}
 
-      # Cache dependencies
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -34,7 +32,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-
 
-      # Install dependencies and build the app
       - name: Install and Build
         run: |
           if [ -f bun.lockb ]; then bun install && bun run build; \
@@ -44,23 +41,22 @@ jobs:
           else echo "Lockfile not found." && exit 1; \
           fi
 
-      # Copy the build artifacts to the server
-      - name: Copy Build Artifacts
+      - name: Copy Build Artifacts to Server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: ".next"
-          target: "/root/apps/pr-previews/pr-${{ inputs.pr_number }}"
+          target: "/root/apps/pr-previews/pr-${{ inputs.pr_number }}/.next"
 
-      # Run generate-compose.sh on the server
-      - name: Generate Compose and Deploy
+      - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@master
         env:
           APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
           NEXT_PUBLIC_APPWRITE_ENDPOINT: ${{ secrets.NEXT_PUBLIC_APPWRITE_ENDPOINT }}
           NEXT_PUBLIC_APPWRITE_PROJECT: ${{ secrets.NEXT_PUBLIC_APPWRITE_PROJECT }}
+          SECRET_ENV_VARIABLE: ${{ secrets.SECRET_ENV_VARIABLE }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
@@ -69,11 +65,11 @@ jobs:
             export APPWRITE_API_KEY=$APPWRITE_API_KEY
             export NEXT_PUBLIC_APPWRITE_ENDPOINT=$NEXT_PUBLIC_APPWRITE_ENDPOINT
             export NEXT_PUBLIC_APPWRITE_PROJECT=$NEXT_PUBLIC_APPWRITE_PROJECT
+            export SECRET_ENV_VARIABLE=$SECRET_ENV_VARIABLE
             cd /root/apps/pr-previews
             ./generate-compose.sh ${{ inputs.pr_number }}
             docker compose -f docker-compose.pr-${{ inputs.pr_number }}.yml up -d
 
-      # Comment the PR with the deployment URL
       - name: Comment PR with Preview URL
         uses: actions/github-script@v6
         with:
@@ -81,5 +77,5 @@ jobs:
             github.rest.issues.createComment({
               ...context.repo,
               issue_number: ${{ inputs.pr_number }},
-              body: `Preview deployed at: https://pr-${{ inputs.pr_number }}.yourdomain.com`
+              body: `Preview deployed at: https://pr-${{ inputs.pr_number }}.app.biso.no`
             })
