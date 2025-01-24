@@ -22,7 +22,12 @@ jobs:
           key: ${{ runner.os }}-nextjs-${{ hashFiles('**/yarn.lock', '**/package-lock.json', '**/pnpm-lock.yaml', '**/bun.lockb') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-
-      
+      - name: Install Bun
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+          export BUN_INSTALL="$HOME/.bun"
+          export PATH="$BUN_INSTALL/bin:$PATH"
+          bun --version
       # Install dependencies and build
       - name: Install and Build
         run: |
