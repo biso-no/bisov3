@@ -22,8 +22,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-
 
+      - name: Install Bun
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+          export BUN_INSTALL="$HOME/.bun"
+          export PATH="$BUN_INSTALL/bin:$PATH"
+          bun --version
+
       - name: Install and Build
         run: |
+          export BUN_INSTALL="$HOME/.bun"
+          export PATH="$BUN_INSTALL/bin:$PATH"
           if [ -f bun.lockb ]; then bun install && bun run build; \
           elif [ -f yarn.lock ]; then yarn install --frozen-lockfile && yarn build; \
           elif [ -f package-lock.json ]; then npm ci && npm run build; \
