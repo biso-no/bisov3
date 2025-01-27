@@ -1,11 +1,13 @@
 name: PR Preview
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, closed]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # Don't deploy if PR is closed
+    if: github.event.action != 'closed'
     env:
       APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
       NEXT_PUBLIC_APPWRITE_ENDPOINT: ${{ secrets.NEXT_PUBLIC_APPWRITE_ENDPOINT }}
@@ -43,17 +45,26 @@ jobs:
           else echo "Lockfile not found." && exit 1; \
           fi
 
-      # Step 5: Copy Build Artifacts to Server
+      # Step 5: Verify Build Output
+      - name: Verify Build Output
+        run: |
+          if [ ! -d ".next/standalone" ]; then
+            echo "Error: standalone output not found. Ensure next.config.js has output: 'standalone'"
+            exit 1
+          fi
+
+      # Step 6: Copy Build Artifacts to Server
       - name: Copy Build Artifacts to Server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: ".next"
+          source: ".next,public"
           target: "/root/apps/pr-previews/pr-${{ github.event.pull_request.number }}"
+          strip_components: 0
 
-      # Step 6: Deploy Using Docker Compose
+      # Step 7: Deploy Using Docker Compose
       - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@master
         with:
@@ -66,10 +77,27 @@ jobs:
             export NEXT_PUBLIC_APPWRITE_ENDPOINT='${{ secrets.NEXT_PUBLIC_APPWRITE_ENDPOINT }}'
             export NEXT_PUBLIC_APPWRITE_PROJECT='${{ secrets.NEXT_PUBLIC_APPWRITE_PROJECT }}'
             cd /root/apps/pr-previews
+            
+            # Clean up old deployment
+            if [ -f "docker-compose.pr-${{ github.event.pull_request.number }}.yml" ]; then
+              docker compose -f docker-compose.pr-${{ github.event.pull_request.number }}.yml down
+            fi
+            
             ./generate-compose.sh ${{ github.event.pull_request.number }}
             docker compose -f docker-compose.pr-${{ github.event.pull_request.number }}.yml up -d
 
-      # Step 7: Comment PR with Preview URL
+      # Step 8: Verify Deployment
+      - name: Verify Deployment
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /root/apps/pr-previews
+            timeout 60s bash -c 'until docker compose -f docker-compose.pr-${{ github.event.pull_request.number }}.yml ps | grep healthy; do sleep 2; done'
+
+      # Step 9: Comment PR with Preview URL
       - name: Comment PR with Preview URL
         uses: actions/github-script@v6
         with:
@@ -79,3 +107,21 @@ jobs:
               issue_number: context.issue.number,
               body: `Preview deployed at: https://pr-${context.issue.number}.app.biso.no`
             })
+
+  cleanup:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed'
+    steps:
+      - name: Cleanup PR Preview
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /root/apps/pr-previews
+            if [ -f "docker-compose.pr-${{ github.event.pull_request.number }}.yml" ]; then
+              docker compose -f docker-compose.pr-${{ github.event.pull_request.number }}.yml down
+              rm docker-compose.pr-${{ github.event.pull_request.number }}.yml
+            fi
+            rm -rf "pr-${{ github.event.pull_request.number }}"
