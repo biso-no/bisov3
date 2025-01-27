@@ -52,7 +52,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: ".next"
-          target: "/root/apps/pr-previews/pr-${{ github.event.pull_request.number }}/.next"
+          target: "/root/apps/pr-previews/pr-${{ github.event.pull_request.number }}"
 
       # Step 6: Deploy Using Docker Compose
       - name: Deploy with Docker Compose
