@@ -57,20 +57,16 @@ jobs:
       # Step 6: Deploy Using Docker Compose
       - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@master
-        env:
-          APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
-          NEXT_PUBLIC_APPWRITE_ENDPOINT: ${{ secrets.NEXT_PUBLIC_APPWRITE_ENDPOINT }}
-          NEXT_PUBLIC_APPWRITE_PROJECT: ${{ secrets.NEXT_PUBLIC_APPWRITE_PROJECT }}
-          SECRET_ENV_VARIABLE: ${{ secrets.SECRET_ENV_VARIABLE }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
+          envs: APPWRITE_API_KEY,NEXT_PUBLIC_APPWRITE_ENDPOINT,NEXT_PUBLIC_APPWRITE_PROJECT,SECRET_ENV_VARIABLE
           script: |
-            export APPWRITE_API_KEY=$APPWRITE_API_KEY
-            export NEXT_PUBLIC_APPWRITE_ENDPOINT=$NEXT_PUBLIC_APPWRITE_ENDPOINT
-            export NEXT_PUBLIC_APPWRITE_PROJECT=$NEXT_PUBLIC_APPWRITE_PROJECT
-            export SECRET_ENV_VARIABLE=$SECRET_ENV_VARIABLE
+            export APPWRITE_API_KEY='${{ secrets.APPWRITE_API_KEY }}'
+            export NEXT_PUBLIC_APPWRITE_ENDPOINT='${{ secrets.NEXT_PUBLIC_APPWRITE_ENDPOINT }}'
+            export NEXT_PUBLIC_APPWRITE_PROJECT='${{ secrets.NEXT_PUBLIC_APPWRITE_PROJECT }}'
+            export SECRET_ENV_VARIABLE='${{ secrets.SECRET_ENV_VARIABLE }}'
             cd /root/apps/pr-previews
             ./generate-compose.sh ${{ github.event.pull_request.number }}
             docker compose -f docker-compose.pr-${{ github.event.pull_request.number }}.yml up -d
