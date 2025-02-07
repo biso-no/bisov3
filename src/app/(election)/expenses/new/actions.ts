@@ -32,20 +32,9 @@ interface DocumentData {
   description: string;
   fileId: string;
   fileName: string;
+  confidence?: number;
+  needsReview?: boolean;
 }
 
-export async function processDocument(fileId: string, fileName: string): Promise<DocumentData> {
-    // This is a placeholder function that would normally do OCR/ML processing
-    // In a real implementation, this would analyze the document and extract data
-    
-    // Simulating processing delay for UX
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    return {
-        date: new Date().toISOString().split('T')[0], // Today's date as placeholder
-        amount: Math.floor(Math.random() * 1000), // Random amount for demo
-        description: `Expense from ${fileName}`, // Placeholder description
-        fileId,
-        fileName
-    };
-}
+// This is now just a type definition, actual processing happens in the API route
+export type { DocumentData }

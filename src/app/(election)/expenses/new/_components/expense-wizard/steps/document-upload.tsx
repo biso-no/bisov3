@@ -41,18 +41,14 @@ import {
   Save,
   Trash2,
   X,
+  AlertCircle,
+  CheckCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { processDocument } from "../../../actions"
+import type { DocumentData } from '../../../actions'
 import { useToast } from "@/components/ui/use-toast"
-
-interface DocumentData {
-  date: string;
-  amount: number;
-  description: string;
-  fileId: string;
-  fileName: string;
-}
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { processDocument } from '@/lib/utils/document-processing'
 
 interface DocumentUploadProps {
   onNext: () => void
@@ -98,15 +94,29 @@ export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) 
       setIsUploading(true)
       try {
         const fileId = Math.random().toString(36).substring(7)
-        const docData = await processDocument(fileId, file.name)
+        
+        // Process document in the browser
+        const result = await processDocument(file);
+        
+        // Create document data
+        const docData: DocumentData = {
+          date: result.date || new Date().toISOString().split('T')[0],
+          amount: result.amount || 0,
+          description: result.description || `Expense from ${file.name}`,
+          fileId,
+          fileName: file.name
+        }
         
         setDocuments(prev => [...prev, docData])
         onUpdate({ documents: [...documents, docData] })
+        
         toast({
           title: "Document Processed",
-          description: "We've automatically extracted the information from your document.",
+          description: "We've extracted the information from your document. Please verify the details.",
+          variant: "default"
         })
       } catch (error) {
+        console.error('Error processing document:', error)
         toast({
           title: "Processing Failed",
           description: "Failed to process the document. Please try again.",
@@ -220,23 +230,26 @@ export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) 
           >
             <Card className="relative group">
               <CardContent className="pt-6">
-                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setEditingDoc(doc)}
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-red-500 hover:text-red-600"
-                    onClick={() => handleDelete(doc.fileId)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                {doc.needsReview && (
+                  <div className="absolute top-4 right-4">
+                    <Alert variant="destructive" className="p-2">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription className="ml-2">
+                        Please verify details
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
+                {!doc.needsReview && doc.confidence && doc.confidence > 0.7 && (
+                  <div className="absolute top-4 right-4">
+                    <Alert variant="default" className="p-2">
+                      <CheckCircle className="h-4 w-4" />
+                      <AlertDescription className="ml-2">
+                        Auto-processed
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="flex items-center gap-3">
                     <File className="w-8 h-8 text-blue-500" />
@@ -255,7 +268,7 @@ export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) 
                   <div className="flex items-center gap-3">
                     <DollarSign className="w-5 h-5 text-gray-400" />
                     <div>
-                      <p className="text-sm">${doc.amount.toFixed(2)}</p>
+                      <p className="text-sm">{doc.amount.toFixed(2)} kr</p>
                       <p className="text-xs text-gray-500">Amount</p>
                     </div>
                   </div>
@@ -266,6 +279,23 @@ export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) 
                       <p className="text-xs text-gray-500">Description</p>
                     </div>
                   </div>
+                </div>
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setEditingDoc(doc)}
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="ml-2 text-red-500 hover:text-red-600"
+                    onClick={() => handleDelete(doc.fileId)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
