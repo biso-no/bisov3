@@ -1,73 +1,73 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { useAuth } from "@/lib/hooks/useAuth";
-import { Models } from "node-appwrite";
+import { createContext, useContext, useState } from "react";
+import type { BankDetailsFormData, DepartmentDetailsFormData, DocumentDetailsFormData } from "./zodSchemas";
 
-const formContext = createContext(null);
+interface FormContextType {
+  step: number;
+  updateStep: (step: number) => void;
+  formData: {
+    // Bank Details
+    bank_account?: string;
+    account_holder?: string;
+    bank_name?: string;
+    swift_code?: string;
+    
+    // Department Details
+    department?: string;
+    campus?: string;
+    description?: string;
+    
+    // Document Details
+    expense_attachments?: any[];
+    expense_attachments_ids?: string[];
+    total?: number;
+  };
+  updateFormData: (data: Partial<FormContextType["formData"]>) => void;
+  resetForm: () => void;
+}
 
-export type ExpenseForm = {
-  campus: string | null;
-  department: string | null;
-  bank_account: string | null;
-  description: string | null;
-  expense_attachments: attachments[];
-  total: number;
-  prepayment_amount: number;
-  expense_attachments_ids: [];
-};
+const FormContext = createContext<FormContextType | undefined>(undefined);
 
-export type attachments = {
-  amount: number;
-  date: Date;
-  description: string;
-  image: File;
-};
-
-export const FormContextProvider = ({ children }: { children: React.ReactNode }) => {
-  const { profile } = useAuth();
-
+export function FormProvider({ children }: { children: React.ReactNode }) {
   const [step, setStep] = useState(1);
-  const nextStep = () => setStep(step + 1);
-  const prevStep = () => setStep(step - 1);
+  const [formData, setFormData] = useState<FormContextType["formData"]>({});
 
-  const [formData, setFormData] = useState<ExpenseForm | null>(null);
-
-  const updateFormData = (values: Partial<ExpenseForm>) => {
-    setFormData((prevData) => ({ ...prevData, ...values } as ExpenseForm));
+  const updateStep = (newStep: number) => {
+    setStep(newStep);
   };
 
-  useEffect(() => {
-    if (profile) {
-      setFormData({
-        campus: profile.campus.$id || null,
-        department: null,
-        bank_account: profile.bank_account|| null,
-        description: null,
-        expense_attachments: [],
-        total: 0,
-        prepayment_amount: 0,
-        expense_attachments_ids: [],
-      });
-      //console.log(profile.departments)
-    }
-  }, [profile]);
+  const updateFormData = (newData: Partial<FormContextType["formData"]>) => {
+    setFormData(prev => ({
+      ...prev,
+      ...newData
+    }));
+  };
 
-  if (!formData) {
-    return null;
-  }
+  const resetForm = () => {
+    setStep(1);
+    setFormData({});
+  };
 
   return (
-    <formContext.Provider value={{ formData, updateFormData, step, nextStep, prevStep }}>
+    <FormContext.Provider
+      value={{
+        step,
+        updateStep,
+        formData,
+        updateFormData,
+        resetForm,
+      }}
+    >
       {children}
-    </formContext.Provider>
+    </FormContext.Provider>
   );
-};
+}
 
-export const useFormContext = () => {
-  const context = useContext(formContext);
-  if (!context) {
-    throw new Error("useFormContext must be used within a FormContextProvider");
+export function useFormContext() {
+  const context = useContext(FormContext);
+  if (context === undefined) {
+    throw new Error("useFormContext must be used within a FormProvider");
   }
   return context;
-};
+}

@@ -1,5 +1,5 @@
 import '@/app/globals.css'
-import { FormContextProvider, useFormContext  } from "./[expenseId]/formContext";
+import { FormProvider, useFormContext  } from "./[expenseId]/formContext";
 import { AuthProvider } from '@/lib/hooks/useAuth';
 import UserLayout from '@/components/ui/nav';
 interface LayoutProps {
@@ -10,11 +10,11 @@ export default function Expenselayout({children}: LayoutProps) {
 
     return (
         <AuthProvider>
-        <FormContextProvider>
-            <UserLayout>
+        <FormProvider>
+        <UserLayout>
             {children}
             </UserLayout>
-            </FormContextProvider>
+            </FormProvider>
       </AuthProvider>
 
 

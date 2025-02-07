@@ -38,16 +38,19 @@ export function AuthProvider({
 
   useEffect(() => {
     async function getUser() {
-      setIsLoading(true);
-      if (!user) {
-        const user = await getLoggedInUser();
-      setUser(user?.user);
-      setProfile(user?.profile);
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        const userData = await getLoggedInUser();
+        setUser(userData?.user);
+        setProfile(userData?.profile);
+      } catch (error) {
+        console.error('Failed to load user:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
-}
     getUser();
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     async function getJWT() {

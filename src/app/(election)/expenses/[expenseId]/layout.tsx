@@ -1,6 +1,5 @@
 "use client"
 
-import { FormContextProvider } from "./formContext";
 
 
 
@@ -12,12 +11,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       
-      <FormContextProvider>
       <body>
         {children}
         </body>
-
-      </FormContextProvider>
 
     </html>
   );

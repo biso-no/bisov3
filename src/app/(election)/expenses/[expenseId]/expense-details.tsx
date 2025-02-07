@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -9,12 +9,26 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Building, CheckCircle, ChevronLeft, ChevronRight, CreditCard, FileText, Receipt, X } from "lucide-react";
+import { 
+  Building, 
+  CheckCircle, 
+  ChevronLeft, 
+  ChevronRight, 
+  CreditCard, 
+  FileText, 
+  Receipt, 
+  X,
+  ArrowLeft,
+  Save,
+  AlertCircle
+} from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { Form } from "@/components/ui/form";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/components/ui/use-toast";
 
 import { BankDetailsStep } from "./bank-details";
 import { DepartmentSelectionStep } from "./department-details";
@@ -22,81 +36,163 @@ import { DocumentUploadStep } from "./document-details";
 import ExpenseOverview from "./overview-details";
 import { getExpense } from "@/app/actions/admin";
 import { useFormContext } from "./formContext";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence } from "framer-motion";
+
 const stepVariants = {
   enter: (direction: number) => ({
     x: direction > 0 ? 1000 : -1000,
-    opacity: 0
+    opacity: 0,
+    scale: 0.9
   }),
   center: {
     zIndex: 1,
     x: 0,
-    opacity: 1
+    opacity: 1,
+    scale: 1
   },
   exit: (direction: number) => ({
     zIndex: 0,
     x: direction < 0 ? 1000 : -1000,
-    opacity: 0
+    opacity: 0,
+    scale: 0.9
   })
 };
 
-const StepIndicator = ({ currentStep, totalSteps }) => {
+const stepTitles = [
+  { 
+    title: "Bank Details", 
+    icon: CreditCard,
+    description: "Enter your bank account information for reimbursement"
+  },
+  { 
+    title: "Department Info", 
+    icon: Building,
+    description: "Select your department and related information"
+  },
+  { 
+    title: "Documents", 
+    icon: FileText,
+    description: "Upload receipts and supporting documents"
+  },
+  { 
+    title: "Overview", 
+    icon: CheckCircle,
+    description: "Review and submit your expense claim"
+  }
+];
+
+const StepIndicator = ({ currentStep, totalSteps, onStepClick }) => {
   return (
-    <div className="flex items-center justify-between mb-8 px-4">
-      {[...Array(totalSteps)].map((_, index) => (
-        <div key={index} className="flex items-center">
-          <motion.div
-            initial={false}
-            animate={{
-              scale: currentStep === index + 1 ? 1.2 : 1,
-              backgroundColor: currentStep >= index + 1 ? "rgb(37 99 235)" : "rgb(229 231 235)",
-            }}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold"
-          >
-            {currentStep > index + 1 ? (
-              <CheckCircle className="w-5 h-5" />
-            ) : (
-              index + 1
-            )}
-          </motion.div>
-          {index < totalSteps - 1 && (
-            <div className="w-full mx-4">
-              <div className="h-1 bg-gray-200 rounded">
-                <motion.div
-                  initial={false}
+    <div className="relative mb-8">
+      {/* Progress bar background */}
+      <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -translate-y-1/2 rounded-full" />
+      
+      {/* Animated progress */}
+      <motion.div 
+        className="absolute top-1/2 left-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 -translate-y-1/2 rounded-full"
+        initial={false}
+        animate={{
+          width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%`
+        }}
+        transition={{ duration: 0.3 }}
+      />
+
+      {/* Step indicators */}
+      <div className="relative flex justify-between">
+        {stepTitles.map((step, index) => {
+          const isCompleted = currentStep > index + 1;
+          const isCurrent = currentStep === index + 1;
+          const StepIcon = step.icon;
+
+          return (
+            <motion.button
+              key={index}
+              onClick={() => onStepClick(index + 1)}
+              className={`flex flex-col items-center relative ${
+                isCompleted || isCurrent ? 'cursor-pointer' : 'cursor-not-allowed'
+              }`}
+              whileHover={isCompleted || isCurrent ? { scale: 1.05 } : {}}
+              whileTap={isCompleted || isCurrent ? { scale: 0.95 } : {}}
+            >
+              <motion.div
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  isCurrent
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg'
+                    : isCompleted
+                    ? 'bg-green-500'
+                    : 'bg-gray-200'
+                } text-white`}
+                animate={{
+                  scale: isCurrent ? 1.2 : 1,
+                  transition: { type: "spring", stiffness: 500, damping: 30 }
+                }}
+              >
+                {isCompleted ? (
+                  <CheckCircle className="w-5 h-5" />
+                ) : (
+                  <StepIcon className="w-5 h-5" />
+                )}
+              </motion.div>
+              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                <motion.span
+                  className={`text-sm font-medium ${
+                    isCurrent ? 'text-blue-600' : 'text-gray-500'
+                  }`}
                   animate={{
-                    width: currentStep > index + 1 ? "100%" : "0%",
+                    scale: isCurrent ? 1.1 : 1
                   }}
-                  className="h-full bg-blue-600 rounded"
-                  transition={{ duration: 0.3 }}
-                />
+                >
+                  {step.title}
+                </motion.span>
               </div>
-            </div>
-          )}
-        </div>
-      ))}
+            </motion.button>
+          );
+        })}
+      </div>
     </div>
   );
 };
 
-const stepTitles = [
-  { title: "Bank Details", icon: CreditCard },
-  { title: "Department Info", icon: Building },
-  { title: "Documents", icon: FileText },
-  { title: "Overview", icon: CheckCircle }
-];
-
 export function ExpenseDetails({ expenseId }) {
   const router = useRouter();
+  const { toast } = useToast();
   const formContext = useFormContext();
-  const { step } = formContext;
+  const { step, updateStep } = formContext;
   const [pageDirection, setPageDirection] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleStepClick = (newStep: number) => {
+    if (newStep < step) {
+      setPageDirection(newStep > step ? 1 : -1);
+      updateStep(newStep);
+    }
+  };
 
   const handleClose = () => {
     try {
       router.push('/expenses');
     } catch (error) {
       console.error("Error returning to page:", error);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // Implement save logic here
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated delay
+      toast({
+        title: "Progress saved",
+        description: "Your expense form has been saved as a draft.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error saving progress",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -115,61 +211,84 @@ export function ExpenseDetails({ expenseId }) {
     }
   };
 
-  const StepIcon = stepTitles[step - 1]?.icon || Receipt;
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-8 px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-2xl mx-auto"
+        className="w-full max-w-3xl mx-auto space-y-6"
       >
-        <Card className="border border-gray-200 shadow-lg bg-white/50 backdrop-blur-sm">
-          <CardHeader className="border-b border-gray-100">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center space-x-3">
-                <motion.div
-                  initial={{ rotate: -180, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <StepIcon className="w-6 h-6 text-blue-600" />
-                </motion.div>
-                <CardTitle className="text-xl font-semibold">
-                  {stepTitles[step - 1]?.title || "Reimbursement Form"}
-                </CardTitle>
-              </div>
-              <Button
-                onClick={handleClose}
-                variant="ghost"
-                size="sm"
-                className="hover:bg-red-50 hover:text-red-600 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </Button>
+        {/* Navigation Bar */}
+        <div className="flex items-center justify-between mb-6">
+          <Button
+            onClick={handleClose}
+            variant="ghost"
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Expenses
+          </Button>
+          <Button
+            onClick={handleSave}
+            variant="outline"
+            className="text-blue-600 hover:text-blue-700"
+            disabled={isSaving}
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Saving..." : "Save Draft"}
+          </Button>
+        </div>
+
+        {/* Main Form Card */}
+        <Card className="border border-gray-200 shadow-xl bg-white/50 backdrop-blur-sm">
+          <CardHeader className="border-b border-gray-100 pb-6">
+            <div className="flex flex-col space-y-2">
+              <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                {stepTitles[step - 1]?.title || "Reimbursement Form"}
+              </CardTitle>
+              <p className="text-gray-500">
+                {stepTitles[step - 1]?.description}
+              </p>
             </div>
           </CardHeader>
 
-          <CardContent className="pt-6">
-            <StepIndicator currentStep={step} totalSteps={4} />
+          <CardContent className="pt-8">
+            <StepIndicator 
+              currentStep={step} 
+              totalSteps={4} 
+              onStepClick={handleStepClick}
+            />
             
-            <AnimatePresence mode="wait" custom={pageDirection}>
-              <motion.div
-                key={step}
-                custom={pageDirection}
-                variants={stepVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{
-                  x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 }
-                }}
-              >
-                {renderStep()}
-              </motion.div>
-            </AnimatePresence>
+            <div className="mt-12">
+              <AnimatePresence mode="wait" custom={pageDirection}>
+                <motion.div
+                  key={step}
+                  custom={pageDirection}
+                  variants={stepVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{
+                    x: { type: "spring", stiffness: 300, damping: 30 },
+                    opacity: { duration: 0.2 },
+                    scale: { duration: 0.2 }
+                  }}
+                >
+                  {renderStep()}
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </CardContent>
+
+          {/* Help Text */}
+          <CardFooter className="border-t border-gray-100 mt-6">
+            <Alert className="bg-blue-50/50">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-sm text-gray-600">
+                Need help? Contact support at support@example.com
+              </AlertDescription>
+            </Alert>
+          </CardFooter>
         </Card>
       </motion.div>
     </div>

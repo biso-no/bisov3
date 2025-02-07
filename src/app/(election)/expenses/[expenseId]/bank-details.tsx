@@ -1,7 +1,12 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { motion } from "framer-motion";
+import { CreditCard, Building2, User } from "lucide-react";
+
 import {
   Form,
   FormControl,
@@ -9,150 +14,178 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-//import { useFormContext } from "@/context/form-context"
-import { bankDetailsSchema } from "./zodSchemas";
-import * as z from "zod";
-import { useState, useEffect } from "react";
-import { useAppContext } from "../../../contexts";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useFormContext } from "./formContext";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { bankDetailsSchema } from "./zodSchemas";
+
+const formVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.5,
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: {
+      duration: 0.3
+    }
+  }
+};
 
 export function BankDetailsStep() {
-  //const { data, setFormData } = useFormContext()
+  const { formData, updateFormData, updateStep } = useFormContext();
 
-  const [isVisible, setIsVisible] = useState(false);
-
-  const appContext = useAppContext();
-  const departments = appContext.departments;
-  const campuses = appContext.campuses;
-
-  const formContext = useFormContext();
-  const step = formContext.step;
-  const nextStep = formContext.nextStep;
-  const updateFormData = formContext.updateFormData;
-  const prevStep = formContext.prevStep;
-  const formData = formContext.formData;
-
-
-  const form = useForm({
+  const form = useForm<z.infer<typeof bankDetailsSchema>>({
     resolver: zodResolver(bankDetailsSchema),
     defaultValues: {
-      bank_account: formData.bank_account,
-      has_prepayment: formData.has_prepayment,
-      prepayment_amount: formData.prepayment_amount
+      bank_account: formData.bank_account || "",
+      account_holder: formData.account_holder || "",
+      bank_name: formData.bank_name || "",
+      swift_code: formData.swift_code || "",
     },
   });
 
-  useEffect(() => {
-    if (!isVisible) {
-      form.setValue("prepayment_amount", 0); // Reset prepaymentAmount to null
-      console.log("Prepayment Amount field hidden and reset to null.");
-    }
-  }, [isVisible, form]);
-
-  /*
-  const onSubmit = (values: { bankAccount: string; hasPrepayment: boolean }) => {
-    setFormData(values)
-  }
-*/
-  const onSubmit = (values: z.infer<typeof bankDetailsSchema>) => {
+  const onSubmit = async (values: z.infer<typeof bankDetailsSchema>) => {
     updateFormData(values);
-    nextStep()
+    updateStep(2);
   };
 
   return (
-    <div>
+    <motion.div
+      variants={formVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-8"
+    >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <CardContent>
-            <Progress value={step * 25} className="w-full mb-6" />
-
-            <FormField
-              control={form.control}
-              name="bank_account"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bank Account</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Bank Account" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="has_prepayment"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between">
-                  <FormLabel>Did you receive a prepayment?</FormLabel>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={(value) => {
-                        field.onChange(value); // Update the form state
-                        setIsVisible(value); // Update your local state
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {isVisible && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Bank Account Number */}
+            <motion.div variants={itemVariants} className="col-span-2">
               <FormField
                 control={form.control}
-                name="prepayment_amount"
+                name="bank_account"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Prepayment Amount</FormLabel>
+                    <FormLabel className="flex items-center space-x-2">
+                      <CreditCard className="w-4 h-4 text-blue-600" />
+                      <span>Bank Account Number</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="Prepayment Amount" {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)}/>
+                      <Input
+                        {...field}
+                        placeholder="Enter your bank account number"
+                        className="font-mono"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Your full bank account number for receiving reimbursements
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </motion.div>
+
+            {/* Account Holder */}
+            <motion.div variants={itemVariants}>
+              <FormField
+                control={form.control}
+                name="account_holder"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center space-x-2">
+                      <User className="w-4 h-4 text-blue-600" />
+                      <span>Account Holder</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Full name on account"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            {step > 1 && (
-              <Button type="button" variant="outline" onClick={prevStep}>
-                <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-              </Button>
-            )}
-            {step < 4 && (
-              <Button type="submit" className="ml-auto">
-                Next
-              </Button>
-            )}
-          </CardFooter>
+            </motion.div>
+
+            {/* Bank Name */}
+            <motion.div variants={itemVariants}>
+              <FormField
+                control={form.control}
+                name="bank_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center space-x-2">
+                      <Building2 className="w-4 h-4 text-blue-600" />
+                      <span>Bank Name</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Enter your bank name"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </motion.div>
+
+            {/* SWIFT/BIC Code */}
+            <motion.div variants={itemVariants} className="col-span-2">
+              <FormField
+                control={form.control}
+                name="swift_code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center space-x-2">
+                      <CreditCard className="w-4 h-4 text-blue-600" />
+                      <span>SWIFT/BIC Code</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Enter SWIFT/BIC code"
+                        className="font-mono uppercase"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      International bank identifier code (optional)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </motion.div>
+          </div>
+
+          <motion.div
+            variants={itemVariants}
+            className="flex justify-end pt-4"
+          >
+            <Button
+              type="submit"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8"
+            >
+              Next Step
+            </Button>
+          </motion.div>
         </form>
       </Form>
-    </div>
+    </motion.div>
   );
 }
