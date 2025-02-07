@@ -1,6 +1,5 @@
 import '@/app/globals.css'
-import { FormContextProvider, useFormContext  } from "./[expenseId]/formContext";
-import { AuthProvider } from '@/lib/hooks/useAuth';
+import { FormProvider, useFormContext  } from "./[expenseId]/formContext";
 interface LayoutProps {
     children: React.ReactNode
 }
@@ -8,12 +7,6 @@ interface LayoutProps {
 export default function Expenselayout({children}: LayoutProps) {
 
     return (
-        <AuthProvider>
-        <FormContextProvider>{children}</FormContextProvider>
-      </AuthProvider>
-
-
-
-
+        <FormProvider>{children}</FormProvider>
     )
 }

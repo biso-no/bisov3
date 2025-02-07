@@ -17,10 +17,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Plus, Send, TrendingUp, Clock } from 'lucide-react';
+import { Eye, Plus, Send, TrendingUp, Clock, Search, Filter } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { updateExpenseStatus } from "@/app/actions/admin";
 import { Expense } from "@/lib/types/expense";
+import { Input } from "@/components/ui/input";
 
 const tableVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -48,6 +49,20 @@ const rowVariants = {
 
 export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
   const [activeTab, setActiveTab] = useState<'submitted' | 'pending'>('pending');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  
+  const filteredExpenses = expenses.filter(expense => 
+    expense.status === activeTab &&
+    (searchTerm === '' || 
+     expense.total.toString().includes(searchTerm) ||
+     format(new Date(expense.$createdAt), "dd MMM yyyy").toLowerCase().includes(searchTerm.toLowerCase()))
+  ).sort((a, b) => {
+    const dateA = new Date(a.$createdAt).getTime();
+    const dateB = new Date(b.$createdAt).getTime();
+    return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+  });
+
   const submittedExpenses = expenses.filter(expense => expense.status === "submitted");
   const pendingExpenses = expenses.filter(expense => expense.status === "pending");
   const router = useRouter();
@@ -91,75 +106,70 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between"
+          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
         >
-          <h1 className="text-4xl font-bold text-gray-900">Expenses Dashboard</h1>
+          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+            Expenses Dashboard
+          </h1>
           <Button 
             onClick={handleAddExpense}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 group"
           >
-            <Plus className="h-4 mr-2" />
-            Add Expense
+            <Plus className="h-4 mr-2 group-hover:rotate-90 transition-transform duration-200" />
+            Add New Expense
           </Button>
         </motion.div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
-          <Card className="bg-white/50 backdrop-blur-sm border border-gray-100 shadow-md hover:shadow-lg transition-shadow duration-200">
-            <CardHeader>
-              <CardTitle className="flex items-center text-gray-700">
-                <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
-                Submitted Reimbursements
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <motion.span 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="text-4xl font-bold text-gray-900"
-              >
-                {submittedExpenses.length}
-              </motion.span>
-            </CardContent>
-          </Card>
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="flex space-x-2 w-full md:w-auto">
+            <Button
+              variant={activeTab === 'pending' ? 'default' : 'outline'}
+              onClick={() => setActiveTab('pending')}
+              className={`flex-1 md:flex-none ${
+                activeTab === 'pending' 
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
+                  : ''
+              }`}
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              Pending
+            </Button>
+            <Button
+              variant={activeTab === 'submitted' ? 'default' : 'outline'}
+              onClick={() => setActiveTab('submitted')}
+              className={`flex-1 md:flex-none ${
+                activeTab === 'submitted' 
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
+                  : ''
+              }`}
+            >
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Submitted
+            </Button>
+          </div>
 
-          <Card className="bg-white/50 backdrop-blur-sm border border-gray-100 shadow-md hover:shadow-lg transition-shadow duration-200">
-            <CardHeader>
-              <CardTitle className="flex items-center text-gray-700">
-                <Clock className="w-5 h-5 mr-2 text-amber-600" />
-                Pending Reimbursements
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <motion.span 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="text-4xl font-bold text-gray-900"
-              >
-                {pendingExpenses.length}
-              </motion.span>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <div className="flex space-x-4 mb-6">
-          <Button
-            variant={activeTab === 'pending' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('pending')}
-            className="flex-1 md:flex-none"
-          >
-            Pending
-          </Button>
-          <Button
-            variant={activeTab === 'submitted' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('submitted')}
-            className="flex-1 md:flex-none"
-          >
-            Submitted
-          </Button>
+          <div className="flex gap-2 w-full md:w-auto">
+            <div className="relative flex-1 md:w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search expenses..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-full"
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+              className="gap-2"
+            >
+              <Filter className={`w-4 h-4 transition-transform duration-200 ${
+                sortOrder === 'desc' ? 'rotate-180' : ''
+              }`} />
+              Date
+            </Button>
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
@@ -169,62 +179,70 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
             initial="hidden"
             animate="visible"
             exit="hidden"
-            className="bg-white rounded-lg shadow-lg border border-gray-100"
+            className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
           >
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="bg-gray-50/50">
+                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold">Amount</TableHead>
+                  <TableHead className="font-semibold">Status</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(activeTab === 'submitted' ? submittedExpenses : pendingExpenses).map((expense, i) => (
-                  <motion.tr
-                    key={expense.id}
-                    variants={rowVariants}
-                    initial="hidden"
-                    animate="visible"
-                    custom={i}
-                    className="group hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    <TableCell className="font-medium">
-                      {format(new Date(expense.$createdAt), "dd MMM yyyy")}
+                {filteredExpenses.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-32 text-center text-gray-500">
+                      No expenses found
                     </TableCell>
-                    <TableCell className="font-semibold">
-                      {expense.total} kr
-                    </TableCell>
-                    <TableCell>
-                      <StatusIndicator status={expense.status} />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewExpense(expense.$id)}
-                          className="hover:bg-blue-50"
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          View
-                        </Button>
-                        {expense.status === "pending" && (
+                  </TableRow>
+                ) : (
+                  filteredExpenses.map((expense, i) => (
+                    <motion.tr
+                      key={expense.id}
+                      variants={rowVariants}
+                      initial="hidden"
+                      animate="visible"
+                      custom={i}
+                      className="group hover:bg-blue-50/50 transition-colors duration-200"
+                    >
+                      <TableCell className="font-medium">
+                        {format(new Date(expense.$createdAt), "dd MMM yyyy")}
+                      </TableCell>
+                      <TableCell className="font-semibold">
+                        <span className="text-blue-600">{expense.total} kr</span>
+                      </TableCell>
+                      <TableCell>
+                        <StatusIndicator status={expense.status} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => onSubmitExpense(expense.$id)}
-                            className="hover:bg-green-50"
+                            onClick={() => handleViewExpense(expense.$id)}
+                            className="hover:bg-blue-100/50 hover:text-blue-700 transition-colors"
                           >
-                            <Send className="w-4 h-4 mr-2" />
-                            Submit
+                            <Eye className="w-4 h-4 mr-2" />
+                            View
                           </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </motion.tr>
-                ))}
+                          {expense.status === "pending" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => onSubmitExpense(expense.$id)}
+                              className="hover:bg-green-100/50 hover:text-green-700 transition-colors"
+                            >
+                              <Send className="w-4 h-4 mr-2" />
+                              Submit
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </motion.tr>
+                  ))
+                )}
               </TableBody>
             </Table>
           </motion.div>
