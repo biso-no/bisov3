@@ -45,18 +45,41 @@ import {
   CheckCircle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { DocumentData } from '../../../actions'
+import type { DocumentData as ActionDocumentData } from '../../../actions'
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { processDocument } from '@/lib/utils/document-processing'
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { generateExpenseDescription } from '../../../actions'
+import { FilePreview } from "../../file-preview"
+
+interface DocumentData {
+  date: string;
+  amount: number;  // This will always be the NOK amount
+  description: string;
+  fileId: string;
+  fileName: string;
+  file: File;
+  processedByAI: boolean;
+  originalAmount?: number;  // The amount in foreign currency (if any)
+  originalCurrency?: string;  // The currency code (if not NOK)
+  exchangeRate?: number;  // For display purposes only
+}
 
 interface DocumentUploadProps {
   onNext: () => void
+  onPrevious: () => void
   onUpdate: (data: any) => void
   data?: {
-    documents?: DocumentData[];
+    documents?: ActionDocumentData[];
   }
 }
+
+const formatAmount = (amount: number | undefined | null): string => {
+  if (amount === undefined || amount === null) return "0.00";
+  return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
 
 const documentSchema = z.object({
   date: z.string(),
@@ -64,11 +87,82 @@ const documentSchema = z.object({
   description: z.string().min(1),
 })
 
-export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) {
-  const [documents, setDocuments] = useState<DocumentData[]>(data?.documents || [])
+interface AIToggleProps {
+  enabled: boolean;
+  onToggle: (enabled: boolean) => void;
+}
+
+const AIToggle = ({ enabled, onToggle }: AIToggleProps) => (
+  <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border">
+    <Label 
+      htmlFor="ai-toggle" 
+      className="text-sm font-medium text-gray-600 cursor-pointer"
+    >
+      AI Assistance
+    </Label>
+    <Switch
+      id="ai-toggle"
+      checked={enabled}
+      onCheckedChange={onToggle}
+      className="data-[state=checked]:bg-gradient-to-r from-blue-500 to-indigo-500"
+    />
+  </div>
+);
+
+// Update the DocumentAlerts component with better vertical alignment
+const DocumentAlerts = ({ doc }: { doc: DocumentData }) => {
+  const alerts = [];
+  
+  if (doc.originalCurrency && doc.originalCurrency !== 'NOK') {
+    alerts.push(
+      <Alert key="foreign" className="p-2 bg-yellow-50 border-yellow-200">
+        <div className="flex items-center w-full min-h-[24px]">
+          <AlertCircle className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+          <AlertDescription className="ml-2 my-0 text-yellow-700">
+            Foreign currency detected. Bank statements may be required.
+          </AlertDescription>
+        </div>
+      </Alert>
+    );
+  }
+  
+  return alerts.length > 0 ? (
+    <div className="space-y-2 mb-4">{alerts}</div>
+  ) : null;
+};
+
+// First, let's add a new component for better organization
+const CurrencyDisplay = ({ doc }: { doc: DocumentData }) => {
+  if (!doc.originalCurrency || doc.originalCurrency === 'NOK') {
+    return (
+      <div>
+        <p className="text-sm font-medium">{formatAmount(doc.amount)} NOK</p>
+        <p className="text-xs text-gray-500">Amount</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p className="text-sm font-medium">{formatAmount(doc.amount)} NOK</p>
+      <p className="text-xs text-gray-500 text-right">
+        Original: {formatAmount(doc.originalAmount)} {doc.originalCurrency}
+        <span className="text-xs text-yellow-600 ml-1">
+          @ {doc.exchangeRate?.toFixed(2)}
+        </span>
+      </p>
+      <p className="text-xs text-gray-500">Amount</p>
+    </div>
+  );
+};
+
+export function DocumentUpload({ onNext, onPrevious, onUpdate, data }: DocumentUploadProps) {
+  const [documents, setDocuments] = useState<DocumentData[]>(data?.documents as DocumentData[] || [])
   const [isUploading, setIsUploading] = useState(false)
   const [editingDoc, setEditingDoc] = useState<DocumentData | null>(null)
+  const [aiEnabled, setAiEnabled] = useState(false)
   const { toast } = useToast()
+  const [previewFileId, setPreviewFileId] = useState<string | undefined>()
 
   const form = useForm({
     resolver: zodResolver(documentSchema),
@@ -89,44 +183,113 @@ export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) 
     }
   }, [editingDoc, form])
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    for (const file of acceptedFiles) {
-      setIsUploading(true)
-      try {
-        const fileId = Math.random().toString(36).substring(7)
-        
-        // Process document in the browser
-        const result = await processDocument(file);
-        
-        // Create document data
-        const docData: DocumentData = {
-          date: result.date || new Date().toISOString().split('T')[0],
-          amount: result.amount || 0,
-          description: result.description || `Expense from ${file.name}`,
-          fileId,
-          fileName: file.name
+  const processExistingDocuments = useCallback(async () => {
+    const updatedDocuments = [...documents];
+    setIsUploading(true);
+
+    try {
+      for (let i = 0; i < documents.length; i++) {
+        const doc = documents[i];
+        if (!doc.processedByAI) {
+          const result = await processDocument(doc.file);
+          
+          updatedDocuments[i] = {
+            ...doc,
+            date: result.date || doc.date,
+            amount: result.amount || doc.amount,
+            description: result.description || doc.description,
+            originalAmount: doc.amount,
+            originalCurrency: doc.originalCurrency,
+            exchangeRate: result.exchangeRate,
+            processedByAI: true
+          };
         }
-        
-        setDocuments(prev => [...prev, docData])
-        onUpdate({ documents: [...documents, docData] })
-        
-        toast({
-          title: "Document Processed",
-          description: "We've extracted the information from your document. Please verify the details.",
-          variant: "default"
-        })
-      } catch (error) {
-        console.error('Error processing document:', error)
-        toast({
-          title: "Processing Failed",
-          description: "Failed to process the document. Please try again.",
-          variant: "destructive",
-        })
-      } finally {
-        setIsUploading(false)
       }
+
+      setDocuments(updatedDocuments);
+      onUpdate({ documents: updatedDocuments });
+      
+      toast({
+        title: "Documents Processed",
+        description: "All documents have been processed with AI assistance.",
+      });
+    } catch (error) {
+      console.error('Error processing documents:', error);
+      toast({
+        title: "Processing Failed",
+        description: "Failed to process some documents with AI.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
     }
-  }, [documents, onUpdate, toast])
+  }, [documents, onUpdate, toast]);
+
+  useEffect(() => {
+    if (aiEnabled && documents.some(doc => !doc.processedByAI)) {
+      processExistingDocuments();
+    }
+  }, [aiEnabled, documents, processExistingDocuments]);
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    setIsUploading(true);
+    try {
+      const newDocuments = await Promise.all(acceptedFiles.map(async (file) => {
+        const fileId = Math.random().toString(36).substring(7);
+        
+        let docData: DocumentData = {
+          date: new Date().toISOString().split('T')[0],
+          amount: 0,
+          description: `Expense from ${file.name}`,
+          fileId,
+          fileName: file.name,
+          file,
+          processedByAI: false,
+        };
+
+        if (aiEnabled) {
+          const result = await processDocument(file);
+          const amount = Number(result.amount || 0);
+          const currency = result.currency || 'NOK';
+          
+          docData = {
+            ...docData,
+            date: result.date || docData.date,
+            description: result.description || docData.description,
+            amount: currency === 'NOK' ? amount : (amount * (result.exchangeRate || 1)),
+            ...(currency !== 'NOK' && {
+              originalAmount: amount,
+              originalCurrency: currency,
+              exchangeRate: result.exchangeRate
+            }),
+            processedByAI: true
+          };
+        }
+
+        return docData;
+      }));
+
+      setDocuments(prev => [...prev, ...newDocuments]);
+      onUpdate({ documents: [...documents, ...newDocuments] });
+
+      toast({
+        title: aiEnabled ? "Documents Processed" : "Documents Uploaded",
+        description: aiEnabled 
+          ? "We've extracted the information from your documents. Please verify the details."
+          : "Documents have been uploaded successfully.",
+        variant: "default"
+      });
+    } catch (error) {
+      console.error('Error processing documents:', error);
+      toast({
+        title: "Upload Failed",
+        description: "Failed to process the documents. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  }, [documents, onUpdate, toast, aiEnabled]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -139,7 +302,10 @@ export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) 
 
   const handleEditSave = (doc: DocumentData) => {
     const values = form.getValues()
-    const updatedDoc = { ...doc, ...values }
+    const updatedDoc = { 
+      ...doc, 
+      ...values,
+    }
     const updatedDocuments = documents.map(d => 
       d.fileId === doc.fileId ? updatedDoc : d
     )
@@ -162,18 +328,52 @@ export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) 
     })
   }
 
-  const onSubmit = () => {
-    onUpdate({ documents })
-    onNext()
+  const onSubmit = async () => {
+    if (aiEnabled) {
+      const descriptions = documents.map(doc => doc.description);
+      
+      // Update documents and set loading state
+      onUpdate({
+        documents,
+        description: { generatedDescription: null }
+      });
+      
+      try {
+        const description = await generateExpenseDescription(descriptions);
+        // Update with final data
+        onUpdate({
+          documents,
+          description: { generatedDescription: description }
+        });
+      } catch (error) {
+        console.error('Error generating description:', error);
+        toast({
+          title: "Description Generation Failed",
+          description: "We'll continue without AI-generated description.",
+          variant: "destructive",
+        });
+        onUpdate({ documents });
+      }
+    } else {
+      onUpdate({ documents });
+    }
+    onNext();
   }
 
   return (
     <div className="space-y-8">
       <Card>
-        <CardHeader>
+        <CardHeader className="relative pb-2">
+          <div className="absolute right-6 top-6">
+            <AIToggle 
+              enabled={aiEnabled}
+              onToggle={setAiEnabled}
+            />
+          </div>
           <CardTitle>Upload Documents</CardTitle>
-          <CardDescription>
-            Upload your receipts and supporting documents. We&apos;ll automatically extract the information.
+          <CardDescription className="mt-1.5">
+            Upload your receipts and supporting documents. 
+            {aiEnabled && " We'll automatically extract the information."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -228,54 +428,46 @@ export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) 
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2, delay: index * 0.1 }}
           >
-            <Card className="relative group">
-              <CardContent className="pt-6">
-                {doc.needsReview && (
-                  <div className="absolute top-4 right-4">
-                    <Alert variant="destructive" className="p-2">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription className="ml-2">
-                        Please verify details
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                )}
-                {!doc.needsReview && doc.confidence && doc.confidence > 0.7 && (
-                  <div className="absolute top-4 right-4">
-                    <Alert variant="default" className="p-2">
-                      <CheckCircle className="h-4 w-4" />
-                      <AlertDescription className="ml-2">
-                        Auto-processed
-                      </AlertDescription>
-                    </Alert>
-                  </div>
-                )}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card 
+              className={cn(
+                "relative group cursor-pointer transition-all",
+                previewFileId === doc.fileId && "ring-2 ring-blue-500"
+              )}
+              onClick={() => setPreviewFileId(doc.fileId)}
+            >
+              <CardContent>
+                <DocumentAlerts doc={doc} />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 min-h-[100px] items-center">
                   <div className="flex items-center gap-3">
-                    <File className="w-8 h-8 text-blue-500" />
+                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0">
+                      {doc.file && (
+                        <iframe
+                          src={URL.createObjectURL(doc.file)}
+                          className="w-full h-full"
+                          style={{ pointerEvents: 'none' }}
+                        />
+                      )}
+                    </div>
                     <div>
-                      <p className="text-sm font-medium">{doc.fileName}</p>
+                      <p className="text-sm font-medium line-clamp-2">{doc.fileName}</p>
                       <p className="text-xs text-gray-500">Document</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Calendar className="w-5 h-5 text-gray-400" />
+                    <Calendar className="w-5 h-5 text-gray-400 flex-shrink-0" />
                     <div>
                       <p className="text-sm">{doc.date}</p>
                       <p className="text-xs text-gray-500">Date</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <DollarSign className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm">{doc.amount.toFixed(2)} kr</p>
-                      <p className="text-xs text-gray-500">Amount</p>
-                    </div>
+                    <DollarSign className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    <CurrencyDisplay doc={doc} />
                   </div>
                   <div className="flex items-center gap-3">
-                    <FileText className="w-5 h-5 text-gray-400" />
+                    <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
                     <div>
-                      <p className="text-sm">{doc.description}</p>
+                      <p className="text-sm line-clamp-2">{doc.description}</p>
                       <p className="text-xs text-gray-500">Description</p>
                     </div>
                   </div>
@@ -284,7 +476,10 @@ export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) 
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setEditingDoc(doc)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setEditingDoc(doc)
+                    }}
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -292,7 +487,10 @@ export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) 
                     size="sm"
                     variant="outline"
                     className="ml-2 text-red-500 hover:text-red-600"
-                    onClick={() => handleDelete(doc.fileId)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDelete(doc.fileId)
+                    }}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -387,7 +585,14 @@ export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) 
         )}
       </Dialog>
 
-      <div className="flex justify-end">
+      <div className="flex justify-between">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onPrevious}
+        >
+          Previous
+        </Button>
         <Button
           onClick={onSubmit}
           className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8"
@@ -396,6 +601,17 @@ export function DocumentUpload({ onNext, onUpdate, data }: DocumentUploadProps) 
           Continue
         </Button>
       </div>
+
+      <AnimatePresence>
+        {previewFileId && (
+          <FilePreview
+            files={documents}
+            currentFileId={previewFileId}
+            onClose={() => setPreviewFileId(undefined)}
+            onFileChange={setPreviewFileId}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 } 

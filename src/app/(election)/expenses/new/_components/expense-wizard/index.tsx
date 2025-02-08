@@ -13,6 +13,7 @@ import { Models } from "node-appwrite"
 import { getLoggedInUser } from "@/lib/actions/user"
 import { useAuth } from "@/lib/hooks/useAuth"
 import { Loader2 } from "lucide-react"
+import { useAppContext } from "@/app/contexts"
 
 const STEPS = [
   {
@@ -45,6 +46,7 @@ const STEPS = [
 export type ExpenseStep = typeof STEPS[number]
 
 export function ExpenseWizard() {
+  const { campuses } = useAppContext()
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [formData, setFormData] = useState<Record<string, any>>({})
   const { profile, isLoading: profileLoading } = useAuth()
@@ -61,12 +63,30 @@ export function ExpenseWizard() {
   }
 
   const handleUpdateData = (stepId: string, data: any) => {
-    setFormData((prev) => ({ ...prev, [stepId]: data }))
+    console.log('Updating data for step:', stepId, data);
+    setFormData(prev => {
+      // Simply merge the data at the root level
+      const newData = {
+        ...prev,
+        [stepId]: data
+      };
+      console.log('New form data:', newData);
+      return newData;
+    });
   }
 
   const getConfirmationData = () => {
+    const selectedCampus = campuses.find(c => c.$id === formData.department?.campus);
+    const selectedDepartment = selectedCampus?.departments?.find(
+      d => d.$id === formData.department?.department
+    );
+
     return {
-      contact: formData.contact,
+      contact: {
+        ...formData.contact,
+        campus: selectedCampus?.name,
+        department: selectedDepartment?.Name
+      },
       documents: formData.documents?.documents || [],
       description: formData.description,
     }
@@ -86,9 +106,24 @@ export function ExpenseWizard() {
       onNext: handleNext,
       onPrevious: handlePrevious,
       onUpdate: (data: any) => handleUpdateData(currentStep.id, data),
-      data: formData[currentStep.id],
+      // Pass relevant data to each step
+      data: {
+        ...formData[currentStep.id],
+        documents: formData.documents?.documents,
+        generatedDescription: formData.documents?.description?.generatedDescription
+      },
       profile,
     }
+
+    // Add debug logging
+    if (currentStep.id === 'description') {
+      console.log('Passing data to ExpenseDescription:', {
+        documents: formData.documents?.documents,
+        description: formData.documents?.description  // Note: The data might be nested under 'documents'
+      });
+    }
+
+    console.log('Rendering step:', currentStep.id, 'with data:', formData[currentStep.id]); // Debug log
 
     switch (currentStep.id) {
       case "contact":

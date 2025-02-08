@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { redirect, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
   Receipt, 
@@ -15,20 +15,25 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { signOut } from '@/lib/actions/user';
 
 interface UserLayoutProps {
   children: React.ReactNode;
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Expenses', href: '/expenses', icon: Receipt },
   { name: 'Profile', href: '/profile', icon: User },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
+const handleLogout = async () => {
+  await signOut();
+}
+
 const UserLayout = ({ children }: UserLayoutProps) => {
   const pathname = usePathname();
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -37,7 +42,7 @@ const UserLayout = ({ children }: UserLayoutProps) => {
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-grow bg-white border-r border-gray-200">
           <div className="flex items-center h-16 flex-shrink-0 px-4 bg-blue-600">
-            <h1 className="text-xl font-bold text-white">Company Name</h1>
+            <h1 className="text-xl font-bold text-white">BI Student Organisation</h1>
           </div>
           <div className="flex flex-col flex-grow p-4 overflow-y-auto">
             <nav className="flex-1 space-y-2">
@@ -67,9 +72,11 @@ const UserLayout = ({ children }: UserLayoutProps) => {
               <Button
                 variant="ghost"
                 className="w-full justify-start text-gray-700 hover:bg-gray-50"
+                onClick={handleLogout}
               >
                 <LogOut className="h-5 w-5 mr-3 text-gray-400" />
                 Logout
+
               </Button>
             </div>
           </div>
@@ -128,10 +135,15 @@ const UserLayout = ({ children }: UserLayoutProps) => {
                 <Button
                   variant="ghost"
                   className="w-full justify-start px-3 py-4 text-base font-medium text-gray-700 hover:bg-gray-50"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={async () => {
+                    setIsMobileMenuOpen(false);
+                    await handleLogout();
+                  }}
                 >
+
                   <LogOut className="h-6 w-6 mr-4 text-gray-400" />
                   Logout
+
                 </Button>
               </div>
             </div>

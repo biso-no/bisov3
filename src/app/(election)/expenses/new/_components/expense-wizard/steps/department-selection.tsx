@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -37,6 +37,7 @@ import {
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { useAppContext } from "@/app/contexts"
 
 const formSchema = z.object({
   campus: z.string().min(1, "Please select a campus"),
@@ -60,18 +61,35 @@ export function DepartmentSelection({
   data,
   onUpdate,
 }: DepartmentSelectionProps) {
-  const [selectedCampus, setSelectedCampus] = useState<string>("")
   const { profile } = useAuth()
+  const { campuses } = useAppContext()
+  
+  const defaultCampus = data?.campus || profile?.campus_id || ""
+  const [selectedCampus, setSelectedCampus] = useState<string>(defaultCampus)
+
+  const getSelectedCampusDepartments = () => {
+    const campus = campuses.find((c) => c.$id === selectedCampus)
+    return campus?.departments || []
+  }
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      campus: data?.campus || profile?.campus_id || "",
+      campus: defaultCampus,
       department: data?.department || profile?.department_ids?.[0] || "",
       isEventExpense: data?.isEventExpense || false,
       eventName: data?.eventName || "",
     },
   })
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "campus") {
+        setSelectedCampus(value.campus || "")
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form, form.watch])
 
   const onSubmit = (values: FormValues) => {
     onUpdate(values)
@@ -116,13 +134,16 @@ export function DepartmentSelection({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {/* TODO: Replace with actual campus data */}
-                        <SelectItem value="main">Main Campus</SelectItem>
-                        <SelectItem value="downtown">Downtown Campus</SelectItem>
-                        <SelectItem value="medical">Medical Campus</SelectItem>
+                        {campuses.map((campus) => (
+                          <SelectItem key={campus.$id} value={campus.$id}>
+                            {campus.name}
+                          </SelectItem>
+                        ))}
+
                       </SelectContent>
                     </Select>
                     <FormMessage />
+
                   </FormItem>
                 )}
               />
@@ -152,10 +173,11 @@ export function DepartmentSelection({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {/* TODO: Replace with actual department data */}
-                        <SelectItem value="cs">Computer Science</SelectItem>
-                        <SelectItem value="eng">Engineering</SelectItem>
-                        <SelectItem value="bus">Business</SelectItem>
+                        {getSelectedCampusDepartments().map((department) => (
+                          <SelectItem key={department.$id} value={department.$id}>
+                            {department.Name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

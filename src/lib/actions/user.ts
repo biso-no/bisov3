@@ -10,12 +10,9 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
 //
 export async function getLoggedInUser() {
     try {
-        console.log("entered here")
         const { account, db } = await createSessionClient();
        
         const user = await account.get();
-        console.log("just before the error")
-        console.log(user.$id)
         if (user.$id) {
             //console.log("print this here before the appwrite to users call user id is ")
             //console.log(user.$id)

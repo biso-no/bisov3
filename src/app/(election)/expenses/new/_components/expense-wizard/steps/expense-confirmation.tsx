@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -30,6 +30,11 @@ import {
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { format } from "date-fns"
+import { ID } from 'appwrite'
+import { submitExpense } from '../../../actions'
+import { useAuth } from "@/lib/hooks/useAuth"
+import { FilePreview } from "../../file-preview"
+import { cn } from "@/lib/utils"
 
 interface ExpenseConfirmationProps {
   onPrevious: () => void
@@ -41,6 +46,8 @@ interface ExpenseConfirmationProps {
       bank_account: string;
       swift?: string;
       isInternational: boolean;
+      campus?: string;
+      department?: string;
     };
     documents?: Array<{
       fileId: string;
@@ -48,10 +55,13 @@ interface ExpenseConfirmationProps {
       date: string;
       amount: number;
       description: string;
+      file?: File;
     }>;
     description?: {
       description: string;
       additionalNotes?: string;
+      hasPrepayment: boolean;
+      prepaymentAmount?: number;
     };
   }
 }
@@ -63,6 +73,8 @@ export function ExpenseConfirmation({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasAgreed, setHasAgreed] = useState(false)
   const { toast } = useToast()
+  const { profile } = useAuth()
+  const [previewFileId, setPreviewFileId] = useState<string | undefined>()
 
   const formatAmount = (amount: number) => {
     return amount.toLocaleString('nb-NO', {
@@ -85,14 +97,20 @@ export function ExpenseConfirmation({
 
     setIsSubmitting(true)
     try {
-      // Here you would submit the expense claim
-      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulated delay
-      toast({
-        title: "Success",
-        description: "Your expense claim has been submitted successfully.",
-      })
-      // Redirect to success page or expense list
+      const result = await submitExpense(data, profile.$id)
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Your expense claim has been submitted successfully.",
+        })
+        // Redirect to success page or expense list
+        window.location.href = '/expenses'
+      } else {
+        throw new Error(result.error)
+      }
     } catch (error) {
+      console.error('Error submitting expense:', error)
       toast({
         title: "Error",
         description: "Failed to submit expense claim. Please try again.",
@@ -142,6 +160,13 @@ export function ExpenseConfirmation({
             </div>
           </div>
 
+          {/*Campus & Department*/}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Campus & Department</h3>
+            <p className="font-medium">{data.contact?.campus}</p>
+            <p className="font-medium">{data.contact?.department}</p>
+          </div>
+
           {/* Documents */}
           <div>
             <h3 className="text-lg font-semibold mb-4">Documents</h3>
@@ -158,8 +183,22 @@ export function ExpenseConfirmation({
                 {data.documents?.map((doc) => (
                   <TableRow key={doc.fileId}>
                     <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <File className="w-4 h-4 text-blue-500" />
+                      <div 
+                        className={cn(
+                          "flex items-center gap-2 cursor-pointer hover:text-blue-500",
+                          previewFileId === doc.fileId && "text-blue-500"
+                        )}
+                        onClick={() => setPreviewFileId(doc.fileId)}
+                      >
+                        <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
+                          {doc.file && (
+                            <iframe
+                              src={URL.createObjectURL(doc.file)}
+                              className="w-full h-full"
+                              style={{ pointerEvents: 'none' }}
+                            />
+                          )}
+                        </div>
                         {doc.fileName}
                       </div>
                     </TableCell>
@@ -197,6 +236,25 @@ export function ExpenseConfirmation({
               )}
             </div>
           </div>
+
+          {/* After the documents section */}
+          {data.description?.hasPrepayment && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Prepayment Details</h3>
+              <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm text-gray-500">Prepayment Amount</p>
+                  <p className="font-medium">{formatAmount(data.description.prepaymentAmount || 0)} kr</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Remaining Balance</p>
+                  <p className="font-medium text-blue-600">
+                    {formatAmount(totalAmount - (data.description.prepaymentAmount || 0))} kr
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -238,6 +296,17 @@ export function ExpenseConfirmation({
           )}
         </Button>
       </div>
+
+      <AnimatePresence>
+        {previewFileId && (
+          <FilePreview
+            files={data.documents || []}
+            currentFileId={previewFileId}
+            onClose={() => setPreviewFileId(undefined)}
+            onFileChange={setPreviewFileId}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 } 
