@@ -146,7 +146,7 @@ export default function AdminDashboard({
                       </Select>
                           </div>
                           <div className="flex gap-2 mt-4">
-                            <Button type="submit" variant="primary" size="sm">
+                            <Button type="submit"  size="sm">
                               Create Election
                             </Button>
                           </div>

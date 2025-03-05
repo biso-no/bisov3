@@ -10,11 +10,14 @@ export default async function AdminLayout({
 }) {
 
   const roles = await getUserRoles()
+  
   const user = await getLoggedInUser()
+  //console.log("here")
+  //console.log(user.)
 
 
   return (
-    <Component roles={roles} firstName={user?.user.name.split(' ')[0]}>
+    <Component roles={roles} firstName={user.user.name.split(' ')[0]}>
     {children}
     </Component>
   );

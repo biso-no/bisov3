@@ -5,17 +5,18 @@ import { Query } from "node-appwrite";
 
 // Define available roles and their corresponding admin paths
 const roleAccessMap = {
-  'Admin': ['/admin', '/admin/pages', '/admin/posts', '/admin/shop', '/admin/elections', '/admin/users', '/admin/settings'],
+  'Admin': ['/admin', '/admin/pages', '/admin/posts', '/admin/shop', '/admin/users', '/admin/settings'],
   'pr': ['/admin/pages', '/admin/posts'],
   'finance': ['/admin/shop', '/admin/users'],
   'hr': ['/admin/users'],
-  'users': ['/elections'],
-  'Control Committee': ['/admin/elections'],
 };
 
 const publicPaths = ['/_next', '/auth'];
 const adminPath = '/admin';
-const protectedPaths = ['/elections', ...Object.values(roleAccessMap).flat()];
+// During development, most paths are protected
+const protectedPaths = ['/', ...Object.values(roleAccessMap).flat()];
+// Paths that any authenticated user can access
+const authenticatedPaths = ['/expenses'];
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -33,21 +34,21 @@ export async function middleware(req: NextRequest) {
   try {
     user = await account.get();
   } catch (error) {
-    // Redirect to login for any protected path, including /elections
-    if (pathname === '/' || protectedPaths.some(path => pathname === path || pathname.startsWith(path))) {
+    // Redirect to login for any protected or authenticated path
+    if (pathname === '/' || 
+        protectedPaths.some(path => pathname.startsWith(path)) ||
+        authenticatedPaths.some(path => pathname.startsWith(path)) ||
+        pathname.startsWith('/edit')) {
       return NextResponse.redirect(new URL("/auth/login", req.url));
     }
     return res;
   }
 
   // At this point, user is authenticated
-  if (pathname === '/') {
-    return NextResponse.redirect(new URL("/elections", req.url));
-  }
 
   // If the user is authenticated and attempts to access auth pages, redirect them to the homepage
   if (pathname.startsWith('/auth')) {
-    return NextResponse.redirect(new URL("/elections", req.url));
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   // Retrieve the user's teams and roles
@@ -55,23 +56,29 @@ export async function middleware(req: NextRequest) {
     Query.equal('name', Object.keys(roleAccessMap))
   ]);
   const userRoles = userTeams.teams.map((team) => team.name);
-  
-  // Add 'users' role for any authenticated user
-  if (user.$id) {
-    userRoles.push('users');
+
+  // If user is Admin, they can access everything
+  if (userRoles.includes('Admin')) {
+    return res;
   }
 
-  // Handle edit routes
-  if (pathname.endsWith("/edit")) {
-    if (!userRoles.includes("Admin") && !userRoles.includes("PR")) {
-      return NextResponse.redirect(new URL("/elections", req.url));
+  // If path is in authenticatedPaths, any authenticated user can access it
+  if (authenticatedPaths.some(path => pathname.startsWith(path))) {
+    return res;
+  }
+
+  // Handle Puck edit routes
+  if (pathname.startsWith('/edit')) {
+    if (!userRoles.includes("PR")) {
+      return NextResponse.redirect(new URL("/", req.url));
     }
-    const pathWithoutEdit = pathname.slice(0, -5);
-    const pathWithEditPrefix = `/puck${pathWithoutEdit}`;
-    return NextResponse.rewrite(new URL(pathWithEditPrefix, req.url));
+    // Remove /edit prefix and add /puck prefix
+    const pathWithoutEdit = pathname.replace('/edit', '');
+    const pathWithPuckPrefix = `/puck${pathWithoutEdit}`;
+    return NextResponse.rewrite(new URL(pathWithPuckPrefix, req.url));
   }
 
-  // Check if the user has access to the requested path (including /elections)
+  // Check if the user has access to the requested admin path
   const hasAccess = userRoles.some(role =>
     roleAccessMap[role]?.some(path => pathname.startsWith(path))
   );
@@ -91,12 +98,7 @@ export async function middleware(req: NextRequest) {
 
   // Redirect unauthorized users trying to access admin paths
   if (!hasAccess && pathname.startsWith(adminPath)) {
-    return NextResponse.redirect(new URL("/elections", req.url));
-  }
-
-  // Additional check for /elections access
-  if (pathname === '/elections' && !userRoles.includes('users')) {
-    return NextResponse.redirect(new URL("/auth/login", req.url));
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   return res;

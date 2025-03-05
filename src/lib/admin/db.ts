@@ -84,3 +84,16 @@ export async function updateUser(userId: string, userInformation: User) {
     }, // data (optional)
   )
 }
+
+export async function getCampuses() {
+  const { db } = await createSessionClient();
+  const campuses = await db.listDocuments("app", "campus", [
+    Query.limit(100),
+    Query.select(["$id", "name"]),
+  ]);
+  
+  return campuses.documents.map((campus) => ({
+    id: campus.$id,
+    name: campus.name,
+  }));
+}

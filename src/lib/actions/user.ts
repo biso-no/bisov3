@@ -7,18 +7,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { ID, Models, OAuthProvider } from "node-appwrite";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
-
+//
 export async function getLoggedInUser() {
     try {
         const { account, db } = await createSessionClient();
+       
         const user = await account.get();
         if (user.$id) {
+            //console.log("print this here before the appwrite to users call user id is ")
+            //console.log(user.$id)
             const profile = await db.getDocument('app', 'user', user.$id);
-
+            //console.log("error is in appwrite area")
             return {user, profile};
+            //67001a7800bbb85b3a24
+            //67001a77ef92c97a9bbc
         }
     } catch (error) {
-        console.error("Error getting logged in user", error);
+        console.error("Error getting logged in user!!", error);
         return null;
     }
 }

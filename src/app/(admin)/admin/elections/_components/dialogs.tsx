@@ -66,7 +66,7 @@ export function EditSessionDialog({
                                 </SelectContent>
                             </Select>
                             <DialogFooter className="justify-center border-t p-4">
-                            <Button variant="primary" size="sm" type="submit">
+                            <Button  size="sm" type="submit">
                                     Save
                                 </Button>
                             </DialogFooter>
@@ -128,7 +128,7 @@ export function EditPositionsDialog({
                                 </SelectContent>
                             </Select>
                             <DialogFooter className="justify-center border-t p-4">
-                            <Button variant="primary" size="sm" type="submit">
+                            <Button  size="sm" type="submit">
                                     Save
                                 </Button>
                             </DialogFooter>
@@ -183,7 +183,7 @@ export function EditCandidateDialog({
                                 className="col-span-3"
                             />
                             <DialogFooter className="justify-center border-t p-4">
-                            <Button variant="primary" size="sm" type="submit">
+                            <Button size="sm" type="submit">
                                     Save
                                 </Button>
                             </DialogFooter>
