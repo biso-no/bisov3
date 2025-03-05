@@ -165,8 +165,10 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
 
   const navItems: NavItem[] = [
     { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', roles: ['Admin'] },
+        /*
     { href: '/admin/pages', icon: FileText, label: 'Pages', roles: ['Admin', 'pr'] },
     { href: '/admin/posts', icon: FileText, label: 'Posts', roles: ['Admin', 'pr'] },
+
     {
       href: '/admin/shop',
       icon: Store,
@@ -179,13 +181,13 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
         { href: '/admin/shop/settings', label: 'Settings', roles: ['Admin'] },
       ],
     },
+    */
     {
       href: '/admin/expenses',
       icon: CalendarIcon,
       label: 'Expenses',
       roles: ['Admin', 'finance'],
     },
-    { href: '/admin/elections', icon: VoteIcon, label: 'Elections', roles: ['Admin', 'Control Committee'] },
     { href: '/admin/users', icon: Users, label: 'Users', roles: ['Admin', 'hr', 'finance'] },
     {
       href: '/admin/settings',
