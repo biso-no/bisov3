@@ -22,8 +22,9 @@ export default function ExpenseView({ expenseId }) {
             bank_account: expense.bank_account,
             description: expense.description,
             expense_attachments: expense.expenseAttachments,
-            total: expense.total,
-            prepayment_amount: expense.prepayment_amount,
+            total: Number(expense.total),
+            // If prepayment_amount is needed, uncomment and convert to number
+            // prepayment_amount: Number(expense.prepayment_amount),
             expense_attachments_ids: ids,
           });
           console.log("Expense found");

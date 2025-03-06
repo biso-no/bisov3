@@ -230,7 +230,7 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
           <div>
             <CardTitle className="text-2xl font-bold">User Management</CardTitle>
             <CardDescription className="mt-1.5">
-              Manage your organization's users and their access
+              Manage your organization&apos;s users and their access
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">

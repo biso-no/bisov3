@@ -23,6 +23,7 @@ import {
   VoteIcon,
   LogOut,
   Bell,
+  Building2,
 } from 'lucide-react';
 import { signOut } from '@/lib/actions/user';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -187,6 +188,12 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
       icon: CalendarIcon,
       label: 'Expenses',
       roles: ['Admin', 'finance'],
+    },
+    {
+      href: '/admin/units',
+      icon: Building2,
+      label: 'Units',
+      roles: ['Admin', 'hr', 'finance', 'pr'],
     },
     { href: '/admin/users', icon: Users, label: 'Users', roles: ['Admin', 'hr', 'finance'] },
     {

@@ -110,7 +110,7 @@ export function PostTable({ posts }: { posts: Post[] }) {
           post.department.Name === department) &&
         (campus === "Campus" || campus === "all" || post.campus.name === campus)
     );
-  }, [search, department, campus]);
+  }, [posts, search, department, campus]);
 
   // dummy comment
   //pagination

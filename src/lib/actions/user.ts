@@ -17,10 +17,13 @@ export async function getLoggedInUser() {
             //console.log("print this here before the appwrite to users call user id is ")
             //console.log(user.$id)
             const profile = await db.getDocument('app', 'user', user.$id);
-            //console.log("error is in appwrite area")
-            return {user, profile};
-            //67001a7800bbb85b3a24
-            //67001a77ef92c97a9bbc
+            if (profile) {
+                return {user, profile};
+            } else {
+                return { user, profile: null }
+            }
+        } else {
+            return null;
         }
     } catch (error) {
         console.error("Error getting logged in user!!", error);

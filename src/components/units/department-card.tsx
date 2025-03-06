@@ -1,0 +1,179 @@
+"use client";
+
+import { useState } from 'react';
+import { Department } from '@/lib/admin/departments';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import Image from 'next/image';
+import { Users, MapPin, Tag, Calendar, Edit } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+// Client-side only component for HTML content
+function HTMLContent({ html, className }: { html: string, className?: string }) {
+  return (
+    <div 
+      className={className}
+      dangerouslySetInnerHTML={{ __html: html }} 
+    />
+  );
+}
+
+interface DepartmentCardProps {
+  department: Department;
+  onEdit?: (department: Department) => void;
+}
+
+export function DepartmentCard({ department, onEdit }: DepartmentCardProps) {
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const router = useRouter();
+  const placeholderLogo = "https://via.placeholder.com/80?text=" + 
+    encodeURIComponent(department.name.substring(0, 2));
+  
+  const logoUrl = department.logo || placeholderLogo;
+  
+  return (
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-transparent hover:border-primary/10 group">
+      <CardHeader className="p-0 overflow-hidden h-36 relative">
+        <div 
+          className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10 
+                    transition-opacity duration-300 opacity-70 group-hover:opacity-90" 
+        />
+        
+        <div className="absolute top-3 right-3 z-20">
+          {!department.active && (
+            <Badge variant="destructive" className="ml-2">Inactive</Badge>
+          )}
+          {department.type && (
+            <Badge variant="outline" className="ml-2 bg-black/40 backdrop-blur-sm border-white/10 text-white">
+              {department.type}
+            </Badge>
+          )}
+        </div>
+        
+        <div className="h-full w-full relative">
+          {/* Background pattern */}
+          <div className="absolute inset-0 bg-gradient-radial from-primary/20 to-background/5 opacity-70"></div>
+          
+          {/* Department logo as an overlay */}
+          <div className="absolute bottom-4 left-4 z-20 flex items-center gap-3">
+            <div className="h-12 w-12 rounded-full overflow-hidden bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20">
+              {department.logo ? (
+                <Image 
+                  src={logoUrl}
+                  alt={department.name}
+                  width={48}
+                  height={48}
+                  className="object-cover h-full w-full"
+                />
+              ) : (
+                <span className="text-xl font-bold text-white">
+                  {department.name.substring(0, 2).toUpperCase()}
+                </span>
+              )}
+            </div>
+            <h3 className="font-bold text-white text-xl drop-shadow-md line-clamp-2">
+              {department.name}
+            </h3>
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="p-4">
+        <div className="flex flex-col gap-2 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin size={16} />
+            <span>{department.campusName || 'No campus assigned'}</span>
+          </div>
+          
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Users size={16} />
+            <span>{department.userCount || 0} members</span>
+          </div>
+          
+          {department.description && (
+            <HTMLContent 
+              html={department.description}
+              className="mt-2 text-sm line-clamp-2 text-muted-foreground"
+            />
+          )}
+        </div>
+      </CardContent>
+      
+      <CardFooter className="p-4 pt-0 flex justify-between">
+        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={() => router.push(`/admin/units/${department.$id}`)} variant="outline" size="sm">View Details</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
+                  {department.logo ? (
+                    <Image 
+                      src={logoUrl}
+                      alt={department.name}
+                      width={32}
+                      height={32}
+                      className="object-cover h-full w-full"
+                    />
+                  ) : (
+                    <span className="text-sm font-bold">
+                      {department.name.substring(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                {department.name}
+              </DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[60vh] pr-4">
+              <div className="space-y-4 py-4">
+                <div className="flex flex-wrap gap-2">
+                  {department.type && (
+                    <Badge variant="outline" className="flex items-center gap-1">
+                      <Tag size={12} />
+                      {department.type}
+                    </Badge>
+                  )}
+                  <Badge variant={department.active ? "secondary" : "destructive"} className="flex items-center gap-1">
+                    <Calendar size={12} />
+                    {department.active ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
+                
+                <div className="flex flex-col gap-1">
+                  <h4 className="text-sm font-semibold">Campus</h4>
+                  <p className="text-sm text-muted-foreground">{department.campusName || 'No campus assigned'}</p>
+                </div>
+                
+                {department.description && (
+                  <div className="flex flex-col gap-1">
+                    <h4 className="text-sm font-semibold">Description</h4>
+                    <HTMLContent 
+                      html={department.description}
+                      className="text-sm text-muted-foreground"
+                    />
+                  </div>
+                )}
+                
+                <div className="flex flex-col gap-1">
+                  <h4 className="text-sm font-semibold">Members</h4>
+                  <p className="text-sm text-muted-foreground">{department.userCount || 0} users</p>
+                </div>
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+        
+        {onEdit && (
+          <Button variant="ghost" size="sm" onClick={() => onEdit(department)}>
+            <Edit size={16} className="mr-2" />
+            Edit
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
+  );
+} 
