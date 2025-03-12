@@ -1,14 +1,7 @@
-import { Suspense } from 'react';
-import Link from 'next/link';
 import { getDepartments, getDepartmentTypes } from '@/lib/admin/departments';
 import { getCampuses } from '@/lib/admin/db';
-import { DepartmentSkeletonGrid } from '@/components/units/department-skeleton';
-import { DepartmentCard } from '@/components/units/department-card';
-import { DepartmentFilters } from '@/components/units/department-filters';
 import { DepartmentStats } from '@/components/units/department-stats';
 import { DepartmentClientWrapper } from './client-wrapper';
-import { Button } from '@/components/ui/button';
-import { Plus, ArrowUpDown } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -73,33 +66,18 @@ export default async function UnitsPage({ searchParams }: PageProps) {
   
   return (
     <div className="space-y-8">
-      {/* Header section with title and action buttons */}
-      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Units Overview</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage all departments across all campuses
-          </p>
-        </div>
-        
-        <div className="flex gap-2 sm:self-start">
-          <Button asChild variant="outline" size="sm" className="gap-1">
-            <div>
-              <ArrowUpDown className="h-4 w-4" />
-              Sort
-            </div>
-          </Button>
-          <Button className="gap-1">
-            <Plus className="h-4 w-4" />
-            Add Unit
-          </Button>
-        </div>
+      {/* Header section with title */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Units Overview</h1>
+        <p className="text-muted-foreground mt-1">
+          Manage all departments across all campuses
+        </p>
       </div>
       
       {/* Stats cards */}
-      <DepartmentStats departments={sortedDepartments} />
+      <DepartmentStats departments={departments} />
       
-      {/* Filters section */}
+      {/* Client-side components with filters */}
       <DepartmentClientWrapper
         departments={sortedDepartments}
         campuses={campuses}

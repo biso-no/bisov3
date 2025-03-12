@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Users, MapPin, Tag, Calendar, Lock, Edit, Save, ArrowLeft, X, Upload } from 'lucide-react';
+import { Users, MapPin, Calendar, Lock, Edit, Save, ArrowLeft, X, Upload } from 'lucide-react';
 import { Department } from '@/lib/admin/departments';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,10 +32,8 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { updateDepartment } from '@/lib/admin/departments';
 import { toast } from '@/lib/hooks/use-toast';
-import dynamic from 'next/dynamic';
+import { RichTextEditor } from '@/components/rich-text-editor';
 
-// Import Jodit editor dynamically to avoid SSR issues
-const JoditEditor = dynamic(() => import("jodit-react"), { ssr: false });
 
 // Define the form schema with validation
 const formSchema = z.object({
@@ -76,27 +74,8 @@ export function DepartmentDetails({ department, campuses, departmentTypes }: Dep
     },
   });
   
-  // Configure Jodit editor options
-  const editorConfig = {
-    readonly: !isEditMode,
-    height: 400,
-    buttons: [
-      'source', '|',
-      'bold', 'italic', 'underline', 'strikethrough', '|',
-      'ul', 'ol', '|',
-      'font', 'fontsize', 'brush', 'paragraph', '|',
-      'table', 'link', '|',
-      'left', 'center', 'right', 'justify', '|',
-      'undo', 'redo', '|',
-      'hr', 'eraser', 'fullsize',
-    ],
-    uploader: {
-      insertImageAsBase64URI: true
-    },
-    showCharsCounter: true,
-    showWordsCounter: true,
-    toolbarAdaptive: false,
-  };
+  // Create state for rich text editor
+  const [description, setDescription] = useState(department.description || '');
   
   const placeholderLogo = "https://via.placeholder.com/120?text=" + 
     encodeURIComponent(department.name.substring(0, 2));
@@ -284,11 +263,13 @@ export function DepartmentDetails({ department, campuses, departmentTypes }: Dep
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <JoditEditor
-                          value={field.value}
-                          config={editorConfig}
-                          onBlur={field.onBlur}
-                          onChange={(content: string) => field.onChange(content)}
+                        <RichTextEditor
+                          content={description}
+                          onChange={(html) => {
+                            setDescription(html);
+                            field.onChange(html);
+                          }}
+                          editable={isEditMode}
                         />
                       </FormControl>
                       <FormDescription>
@@ -505,4 +486,4 @@ export function DepartmentDetails({ department, campuses, departmentTypes }: Dep
       </div>
     </div>
   );
-} 
+}

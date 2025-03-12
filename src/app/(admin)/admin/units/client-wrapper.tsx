@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Department } from '@/lib/admin/departments';
 import { DepartmentCard } from '@/components/units/department-card';
@@ -43,20 +43,38 @@ export function DepartmentClientWrapper({
   const searchParams = useSearchParams();
   const [editingDepartment, setEditingDepartment] = useState<Department | undefined>(undefined);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [filteredDepartments, setFilteredDepartments] = useState<Department[]>(departments);
   
-  const { filters, isPending, updateFilter, resetFilters, setSearchTerm } = useDepartmentsFilter();
+  const [isPendingNav, startTransition] = useTransition();
+  const { filters, isPending: isFiltersPending, updateFilter, resetFilters, setSearchTerm } = useDepartmentsFilter();
   
-  // Set initial filters
+  // Combined pending state for both filters and navigation
+  const isPending = isPendingNav || isFiltersPending;
+  
+  // Set initial filters only on component mount in a batch
   useEffect(() => {
-    if (initialFilters.active !== undefined) updateFilter('active', initialFilters.active);
-    if (initialFilters.campus_id) updateFilter('campus_id', initialFilters.campus_id);
-    if (initialFilters.type) updateFilter('type', initialFilters.type);
-    if (initialFilters.searchTerm) updateFilter('searchTerm', initialFilters.searchTerm);
-  }, [initialFilters, updateFilter]);
+    // Create a function to update all filters at once to avoid multiple transitions
+    const batchUpdateFilters = () => {
+      // Start a single transition for all updates
+      startTransition(() => {
+        // Only update what's different from the defaults
+        if (initialFilters.active !== true) updateFilter('active', initialFilters.active);
+        if (initialFilters.campus_id) updateFilter('campus_id', initialFilters.campus_id);
+        if (initialFilters.type) updateFilter('type', initialFilters.type);
+        if (initialFilters.searchTerm) {
+          // Direct update for search term to avoid the debounce
+          updateFilter('searchTerm', initialFilters.searchTerm);
+        }
+      });
+    };
+
+    // Apply the batch update
+    batchUpdateFilters();
+  }, [initialFilters.active, initialFilters.campus_id, initialFilters.searchTerm, initialFilters.type, updateFilter]);  // Empty dependency array to run only once on mount
   
   // Update URL when filters change
   useEffect(() => {
+    if (isPending) return; // Don't update URL while filters are being applied
+    
     const params = new URLSearchParams(searchParams.toString());
     
     // Update or remove query params based on filter values
@@ -84,14 +102,22 @@ export function DepartmentClientWrapper({
       params.delete('search');
     }
     
+    // Preserve sort parameter
+    if (sortOrder) {
+      params.set('sort', sortOrder);
+    }
+    
     // Only update if needed to avoid unnecessary history entries
     const newQueryString = params.toString();
     const currentQueryString = searchParams.toString();
     
     if (newQueryString !== currentQueryString) {
-      router.push(`${pathname}?${newQueryString}`);
+      // Wrap router navigation in a transition to prevent UI freezing
+      startTransition(() => {
+        router.push(`${pathname}?${newQueryString}`);
+      });
     }
-  }, [filters, router, pathname, searchParams]);
+  }, [filters, isPending, router, pathname, searchParams, sortOrder]);
   
   // Sort options
   const sortOptions: SortOption[] = [
@@ -229,4 +255,4 @@ export function DepartmentClientWrapper({
       />
     </div>
   );
-} 
+}
