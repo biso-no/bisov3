@@ -33,6 +33,9 @@ import { Separator } from '@/components/ui/separator';
 import { updateDepartment } from '@/lib/admin/departments';
 import { toast } from '@/lib/hooks/use-toast';
 import { RichTextEditor } from '@/components/rich-text-editor';
+import { uploadUnitLogo } from '@/app/actions/units';
+import { clientStorage } from '@/lib/appwrite-client';
+import { ID } from 'appwrite';
 
 
 // Define the form schema with validation
@@ -109,21 +112,44 @@ export function DepartmentDetails({ department, campuses, departmentTypes }: Dep
     }
   };
   
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Create a preview for the uploaded image
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setLogoPreview(event.target.result as string);
-          // Here you would typically upload the image to your storage
-          // and set the resulting URL to the form
-          // For now, we're just setting a preview
-          form.setValue('logo', event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Create a preview and get base64 data
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          if (event.target?.result) {
+            const base64Data = event.target.result as string;
+            setLogoPreview(base64Data);
+
+            // Upload the file to Appwrite
+            const result = await clientStorage.createFile('units', ID.unique(), file)
+            
+            if (result) {
+              form.setValue('logo', result.$id);
+              toast({
+                title: "Success",
+                description: "Logo uploaded successfully",
+              });
+            } else {
+              toast({
+                title: "Error",
+                description: "Failed to upload logo",
+                variant: "destructive",
+              });
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('Error uploading logo:', error);
+        toast({
+          title: "Error",
+          description: "Failed to upload logo",
+          variant: "destructive",
+        });
+      }
     }
   };
   
@@ -458,7 +484,7 @@ export function DepartmentDetails({ department, campuses, departmentTypes }: Dep
                 
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Created: {/* You can add creation date here */}</span>
+                  <span>Created: {department.$createdAt}</span>
                 </div>
                 
                 {!isEditMode && (

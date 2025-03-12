@@ -1,10 +1,13 @@
+import { Suspense } from 'react';
 import { getDepartments, getDepartmentTypes } from '@/lib/admin/departments';
 import { getCampuses } from '@/lib/admin/db';
 import { DepartmentStats } from '@/components/units/department-stats';
-import { DepartmentClientWrapper } from './client-wrapper';
+import { DepartmentFiltersWrapper } from '@/components/units/department-filters-wrapper';
+import { DepartmentList } from '@/components/units/department-list';
+import { DepartmentActionsHeader } from '@/components/units/department-actions-header';
+import { DepartmentSkeleton } from '@/components/units/department-skeleton';
+import { FilterState } from '@/lib/hooks/use-departments-filter';
 
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
 export const revalidate = 0;
 
 interface PageProps {
@@ -19,7 +22,7 @@ interface PageProps {
 
 export default async function UnitsPage({ searchParams }: PageProps) {
   // Prepare filter values from search params
-  const filters = {
+  const filters: FilterState = {
     active: searchParams.active === 'false' 
       ? false
       : searchParams.active === 'true'
@@ -75,21 +78,34 @@ export default async function UnitsPage({ searchParams }: PageProps) {
       </div>
       
       {/* Stats cards */}
-      <DepartmentStats departments={departments} />
+      <Suspense fallback={<div>Loading stats...</div>}>
+        <DepartmentStats departments={departments} />
+      </Suspense>
       
-      {/* Client-side components with filters */}
-      <DepartmentClientWrapper
-        departments={sortedDepartments}
-        campuses={campuses}
-        types={types}
-        initialFilters={{
-          active: filters.active,
-          campus_id: filters.campus_id,
-          type: filters.type,
-          searchTerm: filters.searchTerm
-        }}
-        sortOrder={sortOrder}
-      />
+      <div className="space-y-6">
+        {/* Actions and Filters Row */}
+        <div className="flex flex-col md:flex-row justify-between gap-4">
+          <DepartmentFiltersWrapper
+            filters={filters}
+            campuses={campuses}
+            types={types}
+          />
+          <DepartmentActionsHeader 
+            sortOrder={sortOrder}
+            campuses={campuses}
+            types={types}
+          />
+        </div>
+
+        {/* Department List */}
+        <Suspense fallback={<DepartmentSkeleton />}>
+          <DepartmentList
+            departments={sortedDepartments}
+            campuses={campuses}
+            types={types}
+          />
+        </Suspense>
+      </div>
     </div>
   );
 }
