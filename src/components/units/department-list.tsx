@@ -69,20 +69,6 @@ export function DepartmentList({
           />
         ))}
       </div>
-
-      {/* Edit Dialog */}
-      {editingDepartment && (
-        <DepartmentEditDialog
-          department={editingDepartment}
-          open={!!editingDepartment}
-          onOpenChange={(open) => {
-            if (!open) setEditingDepartment(undefined);
-          }}
-          onSuccess={handleDataRefresh}
-          campuses={campuses}
-          types={types}
-        />
-      )}
     </>
   );
 } 
