@@ -184,6 +184,24 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
     },
     */
     {
+      href: '/admin/shop',
+      icon: Store,
+      label: 'Shop',
+      roles: ['Admin', 'finance'],
+      subItems: [
+        { href: '/admin/shop/orders', label: 'Orders', roles: ['Admin', 'finance'] },
+        { href: '/admin/shop/products', label: 'Products', roles: ['Admin', 'finance'] },
+        { href: '/admin/shop/customers', label: 'Customers', roles: ['Admin', 'finance'] },
+        { href: '/admin/shop/settings', label: 'Settings', roles: ['Admin'] },
+      ],
+    },
+    {
+      href: '/admin/events',
+      icon: CalendarIcon,
+      label: 'Events',
+      roles: ['Admin', 'pr'],
+    },
+    {
       href: '/admin/expenses',
       icon: CalendarIcon,
       label: 'Expenses',
@@ -320,7 +338,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
           <div className="container mx-auto px-6 py-8">
-            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b 
+            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b p-4
                            bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <Breadcrumb />
               <motion.div 

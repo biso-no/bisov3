@@ -71,8 +71,6 @@ export async function updatePost(postId: string, post){
       "image":post.image,
       "department_id":post.department,
       "campus_id":post.campus,
-      "created_at":post.created_at,
-      "updated_at":post.updated_at,
       "department":post.department,
       "campus":post.campus
     }, // data (optional)
@@ -95,8 +93,6 @@ export async function createPost(post){
       "image":post.image,
       "department_id":post.department,
       "campus_id":post.campus,
-      "created_at":post.created_at,
-      "updated_at":post.updated_at,
       "department":post.department,
       "campus":post.campus
     }, // data (optional)
@@ -271,4 +267,106 @@ export async function updateExpense(expenseId, formData) {
 
     return response.documents as Campus[]
   }
+
+export async function getEvents() {
+  const { db } = await createSessionClient();
+  const response = await db.listDocuments('app', 'events', [
+    Query.limit(100)
+  ]);
+
+  return response.documents as any[];
+}
+
+export async function getEvent(eventId: string) {
+  const { db } = await createSessionClient();
+  const response = await db.getDocument('app', 'events', eventId);
+
+  return response as any;
+}
+
+export async function createEvent(event) {
+  const { db, account } = await createSessionClient();
+
+  
+  const result = await db.createDocument(
+    'app',
+    'events',
+    ID.unique(),
+    {
+      title: event.title,
+      description: event.description,
+      start_date: event.start_date,
+      end_date: event.end_date,
+      start_time: event.start_time,
+      end_time: event.end_time,
+      campus: event.campus,
+      units: event.units,
+      price: event.price || 0,
+      ticket_url: event.ticket_url || "",
+      image: event.image || "",
+      status: "pending",
+    }
+  );
+  
+  revalidatePath('/admin/events');
+  return result;
+}
+
+export async function updateEvent(eventId: string, event) {
+  const { db } = await createSessionClient();
+
+  const now = new Date().toISOString();
+  
+  const result = await db.updateDocument(
+    'app',
+    'events',
+    eventId,
+    {
+      title: event.title,
+      description: event.description,
+      start_date: event.start_date,
+      end_date: event.end_date,
+      start_time: event.start_time,
+      end_time: event.end_time,
+      campus: event.campus,
+      units: event.units,
+      price: event.price || 0,
+      ticket_url: event.ticket_url || "",
+      image: event.image || "",
+    }
+  );
+  
+  revalidatePath('/admin/events');
+  return result;
+}
+
+export async function updateEventStatus(eventId: string, status: "pending" | "approved" | "rejected") {
+  const { db } = await createSessionClient();
+  
+  
+  const result = await db.updateDocument(
+    'app',
+    'events',
+    eventId,
+    {
+      status: status,
+    }
+  );
+  
+  revalidatePath('/admin/events');
+  return result;
+}
+
+export async function deleteEvent(eventId: string) {
+  const { db } = await createSessionClient();
+  
+  const result = await db.deleteDocument(
+    'app',
+    'events',
+    eventId
+  );
+  
+  revalidatePath('/admin/events');
+  return result;
+}
 
