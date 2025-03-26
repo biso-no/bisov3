@@ -32,6 +32,23 @@ import {
   SheetClose
 } from '@/components/ui/sheet';
 
+// Custom hook for debouncing values
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 interface DepartmentFiltersProps {
   filters: FilterState;
   isPending: boolean;
@@ -54,18 +71,29 @@ export function DepartmentFilters({
   const [searchInputValue, setSearchInputValue] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   
+  // Debounce the search input value
+  const debouncedSearchValue = useDebounce(searchInputValue, 300);
+  
   // Update local search input when filters change
   useEffect(() => {
     setSearchInputValue(filters.searchTerm || '');
   }, [filters.searchTerm]);
+
+  // Effect to update parent component with debounced value
+  useEffect(() => {
+    // Only update if the value actually changed
+    if (debouncedSearchValue !== filters.searchTerm) {
+      setSearchTerm(debouncedSearchValue);
+    }
+  }, [debouncedSearchValue, setSearchTerm, filters.searchTerm]);
   
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInputValue(e.target.value);
-    setSearchTerm(e.target.value);
   };
   
   const clearSearch = () => {
     setSearchInputValue('');
+    // Immediate clear without waiting for debounce
     setSearchTerm('');
   };
   
@@ -338,4 +366,4 @@ export function DepartmentFilters({
       )}
     </div>
   );
-} 
+}

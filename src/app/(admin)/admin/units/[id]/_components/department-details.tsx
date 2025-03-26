@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Users, MapPin, Tag, Calendar, Lock, Edit, Save, ArrowLeft, X, Upload } from 'lucide-react';
+import { Users, MapPin, Calendar, Lock, Edit, Save, ArrowLeft, X, Upload } from 'lucide-react';
 import { Department } from '@/lib/admin/departments';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,10 +32,11 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { updateDepartment } from '@/lib/admin/departments';
 import { toast } from '@/lib/hooks/use-toast';
-import dynamic from 'next/dynamic';
+import { RichTextEditor } from '@/components/rich-text-editor';
+import { uploadUnitLogo } from '@/app/actions/units';
+import { clientStorage } from '@/lib/appwrite-client';
+import { ID } from 'appwrite';
 
-// Import Jodit editor dynamically to avoid SSR issues
-const JoditEditor = dynamic(() => import("jodit-react"), { ssr: false });
 
 // Define the form schema with validation
 const formSchema = z.object({
@@ -76,27 +77,8 @@ export function DepartmentDetails({ department, campuses, departmentTypes }: Dep
     },
   });
   
-  // Configure Jodit editor options
-  const editorConfig = {
-    readonly: !isEditMode,
-    height: 400,
-    buttons: [
-      'source', '|',
-      'bold', 'italic', 'underline', 'strikethrough', '|',
-      'ul', 'ol', '|',
-      'font', 'fontsize', 'brush', 'paragraph', '|',
-      'table', 'link', '|',
-      'left', 'center', 'right', 'justify', '|',
-      'undo', 'redo', '|',
-      'hr', 'eraser', 'fullsize',
-    ],
-    uploader: {
-      insertImageAsBase64URI: true
-    },
-    showCharsCounter: true,
-    showWordsCounter: true,
-    toolbarAdaptive: false,
-  };
+  // Create state for rich text editor
+  const [description, setDescription] = useState(department.description || '');
   
   const placeholderLogo = "https://via.placeholder.com/120?text=" + 
     encodeURIComponent(department.name.substring(0, 2));
@@ -130,21 +112,44 @@ export function DepartmentDetails({ department, campuses, departmentTypes }: Dep
     }
   };
   
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Create a preview for the uploaded image
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setLogoPreview(event.target.result as string);
-          // Here you would typically upload the image to your storage
-          // and set the resulting URL to the form
-          // For now, we're just setting a preview
-          form.setValue('logo', event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Create a preview and get base64 data
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          if (event.target?.result) {
+            const base64Data = event.target.result as string;
+            setLogoPreview(base64Data);
+
+            // Upload the file to Appwrite
+            const result = await clientStorage.createFile('units', ID.unique(), file)
+            
+            if (result) {
+              form.setValue('logo', result.$id);
+              toast({
+                title: "Success",
+                description: "Logo uploaded successfully",
+              });
+            } else {
+              toast({
+                title: "Error",
+                description: "Failed to upload logo",
+                variant: "destructive",
+              });
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('Error uploading logo:', error);
+        toast({
+          title: "Error",
+          description: "Failed to upload logo",
+          variant: "destructive",
+        });
+      }
     }
   };
   
@@ -284,11 +289,13 @@ export function DepartmentDetails({ department, campuses, departmentTypes }: Dep
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <JoditEditor
-                          value={field.value}
-                          config={editorConfig}
-                          onBlur={field.onBlur}
-                          onChange={(content: string) => field.onChange(content)}
+                        <RichTextEditor
+                          content={description}
+                          onChange={(html) => {
+                            setDescription(html);
+                            field.onChange(html);
+                          }}
+                          editable={isEditMode}
                         />
                       </FormControl>
                       <FormDescription>
@@ -477,7 +484,7 @@ export function DepartmentDetails({ department, campuses, departmentTypes }: Dep
                 
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Created: {/* You can add creation date here */}</span>
+                  <span>Created: {department.$createdAt}</span>
                 </div>
                 
                 {!isEditMode && (
@@ -505,4 +512,4 @@ export function DepartmentDetails({ department, campuses, departmentTypes }: Dep
       </div>
     </div>
   );
-} 
+}

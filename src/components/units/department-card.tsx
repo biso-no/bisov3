@@ -103,70 +103,7 @@ export function DepartmentCard({ department, onEdit }: DepartmentCardProps) {
       </CardContent>
       
       <CardFooter className="p-4 pt-0 flex justify-between">
-        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-          <DialogTrigger asChild>
             <Button onClick={() => router.push(`/admin/units/${department.$id}`)} variant="outline" size="sm">View Details</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh]">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
-                  {department.logo ? (
-                    <Image 
-                      src={logoUrl}
-                      alt={department.name}
-                      width={32}
-                      height={32}
-                      className="object-cover h-full w-full"
-                    />
-                  ) : (
-                    <span className="text-sm font-bold">
-                      {department.name.substring(0, 2).toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                {department.name}
-              </DialogTitle>
-            </DialogHeader>
-            <ScrollArea className="max-h-[60vh] pr-4">
-              <div className="space-y-4 py-4">
-                <div className="flex flex-wrap gap-2">
-                  {department.type && (
-                    <Badge variant="outline" className="flex items-center gap-1">
-                      <Tag size={12} />
-                      {department.type}
-                    </Badge>
-                  )}
-                  <Badge variant={department.active ? "secondary" : "destructive"} className="flex items-center gap-1">
-                    <Calendar size={12} />
-                    {department.active ? 'Active' : 'Inactive'}
-                  </Badge>
-                </div>
-                
-                <div className="flex flex-col gap-1">
-                  <h4 className="text-sm font-semibold">Campus</h4>
-                  <p className="text-sm text-muted-foreground">{department.campusName || 'No campus assigned'}</p>
-                </div>
-                
-                {department.description && (
-                  <div className="flex flex-col gap-1">
-                    <h4 className="text-sm font-semibold">Description</h4>
-                    <HTMLContent 
-                      html={department.description}
-                      className="text-sm text-muted-foreground"
-                    />
-                  </div>
-                )}
-                
-                <div className="flex flex-col gap-1">
-                  <h4 className="text-sm font-semibold">Members</h4>
-                  <p className="text-sm text-muted-foreground">{department.userCount || 0} users</p>
-                </div>
-              </div>
-            </ScrollArea>
-          </DialogContent>
-        </Dialog>
-        
         {onEdit && (
           <Button variant="ghost" size="sm" onClick={() => onEdit(department)}>
             <Edit size={16} className="mr-2" />

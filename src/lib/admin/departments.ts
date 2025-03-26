@@ -5,6 +5,7 @@ import { Models } from 'appwrite'
 
 export type Department = {
   $id: string
+  $createdAt: string
   name: string
   campus_id: string
   campusName?: string
@@ -30,6 +31,7 @@ export async function convertDocumentToDepartment(doc: Models.Document, includeC
 
   return {
     $id: doc.$id,
+    $createdAt: doc.$createdAt,
     name: doc.Name,
     campus_id: doc.campus_id,
     campusName: campusName,
