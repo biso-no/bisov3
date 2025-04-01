@@ -1,5 +1,4 @@
-// AlumniList.tsx
-import { MapPin, Briefcase, GraduationCap } from "lucide-react"
+import { MapPin, Briefcase, GraduationCap, ArrowRight } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"

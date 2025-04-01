@@ -1,8 +1,5 @@
 import "./styles.css";
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
+import { museoSans } from './fonts';
 import Providers from "./providers"
 import '@/app/globals.css';
 
@@ -11,9 +8,7 @@ export const metadata = {
   description: 'BISO Apps',
 };
 
-
 import {AppContextProvider} from "./contexts"
-
 
 export default function RootLayout({
   children,
@@ -21,13 +16,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${museoSans.variable}`}>
       <Providers>
       <AppContextProvider>
       <body>
         {children}
-        </body>
-
+      </body>
       </AppContextProvider>
       </Providers>
     </html>

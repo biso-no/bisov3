@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Check, Search, Filter, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -37,193 +37,35 @@ import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { Mentor } from "@/lib/types/alumni"
+import { getMentors } from "../actions"
 
-// Mock data for mentors
-const mentors = [
-  {
-    id: "mentor-001",
-    name: "Emma Berggren",
-    title: "Marketing Director",
-    company: "Nordic Digital Solutions",
-    image: "https://randomuser.me/api/portraits/women/28.jpg",
-    location: "Oslo, Norway",
-    graduationYear: 2010,
-    bio: "I've spent the last decade working in digital marketing, specializing in brand strategy and content marketing. I enjoy mentoring professionals who want to develop their strategic thinking and creative skills.",
-    expertise: ["Marketing Strategy", "Digital Marketing", "Branding", "Content Creation"],
-    industries: ["Technology", "SaaS", "E-commerce"],
-    availability: {
-      hoursPerMonth: 4,
-      meetingPreference: ["Virtual", "In-person (Oslo)"]
-    },
-    menteeCount: 3,
-    maxMentees: 5,
-    rating: 4.9,
-    reviews: 12,
-    languages: ["Norwegian", "English", "Swedish"]
-  },
-  {
-    id: "mentor-002",
-    name: "Anders Haugen",
-    title: "Senior Financial Analyst",
-    company: "Global Investment Partners",
-    image: "https://randomuser.me/api/portraits/men/32.jpg",
-    location: "Bergen, Norway",
-    graduationYear: 2012,
-    bio: "With a background in financial analysis and investment management, I help mentees understand financial markets and develop their analytical skills. I specialize in portfolio management and financial modeling.",
-    expertise: ["Financial Analysis", "Investment Strategy", "Portfolio Management", "Risk Assessment"],
-    industries: ["Finance", "Banking", "Investment Management"],
-    availability: {
-      hoursPerMonth: 6,
-      meetingPreference: ["Virtual"]
-    },
-    menteeCount: 2,
-    maxMentees: 3,
-    rating: 4.8,
-    reviews: 8,
-    languages: ["Norwegian", "English", "German"]
-  },
-  {
-    id: "mentor-003",
-    name: "Sofie Andersen",
-    title: "UX Research Lead",
-    company: "InnovateX",
-    image: "https://randomuser.me/api/portraits/women/62.jpg",
-    location: "Oslo, Norway",
-    graduationYear: 2015,
-    bio: "I lead UX research initiatives for digital products. My mentoring focuses on helping professionals understand user-centered design principles and conduct effective user research to create better products.",
-    expertise: ["UX Research", "User Testing", "Design Thinking", "Product Strategy"],
-    industries: ["Technology", "Product Design", "Digital Services"],
-    availability: {
-      hoursPerMonth: 3,
-      meetingPreference: ["Virtual", "In-person (Oslo)"]
-    },
-    menteeCount: 4,
-    maxMentees: 4,
-    rating: 5.0,
-    reviews: 15,
-    languages: ["Norwegian", "English", "Danish"]
-  },
-  {
-    id: "mentor-004",
-    name: "Lars Eriksen",
-    title: "Engineering Manager",
-    company: "TechStream Solutions",
-    image: "https://randomuser.me/api/portraits/men/41.jpg",
-    location: "Trondheim, Norway",
-    graduationYear: 2011,
-    bio: "As an engineering leader with experience in building and scaling development teams, I help mentees navigate technical career growth and leadership challenges in the software industry.",
-    expertise: ["Software Development", "Engineering Leadership", "Team Building", "Technical Architecture"],
-    industries: ["Software Development", "Cloud Computing", "Enterprise Solutions"],
-    availability: {
-      hoursPerMonth: 5,
-      meetingPreference: ["Virtual", "In-person (Trondheim)"]
-    },
-    menteeCount: 2,
-    maxMentees: 4,
-    rating: 4.7,
-    reviews: 9,
-    languages: ["Norwegian", "English"]
-  },
-  {
-    id: "mentor-005",
-    name: "Marta Nilsen",
-    title: "HR Director",
-    company: "Nordic Talent Group",
-    image: "https://randomuser.me/api/portraits/women/54.jpg",
-    location: "Stavanger, Norway",
-    graduationYear: 2007,
-    bio: "With extensive experience in HR and talent development, I mentor professionals looking to improve their leadership skills, navigate organizational challenges, or advance their careers.",
-    expertise: ["Human Resources", "Leadership Development", "Organizational Culture", "Career Planning"],
-    industries: ["HR Consulting", "Corporate", "Professional Services"],
-    availability: {
-      hoursPerMonth: 4,
-      meetingPreference: ["Virtual", "In-person (Stavanger)"]
-    },
-    menteeCount: 3,
-    maxMentees: 5,
-    rating: 4.9,
-    reviews: 18,
-    languages: ["Norwegian", "English", "Spanish"]
-  },
-  {
-    id: "mentor-006",
-    name: "Johan Berg",
-    title: "Startup Founder & CEO",
-    company: "GreenTech Innovations",
-    image: "https://randomuser.me/api/portraits/men/64.jpg",
-    location: "Oslo, Norway",
-    graduationYear: 2009,
-    bio: "As a founder of a successful sustainable technology startup, I help aspiring entrepreneurs navigate the challenges of starting and growing a business, with a focus on sustainable and socially responsible ventures.",
-    expertise: ["Entrepreneurship", "Business Strategy", "Fundraising", "Sustainable Business"],
-    industries: ["Startups", "Green Technology", "Social Enterprise"],
-    availability: {
-      hoursPerMonth: 3,
-      meetingPreference: ["Virtual", "In-person (Oslo)"]
-    },
-    menteeCount: 4,
-    maxMentees: 4,
-    rating: 4.8,
-    reviews: 14,
-    languages: ["Norwegian", "English"]
-  },
-  {
-    id: "mentor-007",
-    name: "Kristin Solberg",
-    title: "Management Consultant",
-    company: "Strategic Advisors Group",
-    image: "https://randomuser.me/api/portraits/women/45.jpg",
-    location: "Bergen, Norway",
-    graduationYear: 2013,
-    bio: "I specialize in strategy consulting and organizational transformation. My mentoring focuses on helping professionals develop strategic thinking, problem-solving skills, and navigate complex business challenges.",
-    expertise: ["Strategy Consulting", "Business Analysis", "Change Management", "Project Management"],
-    industries: ["Consulting", "Corporate Strategy", "Business Transformation"],
-    availability: {
-      hoursPerMonth: 4,
-      meetingPreference: ["Virtual"]
-    },
-    menteeCount: 2,
-    maxMentees: 3,
-    rating: 4.6,
-    reviews: 7,
-    languages: ["Norwegian", "English", "French"]
-  },
-  {
-    id: "mentor-008",
-    name: "Erik Johansen",
-    title: "Data Science Manager",
-    company: "AnalyticsPro",
-    image: "https://randomuser.me/api/portraits/men/23.jpg",
-    location: "Oslo, Norway",
-    graduationYear: 2014,
-    bio: "With expertise in data science and analytics, I help mentees develop their technical skills in data analysis, machine learning, and data-driven decision making across various industries.",
-    expertise: ["Data Science", "Machine Learning", "Analytics", "Data Visualization"],
-    industries: ["Data Analytics", "Technology", "Research"],
-    availability: {
-      hoursPerMonth: 5,
-      meetingPreference: ["Virtual", "In-person (Oslo)"]
-    },
-    menteeCount: 3,
-    maxMentees: 5,
-    rating: 4.8,
-    reviews: 11,
-    languages: ["Norwegian", "English"]
-  }
-];
 
 // Extract all unique expertise areas and industries from mentors
-const allExpertiseAreas = Array.from(
-  new Set(mentors.flatMap(mentor => mentor.expertise))
-).sort();
 
-const allIndustries = Array.from(
-  new Set(mentors.flatMap(mentor => mentor.industries))
-).sort();
 
 export default function MentorsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedExpertise, setSelectedExpertise] = useState<string[]>([])
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([])
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [mentors, setMentors] = useState<Mentor[]>([])
+
+  useEffect(() => {
+    const fetchMentors = async () => {
+      const fetchedMentors = await getMentors();
+      setMentors(fetchedMentors);
+    };
+    fetchMentors();
+  }, []);
+
+  const allExpertiseAreas = Array.from(
+    new Set(mentors.flatMap(mentor => mentor.expertise))
+  ).sort();
+  
+  const allIndustries = Array.from(
+    new Set(mentors.flatMap(mentor => mentor.industries))
+  ).sort();
   
   const filteredMentors = mentors.filter(mentor => {
     // Search query filter
@@ -469,7 +311,7 @@ export default function MentorsPage() {
       {filteredMentors.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMentors.map((mentor) => (
-            <MentorCard key={mentor.id} mentor={mentor} />
+            <MentorCard key={mentor.$id} mentor={mentor} />
           ))}
         </div>
       ) : (
@@ -492,7 +334,7 @@ export default function MentorsPage() {
 }
 
 interface MentorCardProps {
-  mentor: typeof mentors[0]
+  mentor: Mentor
 }
 
 function MentorCard({ mentor }: MentorCardProps) {
@@ -501,7 +343,7 @@ function MentorCard({ mentor }: MentorCardProps) {
       <CardHeader className="pb-3">
         <div className="flex items-start gap-4">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={mentor.image} />
+            <AvatarImage src={mentor.avatarUrl} />
             <AvatarFallback>{mentor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
           </Avatar>
           <div className="space-y-1">
@@ -567,12 +409,12 @@ function MentorCard({ mentor }: MentorCardProps) {
                 </div>
               </div>
               <div className="text-xs text-muted-foreground">
-                {mentor.reviews} reviews
+                {mentor.reviewCount} reviews
               </div>
             </div>
             
             <div>
-              <div className="font-medium">{mentor.availability.hoursPerMonth} hours</div>
+              <div className="font-medium">{mentor.availability} hours</div>
               <div className="text-xs text-muted-foreground">per month</div>
             </div>
             
@@ -618,7 +460,7 @@ function MentorCard({ mentor }: MentorCardProps) {
         </TooltipProvider>
         
         <Button asChild>
-          <Link href={`/alumni/mentors/${mentor.id}`}>
+          <Link href={`/alumni/mentors/${mentor.$id}`}>
             View Profile
           </Link>
         </Button>
