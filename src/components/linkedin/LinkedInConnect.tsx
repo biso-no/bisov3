@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { connectLinkedIn, syncLinkedInProfile } from "./actions"
 import { useToast } from "@/components/ui/use-toast"
 import { useSearchParams } from "next/navigation"
+import { Client, Account } from "appwrite"
+import { OAuthProvider } from "node-appwrite"
 
 interface LinkedInConnectProps {
   userId: string
@@ -17,6 +19,15 @@ export default function LinkedInConnect({ userId }: LinkedInConnectProps) {
   const [showSyncPrompt, setShowSyncPrompt] = useState(false)
   const { toast } = useToast()
   const searchParams = useSearchParams()
+  
+  // Initialize Appwrite client
+  const initAppwrite = () => {
+    const client = new Client()
+      .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
+      .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT!)
+    
+    return { client, account: new Account(client) }
+  }
   
   // Check if redirected from LinkedIn OAuth
   useEffect(() => {
@@ -40,14 +51,22 @@ export default function LinkedInConnect({ userId }: LinkedInConnectProps) {
   const handleConnectLinkedIn = async () => {
     try {
       setIsConnecting(true)
-      // Get the redirect URL from the server action
+      
+      // Get OAuth parameters from server
       const result = await connectLinkedIn(userId)
       
-      if (result.success && result.redirectUrl) {
-        // Redirect to LinkedIn OAuth
-        window.location.href = result.redirectUrl
+      if (result.success) {
+        // Initialize Appwrite client
+        const { account } = initAppwrite()
+        
+        // Create an OAuth2 session - this will redirect the browser
+        account.createOAuth2Session(
+          OAuthProvider.Linkedin,
+          result.successUrl,
+          result.failureUrl
+        )
       } else {
-        throw new Error("Failed to get LinkedIn authentication URL")
+        throw new Error("Failed to initialize LinkedIn authentication")
       }
     } catch (error) {
       console.error("Error connecting LinkedIn:", error)

@@ -1,6 +1,7 @@
 "use server"
 
 import { createSessionClient, createAdminClient } from "@/lib/appwrite"
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { Query } from "node-appwrite"
 
@@ -21,11 +22,20 @@ interface LinkedInProfileResponse {
  */
 export async function connectLinkedIn(userId: string) {
   try {
-    // According to Appwrite docs, we need to redirect from the client side
-    // This function will return the URL for the client to redirect to
+    // For server components, we need to return the URL to redirect to
+    // The actual redirection happens on the client side
+    const origin = headers().get("origin");
+    
+    // Create success and failure URLs
+    const successUrl = `${origin}/alumni/profile?linkedin=true`
+    const failureUrl = `${origin}/alumni/profile?linkedin=false`
+    
+    // Return the parameters needed for client-side OAuth initialization
     return { 
-      success: true, 
-      redirectUrl: `${process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT}/account/sessions/oauth2/linkedin?project=${process.env.NEXT_PUBLIC_APPWRITE_PROJECT}&success=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL}/alumni/profile?linkedin=true`)}&failure=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL}/alumni/profile?linkedin=false`)}`
+      success: true,
+      provider: 'linkedin',
+      successUrl,
+      failureUrl
     }
   } catch (error) {
     console.error("Error creating LinkedIn session:", error)
