@@ -46,6 +46,11 @@ module.exports = {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))"
         },
+        linkedin: {
+          DEFAULT: "#0077B5",
+          light: "#0084c7",
+          dark: "#005e93"
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

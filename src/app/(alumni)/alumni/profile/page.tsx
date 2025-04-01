@@ -43,6 +43,7 @@ import { cn } from "@/lib/utils"
 import { UserProfile } from "@/lib/types/alumni"
 import { getCurrentUserProfile } from "../actions"
 import { Skeleton } from "@/components/ui/skeleton"
+import LinkedInConnect from "@/components/linkedin/LinkedInConnect"
 
 
 // Define an interface for the social object
@@ -164,6 +165,7 @@ export default function ProfilePage() {
                     Edit Profile
                   </Link>
                 </Button>
+                <LinkedInConnect userId={userProfile.userId} />
                 <Button size="sm">
                   <MessageSquare className="h-4 w-4 mr-1" />
                   Message
