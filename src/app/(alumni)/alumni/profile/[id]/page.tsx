@@ -25,14 +25,79 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-import { alumniProfiles } from "@/components/alumni/alumni-data"
 import { cn } from "@/lib/utils"
+import { getUserProfile, getUserExperiences, getUserEducation, getUserActivities, getUserUpcomingEvents, Activity } from "../../actions"
+import { useEffect, useState } from "react"
+import { UserProfile, Experience, Education, Event } from "@/lib/types/alumni"
+import { format } from "date-fns"
+
+// Add interfaces for the missing properties we need
+interface UserProfileExtended extends UserProfile {
+  position?: string;
+  social?: {
+    linkedin?: string;
+    twitter?: string;
+    website?: string;
+  };
+  availabilityDetails?: {
+    mentoring: boolean;
+    jobOpportunities: boolean;
+    speaking: boolean;
+    networking: boolean;
+  };
+}
 
 export default function AlumniProfilePage() {
   const { id } = useParams()
+
+  const [profile, setProfile] = useState<UserProfileExtended | null>(null)
+  const [experiences, setExperiences] = useState<Experience[]>([])
+  const [education, setEducation] = useState<Education[]>([])
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
   
   // Find profile by ID
-  const profile = alumniProfiles.find(p => p.id === id)
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const profile = await getUserProfile(id as string)
+      // We need to transform the profile to match our extended type
+      if (profile) {
+        const extendedProfile: UserProfileExtended = {
+          ...profile,
+          position: profile.title, // Map title to position
+          social: {
+            linkedin: profile.socialLinks?.find(link => link.platform === 'linkedin')?.url,
+            twitter: profile.socialLinks?.find(link => link.platform === 'twitter')?.url,
+            website: profile.socialLinks?.find(link => link.platform === 'website')?.url,
+          },
+          availabilityDetails: {
+            mentoring: profile.privacySettings?.allowMentoring || false,
+            jobOpportunities: false, // Default values
+            speaking: false,
+            networking: profile.available || false
+          }
+        }
+        setProfile(extendedProfile)
+        
+        // Fetch experiences and education
+        const experienceData = await getUserExperiences(profile.userId)
+        setExperiences(experienceData)
+        
+        const educationData = await getUserEducation(profile.userId)
+        setEducation(educationData)
+        
+        // Fetch activities and upcoming events
+        const activitiesData = await getUserActivities(profile.userId)
+        setActivities(activitiesData)
+        
+        const eventsData = await getUserUpcomingEvents(profile.userId)
+        setUpcomingEvents(eventsData)
+      } else {
+        setProfile(null)
+      }
+    }
+    fetchProfile()
+  }, [id])
   
   if (!profile) {
     return (
@@ -69,6 +134,36 @@ export default function AlumniProfilePage() {
     .join("")
     .toUpperCase()
     .slice(0, 2)
+    
+  // Helper functions for formatting dates
+  const formatEventDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return {
+        month: format(date, 'MMM').toUpperCase(),
+        day: format(date, 'd')
+      };
+    } catch (error) {
+      return { month: 'TBD', day: '--' };
+    }
+  };
+  
+  const formatTimeAgo = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (diffInDays < 1) return 'Today';
+      if (diffInDays === 1) return 'Yesterday';
+      if (diffInDays < 7) return `${diffInDays} days ago`;
+      if (diffInDays < 30) return `${Math.floor(diffInDays / 7)} weeks ago`;
+      if (diffInDays < 365) return `${Math.floor(diffInDays / 30)} months ago`;
+      return `${Math.floor(diffInDays / 365)} years ago`;
+    } catch (error) {
+      return 'Recently';
+    }
+  };
   
   return (
     <div className="relative min-h-screen pb-12">
@@ -111,7 +206,7 @@ export default function AlumniProfilePage() {
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div>
                     <h1 className="text-2xl font-bold text-white">{profile.name}</h1>
-                    <p className="text-gray-300 mt-1">{profile.position} at {profile.company}</p>
+                    <p className="text-gray-300 mt-1">{profile.position || profile.title} at {profile.company}</p>
                     <div className="flex flex-wrap gap-2 mt-2">
                       <Badge variant="gradient" className="border border-blue-accent/20 text-xs">
                         <GraduationCap className="h-3 w-3 mr-1" />
@@ -125,25 +220,25 @@ export default function AlumniProfilePage() {
                   </div>
                   
                   <div className="flex flex-wrap gap-2">
-                    {profile.available.mentoring && (
+                    {profile.availabilityDetails?.mentoring && (
                       <Badge variant="outline" className="border-blue-accent/40 text-blue-accent bg-blue-accent/10">
                         Available for mentoring
                       </Badge>
                     )}
                     
-                    {profile.available.jobOpportunities && (
+                    {profile.availabilityDetails?.jobOpportunities && (
                       <Badge variant="outline" className="border-green-500/40 text-green-500 bg-green-500/10">
                         Has job opportunities
                       </Badge>
                     )}
                     
-                    {profile.available.speaking && (
+                    {profile.availabilityDetails?.speaking && (
                       <Badge variant="outline" className="border-purple-500/40 text-purple-500 bg-purple-500/10">
                         Available for speaking
                       </Badge>
                     )}
                     
-                    {profile.available.networking && (
+                    {profile.availabilityDetails?.networking && (
                       <Badge variant="outline" className="border-gold-default/40 text-gold-default bg-gold-default/10">
                         Open to networking
                       </Badge>
@@ -173,7 +268,7 @@ export default function AlumniProfilePage() {
                 </div>
                 
                 <div className="flex gap-3 mt-4">
-                  {profile.social.linkedin && (
+                  {profile.social?.linkedin && (
                     <a 
                       href={profile.social.linkedin} 
                       target="_blank" 
@@ -184,7 +279,7 @@ export default function AlumniProfilePage() {
                     </a>
                   )}
                   
-                  {profile.social.twitter && (
+                  {profile.social?.twitter && (
                     <a 
                       href={profile.social.twitter} 
                       target="_blank" 
@@ -195,7 +290,7 @@ export default function AlumniProfilePage() {
                     </a>
                   )}
                   
-                  {profile.social.website && (
+                  {profile.social?.website && (
                     <a 
                       href={profile.social.website} 
                       target="_blank" 
@@ -240,15 +335,19 @@ export default function AlumniProfilePage() {
                 <CardTitle className="text-lg text-white">Bio</CardTitle>
               </CardHeader>
               <CardContent className="relative z-10">
-                <p className="text-gray-300">{profile.bio}</p>
+                <p className="text-gray-300">{profile.bio || "No bio available."}</p>
                 
                 <h3 className="font-medium text-lg mt-6 mb-3 text-white">Skills & Expertise</h3>
                 <div className="flex flex-wrap gap-2">
-                  {profile.skills.map((skill) => (
-                    <Badge key={skill} variant="outline" className="bg-secondary-100/5 border-secondary-100/20 text-secondary-100 text-xs">
-                      {skill}
-                    </Badge>
-                  ))}
+                  {profile.skills && profile.skills.length > 0 ? (
+                    profile.skills.map((skill) => (
+                      <Badge key={skill} variant="outline" className="bg-secondary-100/5 border-secondary-100/20 text-secondary-100 text-xs">
+                        {skill}
+                      </Badge>
+                    ))
+                  ) : (
+                    <p className="text-gray-400">No skills listed</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -308,35 +407,23 @@ export default function AlumniProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6 relative z-10">
-                <div className="relative pl-6">
-                  <div className="absolute top-1 left-0 w-4 h-4 rounded-full border-2 border-blue-accent bg-primary-90"></div>
-                  <div className="border-l border-secondary-100/20 ml-2 pb-6 pl-4">
-                    <h3 className="font-medium text-white">{profile.position}</h3>
-                    <p className="text-sm text-gray-300">{profile.company}</p>
-                    <p className="text-xs text-gray-400">2020 - Present</p>
-                    <p className="text-sm mt-2 text-gray-300">Leading product development for enterprise SaaS solutions with a focus on user experience and business impact.</p>
-                  </div>
-                </div>
-                
-                <div className="relative pl-6">
-                  <div className="absolute top-1 left-0 w-4 h-4 rounded-full border-2 border-blue-accent bg-primary-90"></div>
-                  <div className="border-l border-secondary-100/20 ml-2 pb-6 pl-4">
-                    <h3 className="font-medium text-white">Product Manager</h3>
-                    <p className="text-sm text-gray-300">Previous Company AB</p>
-                    <p className="text-xs text-gray-400">2018 - 2020</p>
-                    <p className="text-sm mt-2 text-gray-300">Managed product development lifecycle and collaborated with engineering teams to deliver innovative solutions.</p>
-                  </div>
-                </div>
-                
-                <div className="relative pl-6">
-                  <div className="absolute top-1 left-0 w-4 h-4 rounded-full border-2 border-blue-accent bg-primary-90"></div>
-                  <div className="ml-2 pl-4">
-                    <h3 className="font-medium text-white">Associate Product Manager</h3>
-                    <p className="text-sm text-gray-300">Startup Inc</p>
-                    <p className="text-xs text-gray-400">2017 - 2018</p>
-                    <p className="text-sm mt-2 text-gray-300">Assisted in product development and market research for early-stage startup.</p>
-                  </div>
-                </div>
+                {experiences.length > 0 ? (
+                  experiences.map((exp, index) => (
+                    <div key={exp.$id} className="relative pl-6">
+                      <div className="absolute top-1 left-0 w-4 h-4 rounded-full border-2 border-blue-accent bg-primary-90"></div>
+                      <div className={`${index < experiences.length - 1 ? 'border-l border-secondary-100/20 ml-2 pb-6 pl-4' : 'ml-2 pl-4'}`}>
+                        <h3 className="font-medium text-white">{exp.title}</h3>
+                        <p className="text-sm text-gray-300">{exp.company}</p>
+                        <p className="text-xs text-gray-400">
+                          {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
+                        </p>
+                        <p className="text-sm mt-2 text-gray-300">{exp.description}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-400">No work experience listed</p>
+                )}
               </CardContent>
             </Card>
             
@@ -349,25 +436,21 @@ export default function AlumniProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6 relative z-10">
-                <div className="relative pl-6">
-                  <div className="absolute top-1 left-0 w-4 h-4 rounded-full border-2 border-secondary-100 bg-primary-90"></div>
-                  <div className="border-l border-secondary-100/20 ml-2 pb-6 pl-4">
-                    <h3 className="font-medium text-white">Masters in Business Administration</h3>
-                    <p className="text-sm text-gray-300">BI Norwegian Business School</p>
-                    <p className="text-xs text-gray-400">2016 - 2018</p>
-                    <p className="text-sm mt-2 text-gray-300">Specialized in Marketing and Product Management. Thesis on Digital Transformation in Norwegian Industries.</p>
-                  </div>
-                </div>
-                
-                <div className="relative pl-6">
-                  <div className="absolute top-1 left-0 w-4 h-4 rounded-full border-2 border-secondary-100 bg-primary-90"></div>
-                  <div className="ml-2 pl-4">
-                    <h3 className="font-medium text-white">Bachelor in Business Administration</h3>
-                    <p className="text-sm text-gray-300">BI Norwegian Business School</p>
-                    <p className="text-xs text-gray-400">2013 - 2016</p>
-                    <p className="text-sm mt-2 text-gray-300">Focus on Marketing and Digital Business. Active member of BISO during studies.</p>
-                  </div>
-                </div>
+                {education.length > 0 ? (
+                  education.map((edu, index) => (
+                    <div key={edu.$id} className="relative pl-6">
+                      <div className="absolute top-1 left-0 w-4 h-4 rounded-full border-2 border-secondary-100 bg-primary-90"></div>
+                      <div className={`${index < education.length - 1 ? 'border-l border-secondary-100/20 ml-2 pb-6 pl-4' : 'ml-2 pl-4'}`}>
+                        <h3 className="font-medium text-white">{edu.degree}</h3>
+                        <p className="text-sm text-gray-300">{edu.institution}</p>
+                        <p className="text-xs text-gray-400">{edu.startYear} - {edu.endYear}</p>
+                        <p className="text-sm mt-2 text-gray-300">{edu.description}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-400">No education listed</p>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -380,41 +463,37 @@ export default function AlumniProfilePage() {
                 <CardDescription>Recent contributions and interactions with the alumni community</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 relative z-10">
-                <div className="relative pl-6">
-                  <div className="absolute top-1.5 left-0 w-3 h-3 rounded-full bg-blue-accent/70"></div>
-                  <div className="border-l border-blue-accent/20 ml-1.5 pb-6 pl-4">
-                    <p className="text-sm text-gray-400">2 weeks ago</p>
-                    <h3 className="font-medium text-white mt-1">Spoke at BISO Alumni Career Development Webinar</h3>
-                    <p className="text-sm mt-1 text-gray-300">Shared insights on career navigation in the tech industry</p>
+                {activities.length > 0 ? (
+                  activities.map((activity, index) => (
+                    <div key={activity.$id} className="relative pl-6">
+                      <div className="absolute top-1.5 left-0 w-3 h-3 rounded-full bg-blue-accent/70"></div>
+                      <div className={`${index < activities.length - 1 ? 'border-l border-blue-accent/20 ml-1.5 pb-6 pl-4' : 'ml-1.5 pl-4'}`}>
+                        <p className="text-sm text-gray-400">{formatTimeAgo(activity.timestamp)}</p>
+                        <h3 className="font-medium text-white mt-1">{activity.description}</h3>
+                        {activity.type === 'event_joined' && activity.relatedData && (
+                          <p className="text-sm mt-1 text-gray-300">
+                            {activity.relatedData.eventDate && `Event date: ${new Date(activity.relatedData.eventDate).toLocaleDateString()}`}
+                          </p>
+                        )}
+                        {activity.type === 'job_posted' && activity.relatedData && (
+                          <p className="text-sm mt-1 text-gray-300">
+                            {activity.relatedData.company && `at ${activity.relatedData.company}`}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <div className="p-3 rounded-full bg-primary-80/30 mb-4">
+                      <Calendar className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <h3 className="font-medium text-white">No recent activity</h3>
+                    <p className="text-sm text-gray-400 max-w-md">
+                      {profile.name.split(' ')[0]} hasn&apos;t logged any activity in the system yet.
+                    </p>
                   </div>
-                </div>
-                
-                <div className="relative pl-6">
-                  <div className="absolute top-1.5 left-0 w-3 h-3 rounded-full bg-blue-accent/70"></div>
-                  <div className="border-l border-blue-accent/20 ml-1.5 pb-6 pl-4">
-                    <p className="text-sm text-gray-400">1 month ago</p>
-                    <h3 className="font-medium text-white mt-1">Joined Alumni Mentoring Program</h3>
-                    <p className="text-sm mt-1 text-gray-300">Became a mentor for current BISO students</p>
-                  </div>
-                </div>
-                
-                <div className="relative pl-6">
-                  <div className="absolute top-1.5 left-0 w-3 h-3 rounded-full bg-blue-accent/70"></div>
-                  <div className="border-l border-blue-accent/20 ml-1.5 pb-6 pl-4">
-                    <p className="text-sm text-gray-400">3 months ago</p>
-                    <h3 className="font-medium text-white mt-1">Attended Annual Alumni Reunion</h3>
-                    <p className="text-sm mt-1 text-gray-300">Participated in networking and discussions about future alumni initiatives</p>
-                  </div>
-                </div>
-                
-                <div className="relative pl-6">
-                  <div className="absolute top-1.5 left-0 w-3 h-3 rounded-full bg-blue-accent/70"></div>
-                  <div className="ml-1.5 pl-4">
-                    <p className="text-sm text-gray-400">6 months ago</p>
-                    <h3 className="font-medium text-white mt-1">Posted Job Opportunity</h3>
-                    <p className="text-sm mt-1 text-gray-300">Shared a senior product manager position at {profile.company}</p>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
             
@@ -425,27 +504,33 @@ export default function AlumniProfilePage() {
                 <CardDescription>Events where {profile.name.split(' ')[0]} will be participating</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 relative z-10">
-                <div className="flex items-start gap-4 p-3 glass rounded-md border border-secondary-100/10 hover:bg-white/5 transition-colors">
-                  <div className="w-12 h-12 flex flex-col items-center justify-center rounded-md bg-blue-accent/10 text-blue-accent font-medium">
-                    <span className="text-xs">JUN</span>
-                    <span className="text-lg">15</span>
+                {upcomingEvents.length > 0 ? (
+                  upcomingEvents.map((event) => {
+                    const eventDate = formatEventDate(event.date);
+                    return (
+                      <div key={event.$id} className="flex items-start gap-4 p-3 glass rounded-md border border-secondary-100/10 hover:bg-white/5 transition-colors">
+                        <div className="w-12 h-12 flex flex-col items-center justify-center rounded-md bg-blue-accent/10 text-blue-accent font-medium">
+                          <span className="text-xs">{eventDate.month}</span>
+                          <span className="text-lg">{eventDate.day}</span>
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-white">{event.title}</h3>
+                          <p className="text-sm text-gray-400">{event.description}</p>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="p-3 rounded-full bg-primary-80/30 mb-4">
+                      <Calendar className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <h3 className="font-medium text-white">No upcoming events</h3>
+                    <p className="text-sm text-gray-400 max-w-md">
+                      {profile.name.split(' ')[0]} isn&apos;t scheduled to participate in any upcoming events.
+                    </p>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-white">Product Management Workshop</h3>
-                    <p className="text-sm text-gray-400">Leading a workshop for current students on product management fundamentals</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4 p-3 glass rounded-md border border-secondary-100/10 hover:bg-white/5 transition-colors">
-                  <div className="w-12 h-12 flex flex-col items-center justify-center rounded-md bg-blue-accent/10 text-blue-accent font-medium">
-                    <span className="text-xs">SEP</span>
-                    <span className="text-lg">08</span>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-white">Alumni Industry Panel</h3>
-                    <p className="text-sm text-gray-400">Participating in a panel discussion about career paths in tech</p>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

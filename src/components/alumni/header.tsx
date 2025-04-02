@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import Image from "next/image"
 import { Menu, Bell, Search, UserCircle, Command, ChevronsUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -64,9 +65,13 @@ export function AlumniHeader() {
             <span className="sr-only">Toggle menu</span>
           </Button>
           <Link href="/alumni" className="hidden md:flex items-center gap-2 group">
-            <span className="font-heading text-xl font-bold gradient-text group-hover:opacity-80 transition-opacity">
-              BISO Alumni
-            </span>
+            <Image 
+              src="/images/logo-home.png" 
+              alt="BISO Alumni" 
+              width={120} 
+              height={50} 
+              className="group-hover:opacity-80 transition-opacity"
+            />
           </Link>
         </div>
         

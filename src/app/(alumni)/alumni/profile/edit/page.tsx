@@ -145,7 +145,7 @@ const SkillInput = ({ value = [], onChange }: { value: string[], onChange: (valu
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Add a skill..."
-          className="rounded-r-none"
+          className="rounded-r-none text-white"
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
@@ -164,7 +164,7 @@ const SkillInput = ({ value = [], onChange }: { value: string[], onChange: (valu
       </div>
       <div className="flex flex-wrap gap-2 mt-2">
         {value.map((skill) => (
-          <Badge key={skill} variant="secondary" className="flex items-center gap-1 py-1.5">
+          <Badge key={skill} variant="glass-dark" className="flex items-center gap-1 py-1.5">
             {skill}
             <button
               type="button"
@@ -778,7 +778,7 @@ export default function ProfileEditPage() {
                             <FormItem>
                               <FormLabel className="text-gray-300">Full Name</FormLabel>
                               <FormControl>
-                                <Input placeholder="Your name" {...field} />
+                                <Input placeholder="Your name" {...field} className="text-white" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -791,9 +791,9 @@ export default function ProfileEditPage() {
                             name="title"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Job Title</FormLabel>
+                                <FormLabel className="text-gray-300">Job Title</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="E.g. Software Engineer" {...field} />
+                                  <Input placeholder="E.g. Software Engineer" {...field} className="text-white" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -805,9 +805,9 @@ export default function ProfileEditPage() {
                             name="company"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Company/Organization</FormLabel>
+                                <FormLabel className="text-gray-300">Company/Organization</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Where you work" {...field} />
+                                  <Input placeholder="Where you work" {...field} className="text-white" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -820,9 +820,9 @@ export default function ProfileEditPage() {
                           name="email"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Email Address</FormLabel>
+                              <FormLabel className="text-gray-300">Email Address</FormLabel>
                               <FormControl>
-                                <Input placeholder="Your email" {...field} />
+                                <Input placeholder="Your email" {...field} className="text-white" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -835,9 +835,9 @@ export default function ProfileEditPage() {
                             name="phone"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Phone Number (Optional)</FormLabel>
+                                <FormLabel className="text-gray-300">Phone Number (Optional)</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Your phone number" {...field} />
+                                  <Input placeholder="Your phone number" {...field} className="text-white" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -849,9 +849,9 @@ export default function ProfileEditPage() {
                             name="location"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Location</FormLabel>
+                                <FormLabel className="text-gray-300">Location</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="City, Country" {...field} />
+                                  <Input placeholder="City, Country" {...field} className="text-white" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -865,7 +865,7 @@ export default function ProfileEditPage() {
                           render={({ field }) => (
                             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                               <div className="space-y-0.5">
-                                <FormLabel>Available for Opportunities</FormLabel>
+                                <FormLabel className="text-gray-300">Available for Opportunities</FormLabel>
                                 <FormDescription>
                                   Let recruiters and other alumni know you&apos;re open to opportunities
                                 </FormDescription>
@@ -903,7 +903,7 @@ export default function ProfileEditPage() {
                               <FormControl>
                                 <Textarea 
                                   placeholder="Write a short bio about yourself" 
-                                  className="min-h-[120px]" 
+                                  className="min-h-[120px] text-white" 
                                   {...field} 
                                 />
                               </FormControl>
@@ -921,9 +921,9 @@ export default function ProfileEditPage() {
                             name="graduationYear"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Graduation Year</FormLabel>
+                                <FormLabel className="text-gray-300">Graduation Year</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="E.g. 2018" {...field} />
+                                  <Input placeholder="E.g. 2018" {...field} className="text-white" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -935,9 +935,9 @@ export default function ProfileEditPage() {
                             name="department"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Department</FormLabel>
+                                <FormLabel className="text-gray-300">Department</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="E.g. Computer Science" {...field} />
+                                  <Input placeholder="E.g. Computer Science" {...field} className="text-white" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -949,9 +949,9 @@ export default function ProfileEditPage() {
                             name="degree"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Degree</FormLabel>
+                                <FormLabel className="text-gray-300">Degree</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="E.g. Bachelor of Science" {...field} />
+                                  <Input placeholder="E.g. Bachelor of Science" {...field} className="text-white" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1013,7 +1013,7 @@ export default function ProfileEditPage() {
                                 <FormItem>
                                   <FormLabel className="text-gray-300">Job Title</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="E.g. Software Engineer" {...field} />
+                                    <Input placeholder="E.g. Software Engineer" {...field} className="text-white" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -1027,7 +1027,7 @@ export default function ProfileEditPage() {
                                 <FormItem>
                                   <FormLabel className="text-gray-300">Company</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Company name" {...field} />
+                                    <Input placeholder="Company name" {...field} className="text-white" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -1042,7 +1042,7 @@ export default function ProfileEditPage() {
                               <FormItem>
                                 <FormLabel className="text-gray-300">Location (Optional)</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="E.g. San Francisco, CA" {...field} />
+                                  <Input placeholder="E.g. San Francisco, CA" {...field} className="text-white" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1062,7 +1062,7 @@ export default function ProfileEditPage() {
                                         <Button
                                           variant="glass"
                                           className={cn(
-                                            "pl-3 text-left font-normal border border-secondary-100/20",
+                                            "pl-3 text-left font-normal border border-secondary-100/20 bg-primary-90/30 backdrop-blur-sm text-white",
                                             !field.value && "text-gray-400"
                                           )}
                                         >
@@ -1075,13 +1075,14 @@ export default function ProfileEditPage() {
                                         </Button>
                                       </FormControl>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <PopoverContent className="w-auto p-0 bg-primary-90/95 border-secondary-100/20 backdrop-blur-md" align="start">
                                       <Calendar
                                         mode="single"
                                         selected={field.value}
                                         onSelect={field.onChange}
                                         disabled={(date) => date > new Date()}
                                         initialFocus
+                                        className="text-white"
                                       />
                                     </PopoverContent>
                                   </Popover>
@@ -1128,7 +1129,7 @@ export default function ProfileEditPage() {
                                         <Button
                                           variant="glass"
                                           className={cn(
-                                            "pl-3 text-left font-normal border border-secondary-100/20",
+                                            "pl-3 text-left font-normal border border-secondary-100/20 bg-primary-90/30 backdrop-blur-sm text-white",
                                             !field.value && "text-gray-400"
                                           )}
                                         >
@@ -1141,7 +1142,7 @@ export default function ProfileEditPage() {
                                         </Button>
                                       </FormControl>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
+                                    <PopoverContent className="w-auto p-0 bg-primary-90/95 border-secondary-100/20 backdrop-blur-md" align="start">
                                       <Calendar
                                         mode="single"
                                         selected={field.value || undefined}
@@ -1151,6 +1152,7 @@ export default function ProfileEditPage() {
                                           (experienceForm.watch("startDate") && date < experienceForm.watch("startDate"))
                                         }
                                         initialFocus
+                                        className="text-white"
                                       />
                                     </PopoverContent>
                                   </Popover>
@@ -1169,7 +1171,7 @@ export default function ProfileEditPage() {
                                 <FormControl>
                                   <Textarea 
                                     placeholder="Describe your role, responsibilities, and achievements" 
-                                    className="min-h-[100px]" 
+                                    className="min-h-[100px] text-white" 
                                     {...field} 
                                   />
                                 </FormControl>
@@ -1332,7 +1334,7 @@ export default function ProfileEditPage() {
                                 <FormItem>
                                   <FormLabel className="text-gray-300">Degree</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="E.g. Bachelor of Science" {...field} />
+                                    <Input placeholder="E.g. Bachelor of Science" {...field} className="text-white" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -1346,7 +1348,7 @@ export default function ProfileEditPage() {
                                 <FormItem>
                                   <FormLabel className="text-gray-300">Institution</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="E.g. University of California" {...field} />
+                                    <Input placeholder="E.g. University of California" {...field} className="text-white" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -1361,7 +1363,7 @@ export default function ProfileEditPage() {
                               <FormItem>
                                 <FormLabel className="text-gray-300">Location (Optional)</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="E.g. Berkeley, CA" {...field} />
+                                  <Input placeholder="E.g. Berkeley, CA" {...field} className="text-white" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1376,7 +1378,7 @@ export default function ProfileEditPage() {
                                 <FormItem>
                                   <FormLabel className="text-gray-300">Start Year</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="E.g. 2015" {...field} />
+                                    <Input placeholder="E.g. 2015" {...field} className="text-white" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -1390,7 +1392,7 @@ export default function ProfileEditPage() {
                                 <FormItem>
                                   <FormLabel className="text-gray-300">End Year</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="E.g. 2019" {...field} />
+                                    <Input placeholder="E.g. 2019" {...field} className="text-white" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -1407,7 +1409,7 @@ export default function ProfileEditPage() {
                                 <FormControl>
                                   <Textarea 
                                     placeholder="Describe your studies, achievements, or activities" 
-                                    className="min-h-[100px]" 
+                                    className="min-h-[100px] text-white" 
                                     {...field} 
                                   />
                                 </FormControl>
@@ -1616,7 +1618,7 @@ export default function ProfileEditPage() {
                                 <FormItem>
                                   <FormLabel className="text-gray-300">Language</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="E.g. English, Spanish" {...field} />
+                                    <Input placeholder="E.g. English, Spanish" {...field} className="text-white" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -1634,16 +1636,16 @@ export default function ProfileEditPage() {
                                     defaultValue={field.value}
                                   >
                                     <FormControl>
-                                      <SelectTrigger className="border-secondary-100/20 bg-transparent">
+                                      <SelectTrigger className="glass-dark border-secondary-100/20 group hover:border-secondary-100/30 text-gray-300">
                                         <SelectValue placeholder="Select proficiency level" />
                                       </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="Native">Native</SelectItem>
-                                      <SelectItem value="Fluent">Fluent</SelectItem>
-                                      <SelectItem value="Advanced">Advanced</SelectItem>
-                                      <SelectItem value="Intermediate">Intermediate</SelectItem>
-                                      <SelectItem value="Basic">Basic</SelectItem>
+                                    <SelectContent className="glass-dark border-secondary-100/20 backdrop-blur-md">
+                                      <SelectItem value="Native" className="focus:bg-gold-default/20 text-gray-200">Native</SelectItem>
+                                      <SelectItem value="Fluent" className="focus:bg-gold-default/20 text-gray-200">Fluent</SelectItem>
+                                      <SelectItem value="Advanced" className="focus:bg-gold-default/20 text-gray-200">Advanced</SelectItem>
+                                      <SelectItem value="Intermediate" className="focus:bg-gold-default/20 text-gray-200">Intermediate</SelectItem>
+                                      <SelectItem value="Basic" className="focus:bg-gold-default/20 text-gray-200">Basic</SelectItem>
                                     </SelectContent>
                                   </Select>
                                   <FormMessage />
@@ -1768,17 +1770,17 @@ export default function ProfileEditPage() {
                                     defaultValue={field.value}
                                   >
                                     <FormControl>
-                                      <SelectTrigger className="border-secondary-100/20 bg-transparent">
+                                      <SelectTrigger className="glass-dark border-secondary-100/20 group hover:border-secondary-100/30 text-gray-300">
                                         <SelectValue placeholder="Select platform" />
                                       </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="linkedin">LinkedIn</SelectItem>
-                                      <SelectItem value="twitter">Twitter/X</SelectItem>
-                                      <SelectItem value="github">GitHub</SelectItem>
-                                      <SelectItem value="website">Personal Website</SelectItem>
-                                      <SelectItem value="instagram">Instagram</SelectItem>
-                                      <SelectItem value="facebook">Facebook</SelectItem>
+                                    <SelectContent className="glass-dark border-secondary-100/20 backdrop-blur-md">
+                                      <SelectItem value="linkedin" className="focus:bg-gold-default/20 text-gray-200">LinkedIn</SelectItem>
+                                      <SelectItem value="twitter" className="focus:bg-gold-default/20 text-gray-200">Twitter/X</SelectItem>
+                                      <SelectItem value="github" className="focus:bg-gold-default/20 text-gray-200">GitHub</SelectItem>
+                                      <SelectItem value="website" className="focus:bg-gold-default/20 text-gray-200">Personal Website</SelectItem>
+                                      <SelectItem value="instagram" className="focus:bg-gold-default/20 text-gray-200">Instagram</SelectItem>
+                                      <SelectItem value="facebook" className="focus:bg-gold-default/20 text-gray-200">Facebook</SelectItem>
                                     </SelectContent>
                                   </Select>
                                   <FormMessage />
@@ -1793,7 +1795,7 @@ export default function ProfileEditPage() {
                                 <FormItem>
                                   <FormLabel className="text-gray-300">URL</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="https://..." {...field} />
+                                    <Input placeholder="https://..." {...field} className="text-white" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>

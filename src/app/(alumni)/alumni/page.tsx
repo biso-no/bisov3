@@ -36,7 +36,7 @@ export default function AlumniPage() {
       
       {/* Featured sections */}
       <section className="container pb-16">
-        <h2 className="text-2xl font-bold mb-6">Featured Opportunities</h2>
+        <h2 className="text-2xl font-bold mb-6 text-white">Featured Opportunities</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card variant="glass-dark" className="group hover:-translate-y-2 transition-all duration-300">
             <CardHeader>

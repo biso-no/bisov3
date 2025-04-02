@@ -1452,3 +1452,151 @@ export async function applyToBeMentor(mentorData: Partial<Mentor>): Promise<Ment
     throw error;
   }
 }
+
+// ============================================================
+// ACTIVITY ACTIONS
+// ============================================================
+
+export interface Activity {
+  $id: string;
+  userId: string;
+  type: 'event_joined' | 'job_posted' | 'mentor_status' | 'resource_shared' | 'network_update';
+  description: string;
+  timestamp: string;
+  relatedId?: string;
+  relatedData?: Record<string, any>;
+}
+
+/**
+ * Fetches user activities
+ * @param userId The ID of the user to fetch activities for
+ * @param limit Maximum number of activities to return
+ * @returns Array of user activities
+ */
+export async function getUserActivities(userId: string, limit = 10): Promise<Activity[]> {
+  try {
+    const { db } = await createSessionClient();
+    
+    // For now, we'll simulate activities from various collections
+    // In a production app, you'd create a dedicated activities collection
+    
+    // Get events the user has joined
+    const events = await db.listDocuments(
+      DATABASE_ID,
+      'events',
+      [
+        Query.search('participantIds', userId),
+        Query.orderDesc('date'),
+        Query.limit(5)
+      ]
+    );
+    
+    // Get jobs the user has posted
+    const jobs = await db.listDocuments(
+      DATABASE_ID,
+      'jobs',
+      [
+        Query.equal('postedBy', userId),
+        Query.orderDesc('postedDate'),
+        Query.limit(3)
+      ]
+    );
+    
+    // Check if the user is a mentor
+    const mentors = await db.listDocuments(
+      DATABASE_ID,
+      'mentors',
+      [
+        Query.equal('userId', userId),
+        Query.limit(1)
+      ]
+    );
+    
+    // Convert these to activities
+    const activities: Activity[] = [];
+    
+    // Add event activities
+    events.documents.forEach(event => {
+      activities.push({
+        $id: `event_${event.$id}`,
+        userId,
+        type: 'event_joined',
+        description: `Joined event: ${event.title}`,
+        timestamp: event.$createdAt,
+        relatedId: event.$id,
+        relatedData: {
+          eventTitle: event.title,
+          eventDate: event.date
+        }
+      });
+    });
+    
+    // Add job posting activities
+    jobs.documents.forEach(job => {
+      activities.push({
+        $id: `job_${job.$id}`,
+        userId,
+        type: 'job_posted',
+        description: `Posted job: ${job.title} at ${job.company}`,
+        timestamp: job.postedDate || job.$createdAt,
+        relatedId: job.$id,
+        relatedData: {
+          jobTitle: job.title,
+          company: job.company
+        }
+      });
+    });
+    
+    // Add mentor status activity if applicable
+    if (mentors.documents.length > 0) {
+      activities.push({
+        $id: `mentor_${mentors.documents[0].$id}`,
+        userId,
+        type: 'mentor_status',
+        description: 'Joined Alumni Mentoring Program',
+        timestamp: mentors.documents[0].$createdAt,
+        relatedId: mentors.documents[0].$id
+      });
+    }
+    
+    // Sort activities by timestamp and limit
+    return activities
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, limit);
+  } catch (error) {
+    console.error('Error fetching user activities:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetches upcoming events for a user
+ * @param userId The ID of the user to fetch events for
+ * @param limit Maximum number of events to return
+ * @returns Array of upcoming events
+ */
+export async function getUserUpcomingEvents(userId: string, limit = 5): Promise<Event[]> {
+  try {
+    const { db } = await createSessionClient();
+    const now = new Date().toISOString();
+    
+    // Get upcoming events
+    // Filtering by participantIds only works if your events schema includes this field
+    const events = await db.listDocuments<Event>(
+      DATABASE_ID,
+      'events',
+      [
+        // If your events don't track participants, you might need to remove this filter
+        // Query.search('participantIds', userId),
+        Query.greaterThan('date', now),
+        Query.orderAsc('date'),
+        Query.limit(limit)
+      ]
+    );
+    
+    return events.documents;
+  } catch (error) {
+    console.error('Error fetching upcoming events:', error);
+    return [];
+  }
+}

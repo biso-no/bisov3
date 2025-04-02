@@ -120,7 +120,7 @@ export default function MessagesPage() {
     }
     
     loadConversations();
-  }, []);
+  }, [activeConversationId]);
   
   // Load messages for active conversation
   useEffect(() => {
