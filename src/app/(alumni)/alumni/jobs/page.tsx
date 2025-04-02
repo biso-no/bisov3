@@ -43,6 +43,8 @@ import Link from "next/link"
 import { format, differenceInDays } from "date-fns"
 import { Job } from "@/lib/types/alumni"
 import { getJobs } from "../actions"
+import { Skeleton } from "@/components/ui/skeleton"
+import { PageHeader } from "@/components/ui/page-header"
 
 
 // Helper function to format posted date
@@ -69,11 +71,22 @@ export default function JobsPage() {
   const [showAlumniOnly, setShowAlumniOnly] = useState(false)
   const [activeJobId, setActiveJobId] = useState<string | null>(null)
   const [jobs, setJobs] = useState<Job[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    // Set document title
+    document.title = "Alumni Job Board | BISO";
+    
     const fetchJobs = async () => {
-      const fetchedJobs = await getJobs();
-      setJobs(fetchedJobs);
+      try {
+        setIsLoading(true);
+        const fetchedJobs = await getJobs();
+        setJobs(fetchedJobs);
+      } catch (error) {
+        console.error("Error fetching jobs:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchJobs();
   }, []);
@@ -141,273 +154,347 @@ export default function JobsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Alumni Job Board</h1>
-        <p className="text-muted-foreground mt-2">
-          Discover career opportunities from the BISO Alumni network and top employers
-        </p>
+    <div className="relative min-h-screen pb-12">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden -z-10">
+        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
-      <Card className="border-primary/10 overflow-hidden bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search jobs by title, company, or keywords..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
-            <Select value={selectedCategory || "all"} onValueChange={(value) => setSelectedCategory(value === "all" ? null : value)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Filter className="h-4 w-4" />
-                  <span>Filters</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Filters</SheetTitle>
-                  <SheetDescription>
-                    Refine your job search results
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="grid gap-6 py-6">
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Job Type</h4>
-                    {types.map(type => (
-                      <div key={type} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`type-${type}`} 
-                          checked={selectedTypes.includes(type)}
-                          onCheckedChange={() => handleTypeChange(type)}
-                        />
-                        <label 
-                          htmlFor={`type-${type}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {type}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Work Mode</h4>
-                    {workModes.map(mode => (
-                      <div key={mode} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`mode-${mode}`} 
-                          checked={selectedWorkModes.includes(mode)}
-                          onCheckedChange={() => handleWorkModeChange(mode)}
-                        />
-                        <label 
-                          htmlFor={`mode-${mode}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {mode}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="alumni-only" 
-                      checked={showAlumniOnly}
-                      onCheckedChange={(checked) => setShowAlumniOnly(checked as boolean)}
-                    />
-                    <label 
-                      htmlFor="alumni-only"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Posted by Alumni
-                    </label>
-                  </div>
-                </div>
-                <SheetFooter>
-                  <Button variant="outline" onClick={clearFilters}>Clear All</Button>
-                  <SheetClose asChild>
-                    <Button>Apply Filters</Button>
-                  </SheetClose>
-                </SheetFooter>
-              </SheetContent>
-            </Sheet>
-          </div>
-        </CardContent>
-      </Card>
+      <section className="container pt-8 pb-8">
+        <PageHeader
+          gradient
+          heading="Alumni Job Board"
+          subheading="Discover career opportunities from the BISO Alumni network and top employers"
+        />
       
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="md:w-1/2 lg:w-2/5 space-y-4">
-          <div className="text-sm text-muted-foreground mb-2">
-            Found {filteredJobs.length} job opportunities
+        <Card variant="glass-dark" className="border-0 overflow-hidden mt-8 group hover:shadow-card-hover transition-all duration-300">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-accent/10 via-secondary-100/10 to-blue-accent/10 opacity-20"></div>
+          <CardContent className="p-6 md:p-8 relative z-10">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-accent/20 via-secondary-100/20 to-blue-accent/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-500"></div>
+                <div className="absolute inset-0 rounded-md backdrop-blur-sm border border-secondary-100/20 group-hover:border-secondary-100/30 group-focus-within:border-secondary-100/50 transition-all duration-300"></div>
+                
+                <div className="relative flex items-center backdrop-blur-0">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 rounded-full bg-blue-accent/10 group-focus-within:bg-blue-accent/20 transition-all duration-300">
+                    <Search className="h-3.5 w-3.5 text-blue-accent" />
+                  </div>
+                  <Input
+                    type="search"
+                    placeholder="Search jobs by title, company, or keywords..."
+                    className="pl-12 pr-10 py-6 bg-transparent shadow-none border-0 h-12 text-white placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{ background: 'transparent' }}
+                  />
+                  {searchQuery && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0 flex items-center justify-center rounded-full bg-primary-70/50 text-gray-300 hover:text-white hover:bg-blue-accent/30"
+                      onClick={() => setSearchQuery("")}
+                    >
+                      <span className="sr-only">Clear search</span>
+                      ×
+                    </Button>
+                  )}
+                </div>
+              </div>
+              
+              <Select value={selectedCategory || "all"} onValueChange={(value) => setSelectedCategory(value === "all" ? null : value)}>
+                <SelectTrigger 
+                  className="w-[180px] glass-dark border-secondary-100/20 group hover:border-secondary-100/30 text-gray-300 h-12 px-4"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-secondary-100/10 group-hover:bg-secondary-100/20 transition-all duration-300">
+                      <Briefcase className="h-3.5 w-3.5 text-secondary-100" />
+                    </div>
+                    <SelectValue placeholder="All Categories" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="glass-dark border-secondary-100/20 backdrop-blur-md">
+                  <SelectItem value="all" className="focus:bg-blue-accent/20">All Categories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category} className="focus:bg-blue-accent/20">
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button 
+                    variant="glass" 
+                    className="h-12 gap-2 backdrop-blur-sm border border-secondary-100/20 hover:border-secondary-100/40 transition-colors"
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span>Filters</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="glass-dark border-secondary-100/20 backdrop-blur-md">
+                  <SheetHeader>
+                    <SheetTitle className="text-white">Filters</SheetTitle>
+                    <SheetDescription className="text-gray-300">
+                      Refine your job search results
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="grid gap-6 py-6">
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-white">Job Type</h4>
+                      {types.map(type => (
+                        <div key={type} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`type-${type}`} 
+                            checked={selectedTypes.includes(type)}
+                            onCheckedChange={() => handleTypeChange(type)}
+                          />
+                          <label 
+                            htmlFor={`type-${type}`}
+                            className="text-sm font-medium leading-none text-gray-300 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {type}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <Separator className="bg-secondary-100/10" />
+                    
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-white">Work Mode</h4>
+                      {workModes.map(mode => (
+                        <div key={mode} className="flex items-center space-x-2">
+                          <Checkbox 
+                            id={`mode-${mode}`} 
+                            checked={selectedWorkModes.includes(mode)}
+                            onCheckedChange={() => handleWorkModeChange(mode)}
+                          />
+                          <label 
+                            htmlFor={`mode-${mode}`}
+                            className="text-sm font-medium leading-none text-gray-300 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {mode}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <Separator className="bg-secondary-100/10" />
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="alumni-only" 
+                        checked={showAlumniOnly}
+                        onCheckedChange={(checked) => setShowAlumniOnly(checked as boolean)}
+                      />
+                      <label 
+                        htmlFor="alumni-only"
+                        className="text-sm font-medium leading-none text-gray-300 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Posted by Alumni
+                      </label>
+                    </div>
+                  </div>
+                  <SheetFooter>
+                    <Button variant="glass" onClick={clearFilters}>Clear All</Button>
+                    <SheetClose asChild>
+                      <Button variant="gradient">Apply Filters</Button>
+                    </SheetClose>
+                  </SheetFooter>
+                </SheetContent>
+              </Sheet>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <div className="flex flex-col md:flex-row gap-6 mt-8">
+          <div className="md:w-1/2 lg:w-2/5 space-y-4">
+            <Card variant="glass-dark" className="border-0 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-accent/10 via-secondary-100/10 to-blue-accent/10 opacity-20" />
+              <CardContent className="p-4 z-10 relative">
+                <div className="text-sm text-gray-300">
+                  Found <span className="font-medium text-white mx-1">{filteredJobs.length}</span> job opportunities
+                </div>
+              </CardContent>
+            </Card>
+            
+            <div className="space-y-3">
+              {isLoading ? (
+                Array(5).fill(0).map((_, i) => (
+                  <JobCardSkeleton key={i} />
+                ))
+              ) : filteredJobs.length > 0 ? (
+                filteredJobs.map((job) => (
+                  <JobCard 
+                    key={job.$id} 
+                    job={job} 
+                    onClick={() => setActiveJobId(job.$id)} 
+                    active={job.$id === activeJobId}
+                  />
+                ))
+              ) : (
+                <Card variant="glass-dark" className="border-0 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/10 opacity-20" />
+                  <CardContent className="flex flex-col items-center justify-center py-12 relative z-10">
+                    <div className="relative mb-6">
+                      <div className="absolute inset-0 rounded-full blur-xl bg-blue-accent/20 animate-pulse"></div>
+                      <div className="relative z-10 p-4 rounded-full bg-primary-90/50 backdrop-blur-sm border border-secondary-100/20">
+                        <Briefcase className="h-10 w-10 text-blue-accent" />
+                      </div>
+                    </div>
+                    <p className="text-xl font-medium text-white mb-3">No jobs found</p>
+                    <p className="text-gray-300 max-w-md mb-6 text-center">No jobs match your current search criteria. Try adjusting your filters or search terms.</p>
+                    <Button 
+                      variant="gradient" 
+                      onClick={clearFilters}
+                    >
+                      Clear filters
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
           
-          <div className="space-y-3">
-            {filteredJobs.length > 0 ? (
-              filteredJobs.map((job) => (
-                <JobCard 
-                  key={job.$id} 
-                  job={job} 
-                  onClick={() => setActiveJobId(job.$id)} 
-                  active={job.$id === activeJobId}
-                />
-              ))
-            ) : (
-              <Card className="bg-muted/40">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <p className="text-lg font-medium">No jobs found</p>
-                  <p className="text-muted-foreground text-sm mt-1">Try adjusting your filters</p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={clearFilters}
-                  >
-                    Clear filters
+          <div className="md:w-1/2 lg:w-3/5">
+            {isLoading ? (
+              <JobDetailSkeleton />
+            ) : activeJob ? (
+              <Card variant="glass-dark" className="sticky top-24 border-0 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <CardHeader className="pb-3 relative z-10">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-xl text-white">{activeJob.title}</CardTitle>
+                      <CardDescription className="mt-1 text-gray-300">
+                        <span className="font-medium">{activeJob.company}</span> • {activeJob.location}
+                      </CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="glass" size="sm" className="border border-secondary-100/20 hover:border-secondary-100/40 transition-colors">
+                        <BookmarkPlus className="h-4 w-4 mr-1" />
+                        Save
+                      </Button>
+                      <Button variant="gradient" size="sm" asChild>
+                        <Link href={`/alumni/jobs/${activeJob.$id}`} target="_blank" rel="noopener noreferrer">
+                          Apply Now
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-5 relative z-10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Badge variant="outline" className="py-1 px-2 border-blue-accent/20 bg-blue-accent/5">
+                        <div className="flex items-center">
+                          <Briefcase className="h-3.5 w-3.5 mr-1 text-blue-accent" />
+                          <span>{activeJob.type}</span>
+                        </div>
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Badge variant="outline" className="py-1 px-2 border-secondary-100/20 bg-secondary-100/5">
+                        <div className="flex items-center">
+                          <Building className="h-3.5 w-3.5 mr-1 text-secondary-100" />
+                          <span>{activeJob.workMode}</span>
+                        </div>
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-300">
+                      <div className="p-1.5 rounded-md bg-blue-accent/10 group-hover:bg-blue-accent/20 transition-colors">
+                        <Banknote className="h-3.5 w-3.5 text-blue-accent" />
+                      </div>
+                      <span>{activeJob.salary}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-300">
+                      <div className="p-1.5 rounded-md bg-secondary-100/10 group-hover:bg-secondary-100/20 transition-colors">
+                        <BarChart4 className="h-3.5 w-3.5 text-secondary-100" />
+                      </div>
+                      <span>{activeJob.experience} experience</span>
+                    </div>
+                  </div>
+                  
+                  <Separator className="bg-secondary-100/10" />
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="font-medium text-white mb-2">Description</h3>
+                      <p className="text-sm text-gray-300">{activeJob.description}</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium text-white mb-2">Responsibilities</h3>
+                      <ul className="space-y-1.5 text-sm text-gray-300 list-disc list-inside">
+                        {activeJob.responsibilities.map((responsibility, index) => (
+                          <li key={index}>{responsibility}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium text-white mb-2">Qualifications</h3>
+                      <ul className="space-y-1.5 text-sm text-gray-300 list-disc list-inside">
+                        {activeJob.qualifications.map((qualification, index) => (
+                          <li key={index}>{qualification}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <Separator className="bg-secondary-100/10" />
+                  
+                  <div className="flex items-center justify-between gap-4 text-sm text-gray-300">
+                    <div className="flex items-center gap-1.5">
+                      <div className="p-1.5 rounded-md bg-blue-accent/10 transition-colors">
+                        <Calendar className="h-3.5 w-3.5 text-blue-accent" />
+                      </div>
+                      <span>Posted: {formatPostedDate(activeJob.postedDate)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="p-1.5 rounded-md bg-secondary-100/10 transition-colors">
+                        <Clock className="h-3.5 w-3.5 text-secondary-100" />
+                      </div>
+                      <span>Apply by: {format(new Date(activeJob.applicationDeadline), "MMM d, yyyy")}</span>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="border-t border-secondary-100/10 bg-primary-80/30 relative z-10 flex justify-between">
+                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-primary-80/50" asChild>
+                    <Link href={`/alumni/companies/${activeJob.company.toLowerCase().replace(/\s+/g, '-')}`}>
+                      About {activeJob.company}
+                    </Link>
                   </Button>
+                  <Button variant="gradient" size="sm" asChild>
+                    <Link href={`/alumni/jobs/${activeJob.$id}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+                      Apply Now <ExternalLink className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ) : (
+              <Card variant="glass-dark" className="border-0 h-[75vh] flex items-center justify-center">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <CardContent className="flex flex-col items-center text-center p-6 relative z-10">
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 rounded-full blur-xl bg-blue-accent/20 animate-pulse"></div>
+                    <div className="relative z-10 p-5 rounded-full bg-blue-accent/10 backdrop-blur-sm border border-secondary-100/20">
+                      <Briefcase className="h-12 w-12 text-blue-accent" />
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-medium text-white">Select a job</h3>
+                  <p className="text-gray-300 mt-2 max-w-md">
+                    Click on a job listing to view detailed information about the role, responsibilities, and application process.
+                  </p>
                 </CardContent>
               </Card>
             )}
           </div>
         </div>
-        
-        <div className="md:w-1/2 lg:w-3/5">
-          {activeJob ? (
-            <Card className="sticky top-24 border-primary/10">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-xl">{activeJob.title}</CardTitle>
-                    <CardDescription className="mt-1">
-                      <span className="font-medium">{activeJob.company}</span> • {activeJob.location}
-                    </CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <BookmarkPlus className="h-4 w-4 mr-1" />
-                      Save
-                    </Button>
-                    <Button size="sm" asChild>
-                      <Link href={`/alumni/jobs/${activeJob.$id}`} target="_blank" rel="noopener noreferrer">
-                        Apply Now
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Badge variant="outline" className="py-1 px-2">
-                      <Briefcase className="h-3.5 w-3.5 mr-1 inline-flex" />
-                      {activeJob.type}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Badge variant="outline" className="py-1 px-2">
-                      <Building className="h-3.5 w-3.5 mr-1 inline-flex" />
-                      {activeJob.workMode}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Banknote className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span>{activeJob.salary}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <BarChart4 className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span>{activeJob.experience} experience</span>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium mb-2">Description</h3>
-                    <p className="text-sm text-muted-foreground">{activeJob.description}</p>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-medium mb-2">Responsibilities</h3>
-                    <ul className="space-y-1.5 text-sm text-muted-foreground list-disc list-inside">
-                      {activeJob.responsibilities.map((responsibility, index) => (
-                        <li key={index}>{responsibility}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-medium mb-2">Qualifications</h3>
-                    <ul className="space-y-1.5 text-sm text-muted-foreground list-disc list-inside">
-                      {activeJob.qualifications.map((qualification, index) => (
-                        <li key={index}>{qualification}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="h-4 w-4" />
-                    <span>Posted: {formatPostedDate(activeJob.postedDate)}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="h-4 w-4" />
-                    <span>Apply by: {format(new Date(activeJob.applicationDeadline), "MMM d, yyyy")}</span>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="border-t bg-muted/20 flex justify-between">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/alumni/companies/${activeJob.company.toLowerCase().replace(/\s+/g, '-')}`}>
-                    About {activeJob.company}
-                  </Link>
-                </Button>
-                <Button size="sm" asChild>
-                  <Link href={`/alumni/jobs/${activeJob.$id}`} target="_blank" rel="noopener noreferrer">
-                    Apply Now <ExternalLink className="h-3.5 w-3.5 ml-1" />
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ) : (
-            <Card className="border-primary/10 h-[75vh] flex items-center justify-center bg-muted/20">
-              <CardContent className="flex flex-col items-center text-center p-6">
-                <Briefcase className="h-16 w-16 text-primary/20 mb-4" />
-                <h3 className="text-xl font-medium">Select a job</h3>
-                <p className="text-muted-foreground mt-2 max-w-md">
-                  Click on a job listing to view detailed information about the role, responsibilities, and application process.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+      </section>
     </div>
   )
 }
@@ -421,17 +508,19 @@ interface JobCardProps {
 function JobCard({ job, active = false, onClick }: JobCardProps) {
   return (
     <Card 
+      variant="glass-dark"
       className={cn(
-        "overflow-hidden hover:border-primary/20 transition-all cursor-pointer",
+        "overflow-hidden border-0 transition-all cursor-pointer hover:-translate-y-1 hover:shadow-card-hover",
         active 
-          ? "border-primary ring-1 ring-primary/20 ring-offset-1 ring-offset-background" 
-          : "border-primary/10"
+          ? "ring-1 ring-blue-accent/30 ring-offset-1 ring-offset-primary-90" 
+          : "border-0"
       )}
       onClick={onClick}
     >
-      <CardContent className="p-4">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+      <CardContent className="p-4 relative z-10">
         <div className="flex gap-3">
-          <div className="w-10 h-10 rounded-md overflow-hidden bg-muted/50 flex-shrink-0 border">
+          <div className="w-10 h-10 rounded-md overflow-hidden bg-primary-80/50 flex-shrink-0 border border-secondary-100/20">
             <div 
               className="w-full h-full bg-cover bg-center"
               style={{ backgroundImage: `url(${job.companyLogo})` }}
@@ -440,39 +529,139 @@ function JobCard({ job, active = false, onClick }: JobCardProps) {
           
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between">
-              <h3 className="font-medium truncate">{job.title}</h3>
+              <h3 className="font-medium truncate text-white">{job.title}</h3>
               {job.featured && (
-                <Badge variant="default" className="ml-2 bg-primary/20 text-primary hover:bg-primary/30 border-none">
+                <Badge variant="gradient" className="ml-2">
                   Featured
                 </Badge>
               )}
             </div>
             
-            <p className="text-sm text-muted-foreground mt-1 truncate">{job.company} • {job.location}</p>
+            <p className="text-sm text-gray-300 mt-1 truncate">{job.company} • {job.location}</p>
             
             <div className="flex items-center gap-2 mt-3">
-              <Badge variant="outline" className="bg-primary/5 border-primary/20 text-xs">
+              <Badge variant="outline" className="bg-blue-accent/5 border-blue-accent/20 text-xs text-blue-accent">
                 {job.type}
               </Badge>
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="bg-secondary-100/5 border-secondary-100/20 text-xs text-secondary-100">
                 {job.workMode}
               </Badge>
               {job.alumni && (
-                <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-xs">
+                <Badge variant="outline" className="bg-gold-default/10 text-gold-default border-gold-default/20 text-xs">
                   Alumni
                 </Badge>
               )}
             </div>
             
-            <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+            <div className="flex items-center justify-between mt-3 text-xs text-gray-400">
               <span>{formatPostedDate(job.postedDate)}</span>
-              <div className="flex items-center">
-                <ArrowRight className="h-3.5 w-3.5 opacity-50" />
+              <div className="flex items-center gap-1 group-hover:text-blue-accent transition-colors">
+                <span className="group-hover:text-blue-accent transition-colors">View</span>
+                <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </div>
           </div>
         </div>
       </CardContent>
+    </Card>
+  )
+}
+
+function JobCardSkeleton() {
+  return (
+    <Card variant="glass-dark" className="overflow-hidden border-0">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+      <CardContent className="p-4 relative z-10">
+        <div className="flex gap-3">
+          <Skeleton className="w-10 h-10 rounded-md" />
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between">
+              <Skeleton className="h-5 w-40" />
+              <Skeleton className="h-5 w-16 ml-2" />
+            </div>
+            
+            <Skeleton className="h-4 w-full mt-2" />
+            
+            <div className="flex items-center gap-2 mt-3">
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-5 w-14" />
+            </div>
+            
+            <div className="flex items-center justify-between mt-3">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function JobDetailSkeleton() {
+  return (
+    <Card variant="glass-dark" className="sticky top-24 border-0 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+      <CardHeader className="pb-3 relative z-10">
+        <div className="flex items-start justify-between">
+          <div className="w-full max-w-sm">
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-4 w-3/4 mt-2" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-20" />
+            <Skeleton className="h-9 w-24" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5 relative z-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-5 w-full" />
+          <Skeleton className="h-5 w-full" />
+        </div>
+        
+        <Separator className="bg-secondary-100/10" />
+        
+        <div className="space-y-4">
+          <div>
+            <Skeleton className="h-5 w-32 mb-2" />
+            <Skeleton className="h-4 w-full mb-1" />
+            <Skeleton className="h-4 w-full mb-1" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+          
+          <div>
+            <Skeleton className="h-5 w-40 mb-2" />
+            <Skeleton className="h-4 w-full mb-1" />
+            <Skeleton className="h-4 w-full mb-1" />
+            <Skeleton className="h-4 w-full mb-1" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+          
+          <div>
+            <Skeleton className="h-5 w-36 mb-2" />
+            <Skeleton className="h-4 w-full mb-1" />
+            <Skeleton className="h-4 w-full mb-1" />
+            <Skeleton className="h-4 w-full mb-1" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        </div>
+        
+        <Separator className="bg-secondary-100/10" />
+        
+        <div className="flex items-center justify-between gap-4">
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-5 w-36" />
+        </div>
+      </CardContent>
+      <CardFooter className="border-t border-secondary-100/10 bg-primary-80/30 relative z-10 flex justify-between">
+        <Skeleton className="h-9 w-32" />
+        <Skeleton className="h-9 w-32" />
+      </CardFooter>
     </Card>
   )
 } 

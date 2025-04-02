@@ -276,6 +276,9 @@ export default function ProfileEditPage() {
 
   // Load user profile data
   useEffect(() => {
+    // Set document title
+    document.title = "Edit Profile | BISO";
+    
     async function loadProfile() {
       setLoading(true);
       try {
@@ -648,1300 +651,1369 @@ export default function ProfileEditPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-muted-foreground mt-2">Loading profile data...</p>
+      <div className="relative min-h-screen pb-12">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden -z-10">
+          <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
+          <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
+          <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
+        </div>
+        
+        <div className="container flex flex-col items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-10 w-10 animate-spin text-blue-accent mb-4" />
+          <p className="text-gray-300 mt-2">Loading profile data...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page header with preview button */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Edit Profile</h1>
-          <p className="text-muted-foreground">Update your alumni profile information</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push("/alumni/profile")}>
-            Cancel
-          </Button>
-          <Button
-            variant="default"
-            onClick={profileForm.handleSubmit(onSaveProfile)}
-            disabled={saving}
-          >
-            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Profile
-          </Button>
+    <div className="relative min-h-screen pb-12">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden -z-10">
+        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
+      </div>
+      
+      <div className="container pt-8 pb-8">
+        <div className="space-y-6">
+          {/* Page header with preview button */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Edit Profile</h1>
+              <p className="text-gray-300">Update your alumni profile information</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="glass" className="border border-secondary-100/20" onClick={() => router.push("/alumni/profile")}>
+                Cancel
+              </Button>
+              <Button
+                variant="gradient"
+                onClick={profileForm.handleSubmit(onSaveProfile)}
+                disabled={saving}
+              >
+                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Profile
+              </Button>
+            </div>
+          </div>
+
+          {/* Profile editor with tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-5 h-auto glass-dark backdrop-blur-md border border-secondary-100/20 p-1">
+              <TabsTrigger 
+                value="personal" 
+                className="py-2.5 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+              >
+                Personal
+              </TabsTrigger>
+              <TabsTrigger 
+                value="experience" 
+                className="py-2.5 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+              >
+                Experience
+              </TabsTrigger>
+              <TabsTrigger 
+                value="education" 
+                className="py-2.5 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+              >
+                Education
+              </TabsTrigger>
+              <TabsTrigger 
+                value="extras" 
+                className="py-2.5 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+              >
+                Additional
+              </TabsTrigger>
+              <TabsTrigger 
+                value="privacy" 
+                className="py-2.5 hidden lg:block data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+              >
+                Privacy
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Personal Information */}
+            <TabsContent value="personal" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Avatar and basic info */}
+                <Card variant="glass-dark" className="md:col-span-1 border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <CardHeader className="relative z-10">
+                    <CardTitle className="text-white">Profile Photo</CardTitle>
+                    <CardDescription className="text-gray-300">Your profile picture helps people recognize you</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col items-center relative z-10">
+                    <div className="mb-4 relative group/avatar">
+                      <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-blue-accent/50 to-secondary-100/30 blur-sm opacity-0 group-hover/avatar:opacity-100 transition-all duration-300"></div>
+                      <Avatar className="h-24 w-24 border-4 border-primary-90 relative shadow-lg group-hover/avatar:shadow-glow-blue transition-all duration-300">
+                        <AvatarImage src={userProfile?.avatarUrl} alt={profileForm.watch("name")} />
+                        <AvatarFallback className="text-xl bg-primary-80 text-white">{initials}</AvatarFallback>
+                      </Avatar>
+                      <Button size="sm" variant="gradient" className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0">
+                        <Upload className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-sm text-gray-300 text-center mt-2">
+                      Upload a square image, at least 400x400px
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Basic information form */}
+                <Card variant="glass-dark" className="md:col-span-2 border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <CardHeader className="relative z-10">
+                    <CardTitle className="text-white">Basic Information</CardTitle>
+                    <CardDescription className="text-gray-300">Update your personal details</CardDescription>
+                  </CardHeader>
+                  <CardContent className="relative z-10">
+                    <Form {...profileForm}>
+                      <form className="space-y-4">
+                        <FormField
+                          control={profileForm.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-gray-300">Full Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Your name" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={profileForm.control}
+                            name="title"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Job Title</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="E.g. Software Engineer" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={profileForm.control}
+                            name="company"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Company/Organization</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Where you work" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={profileForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email Address</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Your email" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={profileForm.control}
+                            name="phone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Phone Number (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Your phone number" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={profileForm.control}
+                            name="location"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Location</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="City, Country" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={profileForm.control}
+                          name="available"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                              <div className="space-y-0.5">
+                                <FormLabel>Available for Opportunities</FormLabel>
+                                <FormDescription>
+                                  Let recruiters and other alumni know you&apos;re open to opportunities
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+
+                {/* Bio and education details */}
+                <Card variant="glass-dark" className="md:col-span-3 border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <CardHeader className="relative z-10">
+                    <CardTitle className="text-white">About You</CardTitle>
+                    <CardDescription className="text-gray-300">Tell us about yourself and your education background</CardDescription>
+                  </CardHeader>
+                  <CardContent className="relative z-10">
+                    <Form {...profileForm}>
+                      <form className="space-y-4">
+                        <FormField
+                          control={profileForm.control}
+                          name="bio"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-gray-300">Bio</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder="Write a short bio about yourself" 
+                                  className="min-h-[120px]" 
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormDescription className="text-gray-300">
+                                Write a few sentences about yourself, your career, and interests.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <FormField
+                            control={profileForm.control}
+                            name="graduationYear"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Graduation Year</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="E.g. 2018" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={profileForm.control}
+                            name="department"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Department</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="E.g. Computer Science" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={profileForm.control}
+                            name="degree"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Degree</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="E.g. Bachelor of Science" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Experience Tab */}
+            <TabsContent value="experience" className="space-y-4">
+              <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                  <div>
+                    <CardTitle className="text-white">Work Experience</CardTitle>
+                    <CardDescription className="text-gray-300">Add your professional experience</CardDescription>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="gradient"
+                    onClick={() => {
+                      experienceForm.reset({
+                        title: "",
+                        company: "",
+                        location: "",
+                        startDate: new Date(),
+                        endDate: null,
+                        current: false,
+                        description: "",
+                      });
+                      setEditingExperience(null);
+                      setIsAddingExperience(true);
+                    }}
+                    disabled={isAddingExperience}
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Add Experience
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-4 relative z-10">
+                  {/* Form for adding/editing experience */}
+                  {(isAddingExperience || editingExperience) && (
+                    <div className="rounded-lg border border-secondary-100/20 p-4 glass shadow-sm">
+                      <h3 className="font-medium mb-3 text-white">
+                        {editingExperience ? "Edit Experience" : "Add New Experience"}
+                      </h3>
+                      <Form {...experienceForm}>
+                        <form onSubmit={experienceForm.handleSubmit(onSaveExperience)} className="space-y-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={experienceForm.control}
+                              name="title"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-gray-300">Job Title</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="E.g. Software Engineer" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={experienceForm.control}
+                              name="company"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-gray-300">Company</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="Company name" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={experienceForm.control}
+                            name="location"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-gray-300">Location (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="E.g. San Francisco, CA" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={experienceForm.control}
+                              name="startDate"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                  <FormLabel className="text-gray-300">Start Date</FormLabel>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <FormControl>
+                                        <Button
+                                          variant="glass"
+                                          className={cn(
+                                            "pl-3 text-left font-normal border border-secondary-100/20",
+                                            !field.value && "text-gray-400"
+                                          )}
+                                        >
+                                          {field.value ? (
+                                            format(field.value, "PPP")
+                                          ) : (
+                                            <span>Pick a date</span>
+                                          )}
+                                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                      </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                      <Calendar
+                                        mode="single"
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        disabled={(date) => date > new Date()}
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={experienceForm.control}
+                              name="current"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-6">
+                                  <FormControl>
+                                    <div className="flex items-center space-x-2">
+                                      <Switch
+                                        checked={field.value}
+                                        onCheckedChange={(checked) => {
+                                          field.onChange(checked);
+                                          if (checked) {
+                                            experienceForm.setValue("endDate", null);
+                                          }
+                                        }}
+                                      />
+                                      <span className="text-gray-300">I currently work here</span>
+                                    </div>
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          {!experienceForm.watch("current") && (
+                            <FormField
+                              control={experienceForm.control}
+                              name="endDate"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                  <FormLabel className="text-gray-300">End Date</FormLabel>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <FormControl>
+                                        <Button
+                                          variant="glass"
+                                          className={cn(
+                                            "pl-3 text-left font-normal border border-secondary-100/20",
+                                            !field.value && "text-gray-400"
+                                          )}
+                                        >
+                                          {field.value ? (
+                                            format(field.value, "PPP")
+                                          ) : (
+                                            <span>Pick a date</span>
+                                          )}
+                                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                      </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                      <Calendar
+                                        mode="single"
+                                        selected={field.value || undefined}
+                                        onSelect={field.onChange}
+                                        disabled={(date) => 
+                                          date > new Date() || 
+                                          (experienceForm.watch("startDate") && date < experienceForm.watch("startDate"))
+                                        }
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+
+                          <FormField
+                            control={experienceForm.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-gray-300">Description (Optional)</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Describe your role, responsibilities, and achievements" 
+                                    className="min-h-[100px]" 
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="flex justify-end space-x-2 pt-2">
+                            <Button
+                              type="button"
+                              variant="glass"
+                              className="border border-secondary-100/20"
+                              onClick={() => {
+                                setIsAddingExperience(false);
+                                setEditingExperience(null);
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button type="submit" variant="gradient" disabled={saving}>
+                              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                              {editingExperience ? "Update" : "Add"} Experience
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </div>
+                  )}
+
+                  {/* List of experiences */}
+                  <div className="space-y-4">
+                    {experiences.length === 0 && !isAddingExperience ? (
+                      <div className="text-center p-6 glass border border-secondary-100/10 rounded-lg">
+                        <p className="text-gray-300 mb-2">No work experience added yet.</p>
+                        <Button 
+                          variant="gradient" 
+                          onClick={() => setIsAddingExperience(true)}
+                        >
+                          Add your first work experience
+                        </Button>
+                      </div>
+                    ) : (
+                      experiences
+                        .sort((a, b) => {
+                          if (a.current && !b.current) return -1;
+                          if (!a.current && b.current) return 1;
+                          
+                          const dateA = a.endDate ? new Date(a.endDate) : new Date();
+                          const dateB = b.endDate ? new Date(b.endDate) : new Date();
+                          return dateB.getTime() - dateA.getTime();
+                        })
+                        .map((experience) => (
+                          <div 
+                            key={experience.$id} 
+                            className="p-4 glass border border-secondary-100/20 rounded-lg hover:border-blue-accent/40 transition-all hover:shadow-card-hover"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-medium text-base text-white">{experience.title}</h3>
+                                <p className="text-gray-300">{experience.company}</p>
+                                <div className="flex items-center gap-2 mt-1 text-sm text-gray-400">
+                                  {experience.location && (
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="h-3 w-3 text-secondary-100" />
+                                      {experience.location}
+                                    </span>
+                                  )}
+                                  <span className="flex items-center gap-1">
+                                    <CalendarIcon className="h-3 w-3 text-blue-accent" />
+                                    {new Date(experience.startDate).toLocaleDateString('en-US', { 
+                                      month: 'short', 
+                                      year: 'numeric' 
+                                    })}
+                                    {" - "}
+                                    {experience.current ? (
+                                      "Present"
+                                    ) : (
+                                      experience.endDate && new Date(experience.endDate).toLocaleDateString('en-US', { 
+                                        month: 'short', 
+                                        year: 'numeric' 
+                                      })
+                                    )}
+                                  </span>
+                                </div>
+                                {experience.description && (
+                                  <p className="mt-2 text-sm text-gray-300">{experience.description}</p>
+                                )}
+                              </div>
+                              <div className="flex gap-1">
+                                <Button 
+                                  variant="glass" 
+                                  size="sm"
+                                  onClick={() => setEditingExperience(experience)}
+                                >
+                                  Edit
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleDeleteExperience(experience.$id)}
+                                  className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                                >
+                                  <Trash className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Education Tab */}
+            <TabsContent value="education" className="space-y-4">
+              <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                  <div>
+                    <CardTitle className="text-white">Education</CardTitle>
+                    <CardDescription className="text-gray-300">Add your academic qualifications</CardDescription>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="gradient"
+                    onClick={() => {
+                      educationForm.reset({
+                        degree: "",
+                        institution: "",
+                        location: "",
+                        startYear: "",
+                        endYear: "",
+                        description: "",
+                      });
+                      setEditingEducation(null);
+                      setIsAddingEducation(true);
+                    }}
+                    disabled={isAddingEducation}
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Add Education
+                  </Button>
+                </CardHeader>
+                <CardContent className="space-y-4 relative z-10">
+                  {/* Form for adding/editing education */}
+                  {(isAddingEducation || editingEducation) && (
+                    <div className="rounded-lg border border-secondary-100/20 p-4 glass shadow-sm">
+                      <h3 className="font-medium mb-3 text-white">
+                        {editingEducation ? "Edit Education" : "Add New Education"}
+                      </h3>
+                      <Form {...educationForm}>
+                        <form onSubmit={educationForm.handleSubmit(onSaveEducation)} className="space-y-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={educationForm.control}
+                              name="degree"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-gray-300">Degree</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="E.g. Bachelor of Science" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={educationForm.control}
+                              name="institution"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-gray-300">Institution</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="E.g. University of California" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={educationForm.control}
+                            name="location"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-gray-300">Location (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="E.g. Berkeley, CA" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={educationForm.control}
+                              name="startYear"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-gray-300">Start Year</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="E.g. 2015" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={educationForm.control}
+                              name="endYear"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-gray-300">End Year</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="E.g. 2019" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+
+                          <FormField
+                            control={educationForm.control}
+                            name="description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-gray-300">Description (Optional)</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Describe your studies, achievements, or activities" 
+                                    className="min-h-[100px]" 
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="flex justify-end space-x-2 pt-2">
+                            <Button
+                              type="button"
+                              variant="glass"
+                              className="border border-secondary-100/20"
+                              onClick={() => {
+                                setIsAddingEducation(false);
+                                setEditingEducation(null);
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button type="submit" variant="gradient" disabled={saving}>
+                              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                              {editingEducation ? "Update" : "Add"} Education
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </div>
+                  )}
+
+                  {/* List of education entries */}
+                  <div className="space-y-4">
+                    {educations.length === 0 && !isAddingEducation ? (
+                      <div className="text-center p-6 glass border border-secondary-100/10 rounded-lg">
+                        <p className="text-gray-300 mb-2">No education added yet.</p>
+                        <Button 
+                          variant="gradient" 
+                          onClick={() => setIsAddingEducation(true)}
+                        >
+                          Add your education
+                        </Button>
+                      </div>
+                    ) : (
+                      educations
+                        .sort((a, b) => parseInt(b.endYear) - parseInt(a.endYear))
+                        .map((education) => (
+                          <div 
+                            key={education.$id} 
+                            className="p-4 glass border border-secondary-100/20 rounded-lg hover:border-blue-accent/40 transition-all hover:shadow-card-hover"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-medium text-base text-white">{education.degree}</h3>
+                                <p className="text-gray-300">{education.institution}</p>
+                                <div className="flex items-center gap-2 mt-1 text-sm text-gray-400">
+                                  {education.location && (
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="h-3 w-3 text-secondary-100" />
+                                      {education.location}
+                                    </span>
+                                  )}
+                                  <span className="flex items-center gap-1">
+                                    <CalendarIcon className="h-3 w-3 text-blue-accent" />
+                                    {education.startYear} - {education.endYear}
+                                  </span>
+                                </div>
+                                {education.description && (
+                                  <p className="mt-2 text-sm text-gray-300">{education.description}</p>
+                                )}
+                              </div>
+                              <div className="flex gap-1">
+                                <Button 
+                                  variant="glass" 
+                                  size="sm"
+                                  onClick={() => setEditingEducation(education)}
+                                >
+                                  Edit
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleDeleteEducation(education.$id)}
+                                  className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                                >
+                                  <Trash className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Additional Info Tab */}
+            <TabsContent value="extras" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Skills */}
+                <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <CardHeader className="relative z-10">
+                    <CardTitle className="text-white">Skills</CardTitle>
+                    <CardDescription className="text-gray-300">List your professional skills and competencies</CardDescription>
+                  </CardHeader>
+                  <CardContent className="relative z-10">
+                    <Form {...profileForm}>
+                      <form className="space-y-4">
+                        <FormField
+                          control={profileForm.control}
+                          name="skills"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-gray-300">Professional Skills</FormLabel>
+                              <FormControl>
+                                <SkillInput 
+                                  value={field.value || []} 
+                                  onChange={field.onChange} 
+                                />
+                              </FormControl>
+                              <FormDescription className="text-gray-400">
+                                Add skills like &quot;Project Management&quot;, &quot;JavaScript&quot;, &quot;Data Analysis&quot;, etc.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+
+                {/* Interests */}
+                <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <CardHeader className="relative z-10">
+                    <CardTitle className="text-white">Interests</CardTitle>
+                    <CardDescription className="text-gray-300">Share your professional interests and hobbies</CardDescription>
+                  </CardHeader>
+                  <CardContent className="relative z-10">
+                    <Form {...profileForm}>
+                      <form className="space-y-4">
+                        <FormField
+                          control={profileForm.control}
+                          name="interests"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-gray-300">Interests</FormLabel>
+                              <FormControl>
+                                <SkillInput 
+                                  value={field.value || []} 
+                                  onChange={field.onChange} 
+                                />
+                              </FormControl>
+                              <FormDescription className="text-gray-400">
+                                Add interests like &quot;Machine Learning&quot;, &quot;Entrepreneurship&quot;, &quot;Photography&quot;, etc.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </form>
+                    </Form>
+                  </CardContent>
+                </Card>
+
+                {/* Languages */}
+                <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                    <div>
+                      <CardTitle className="text-white">Languages</CardTitle>
+                      <CardDescription className="text-gray-300">Add languages you speak</CardDescription>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="gradient"
+                      onClick={() => {
+                        languageForm.reset({
+                          language: "",
+                          proficiency: "",
+                        });
+                        setEditingLanguage(null);
+                        setIsAddingLanguage(true);
+                      }}
+                      disabled={isAddingLanguage}
+                    >
+                      <Plus className="mr-1 h-4 w-4" />
+                      Add Language
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Form for adding/editing languages */}
+                    {(isAddingLanguage || editingLanguage) && (
+                      <div className="rounded-lg border border-secondary-100/20 p-4 glass shadow-sm">
+                        <h3 className="font-medium mb-3 text-white">
+                          {editingLanguage ? "Edit Language" : "Add New Language"}
+                        </h3>
+                        <Form {...languageForm}>
+                          <form className="space-y-3" onSubmit={languageForm.handleSubmit(onSaveLanguage)}>
+                            <FormField
+                              control={languageForm.control}
+                              name="language"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-gray-300">Language</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="E.g. English, Spanish" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={languageForm.control}
+                              name="proficiency"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-gray-300">Proficiency</FormLabel>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger className="border-secondary-100/20 bg-transparent">
+                                        <SelectValue placeholder="Select proficiency level" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="Native">Native</SelectItem>
+                                      <SelectItem value="Fluent">Fluent</SelectItem>
+                                      <SelectItem value="Advanced">Advanced</SelectItem>
+                                      <SelectItem value="Intermediate">Intermediate</SelectItem>
+                                      <SelectItem value="Basic">Basic</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <div className="flex justify-end space-x-2 pt-2">
+                              <Button
+                                type="button"
+                                variant="glass"
+                                className="border border-secondary-100/20"
+                                onClick={() => {
+                                  setIsAddingLanguage(false);
+                                  setEditingLanguage(null);
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                type="submit"
+                                variant="gradient"
+                                disabled={saving}
+                              >
+                                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {editingLanguage ? "Update" : "Add"} Language
+                              </Button>
+                            </div>
+                          </form>
+                        </Form>
+                      </div>
+                    )}
+
+                    {/* List of languages */}
+                    <div className="space-y-2">
+                      {languages.length === 0 && !isAddingLanguage ? (
+                        <div className="text-center p-6 glass border border-secondary-100/10 rounded-lg">
+                          <p className="text-gray-300 mb-2">No languages added yet.</p>
+                          <Button 
+                            variant="gradient" 
+                            onClick={() => setIsAddingLanguage(true)}
+                          >
+                            Add your first language
+                          </Button>
+                        </div>
+                      ) : (
+                        languages.map((language) => (
+                          <div 
+                            key={language.$id} 
+                            className="p-3 glass border border-secondary-100/20 rounded-lg hover:border-blue-accent/40 transition-all hover:shadow-card-hover flex justify-between items-center"
+                          >
+                            <div>
+                              <h3 className="font-medium text-white">{language.language}</h3>
+                              <p className="text-sm text-gray-300">{language.proficiency}</p>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button 
+                                variant="glass" 
+                                size="sm"
+                                onClick={() => setEditingLanguage(language)}
+                              >
+                                Edit
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleDeleteLanguage(language.$id)}
+                                className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Social Links */}
+                <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                    <div>
+                      <CardTitle className="text-white">Social Links</CardTitle>
+                      <CardDescription className="text-gray-300">Connect your social profiles</CardDescription>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="gradient"
+                      onClick={() => {
+                        socialForm.reset({
+                          platform: "",
+                          url: "",
+                        });
+                        setEditingSocial(null);
+                        setIsAddingSocial(true);
+                      }}
+                      disabled={isAddingSocial}
+                    >
+                      <Plus className="mr-1 h-4 w-4" />
+                      Add Link
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="space-y-4 relative z-10">
+                    {/* Form for adding/editing social links */}
+                    {(isAddingSocial || editingSocial) && (
+                      <div className="rounded-lg border border-secondary-100/20 p-4 glass shadow-sm">
+                        <h3 className="font-medium mb-3 text-white">
+                          {editingSocial ? "Edit Social Link" : "Add New Social Link"}
+                        </h3>
+                        <Form {...socialForm}>
+                          <form className="space-y-3" onSubmit={socialForm.handleSubmit(onSaveSocial)}>
+                            <FormField
+                              control={socialForm.control}
+                              name="platform"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-gray-300">Platform</FormLabel>
+                                  <Select
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                  >
+                                    <FormControl>
+                                      <SelectTrigger className="border-secondary-100/20 bg-transparent">
+                                        <SelectValue placeholder="Select platform" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="linkedin">LinkedIn</SelectItem>
+                                      <SelectItem value="twitter">Twitter/X</SelectItem>
+                                      <SelectItem value="github">GitHub</SelectItem>
+                                      <SelectItem value="website">Personal Website</SelectItem>
+                                      <SelectItem value="instagram">Instagram</SelectItem>
+                                      <SelectItem value="facebook">Facebook</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={socialForm.control}
+                              name="url"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-gray-300">URL</FormLabel>
+                                  <FormControl>
+                                    <Input placeholder="https://..." {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <div className="flex justify-end space-x-2 pt-2">
+                              <Button
+                                type="button"
+                                variant="glass"
+                                className="border border-secondary-100/20"
+                                onClick={() => {
+                                  setIsAddingSocial(false);
+                                  setEditingSocial(null);
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                type="submit"
+                                variant="gradient"
+                                disabled={saving}
+                              >
+                                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {editingSocial ? "Update" : "Add"} Link
+                              </Button>
+                            </div>
+                          </form>
+                        </Form>
+                      </div>
+                    )}
+
+                    {/* List of social links */}
+                    <div className="space-y-2">
+                      {socialLinks.length === 0 && !isAddingSocial ? (
+                        <div className="text-center p-6 glass border border-secondary-100/10 rounded-lg">
+                          <p className="text-gray-300 mb-2">No social links added yet.</p>
+                          <Button 
+                            variant="gradient" 
+                            onClick={() => setIsAddingSocial(true)}
+                          >
+                            Add your first social link
+                          </Button>
+                        </div>
+                      ) : (
+                        socialLinks.map((link) => (
+                          <div 
+                            key={link.$id} 
+                            className="p-3 glass border border-secondary-100/20 rounded-lg hover:border-blue-accent/40 transition-all hover:shadow-card-hover flex justify-between items-center"
+                          >
+                            <div>
+                              <h3 className="font-medium text-white capitalize">{link.platform}</h3>
+                              <p className="text-sm text-gray-300 truncate max-w-[250px]">{link.url}</p>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button 
+                                variant="glass" 
+                                size="sm"
+                                onClick={() => setEditingSocial(link)}
+                              >
+                                Edit
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleDeleteSocial(link.$id)}
+                                className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Privacy Tab */}
+            <TabsContent value="privacy" className="space-y-4">
+              <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <CardHeader className="relative z-10">
+                  <CardTitle className="text-white">Privacy Settings</CardTitle>
+                  <CardDescription className="text-gray-300">Control who can see your information</CardDescription>
+                </CardHeader>
+                <CardContent className="relative z-10">
+                  <Form {...privacyForm}>
+                    <form className="space-y-4">
+                      <FormField
+                        control={privacyForm.control}
+                        name="showEmail"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg glass border border-secondary-100/20 p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base text-white">Show Email Address</FormLabel>
+                              <FormDescription className="text-gray-400">
+                                Allow other alumni to see your email address
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={privacyForm.control}
+                        name="showPhone"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg glass border border-secondary-100/20 p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base text-white">Show Phone Number</FormLabel>
+                              <FormDescription className="text-gray-400">
+                                Allow other alumni to see your phone number
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={privacyForm.control}
+                        name="showSocial"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg glass border border-secondary-100/20 p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base text-white">Show Social Links</FormLabel>
+                              <FormDescription className="text-gray-400">
+                                Allow other alumni to see your social media profiles
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={privacyForm.control}
+                        name="allowMessages"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg glass border border-secondary-100/20 p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base text-white">Allow Messages</FormLabel>
+                              <FormDescription className="text-gray-400">
+                                Allow other alumni to send you direct messages
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={privacyForm.control}
+                        name="allowMentoring"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg glass border border-secondary-100/20 p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base text-white">Open to Mentoring</FormLabel>
+                              <FormDescription className="text-gray-400">
+                                Display your profile in the mentoring section
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="pt-4">
+                        <Button 
+                          type="button" 
+                          variant="gradient"
+                          className="w-full"
+                          onClick={() => {
+                            // Save privacy settings
+                            toast({
+                              title: "Privacy settings saved",
+                              description: "Your privacy preferences have been updated.",
+                            });
+                          }}
+                        >
+                          Save Privacy Settings
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
-
-      {/* Profile editor with tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-5 h-auto">
-          <TabsTrigger value="personal" className="py-2.5">Personal</TabsTrigger>
-          <TabsTrigger value="experience" className="py-2.5">Experience</TabsTrigger>
-          <TabsTrigger value="education" className="py-2.5">Education</TabsTrigger>
-          <TabsTrigger value="extras" className="py-2.5">Additional</TabsTrigger>
-          <TabsTrigger value="privacy" className="py-2.5 hidden lg:block">Privacy</TabsTrigger>
-        </TabsList>
-
-        {/* Personal Information */}
-        <TabsContent value="personal" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Avatar and basic info */}
-            <Card className="md:col-span-1">
-              <CardHeader>
-                <CardTitle>Profile Photo</CardTitle>
-                <CardDescription>Your profile picture helps people recognize you</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center">
-                <div className="mb-4 relative">
-                  <Avatar className="h-24 w-24 border-4 border-background shadow-md">
-                    <AvatarImage src={userProfile?.avatarUrl} alt={profileForm.watch("name")} />
-                    <AvatarFallback className="text-xl">{initials}</AvatarFallback>
-                  </Avatar>
-                  <Button size="sm" variant="outline" className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0">
-                    <Upload className="h-4 w-4" />
-                  </Button>
-                </div>
-                <p className="text-sm text-muted-foreground text-center mt-2">
-                  Upload a square image, at least 400x400px
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Basic information form */}
-            <Card className="md:col-span-2">
-              <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
-                <CardDescription>Update your personal details</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...profileForm}>
-                  <form className="space-y-4">
-                    <FormField
-                      control={profileForm.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Your name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={profileForm.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Job Title</FormLabel>
-                            <FormControl>
-                              <Input placeholder="E.g. Software Engineer" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={profileForm.control}
-                        name="company"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Company/Organization</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Where you work" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={profileForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Address</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Your email" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={profileForm.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone Number (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Your phone number" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={profileForm.control}
-                        name="location"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Location</FormLabel>
-                            <FormControl>
-                              <Input placeholder="City, Country" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={profileForm.control}
-                      name="available"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                          <div className="space-y-0.5">
-                            <FormLabel>Available for Opportunities</FormLabel>
-                            <FormDescription>
-                              Let recruiters and other alumni know you&apos;re open to opportunities
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-
-            {/* Bio and education details */}
-            <Card className="md:col-span-3">
-              <CardHeader>
-                <CardTitle>About You</CardTitle>
-                <CardDescription>Tell us about yourself and your education background</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...profileForm}>
-                  <form className="space-y-4">
-                    <FormField
-                      control={profileForm.control}
-                      name="bio"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Bio</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Write a short bio about yourself" 
-                              className="min-h-[120px]" 
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Write a few sentences about yourself, your career, and interests.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField
-                        control={profileForm.control}
-                        name="graduationYear"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Graduation Year</FormLabel>
-                            <FormControl>
-                              <Input placeholder="E.g. 2018" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={profileForm.control}
-                        name="department"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Department</FormLabel>
-                            <FormControl>
-                              <Input placeholder="E.g. Computer Science" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={profileForm.control}
-                        name="degree"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Degree</FormLabel>
-                            <FormControl>
-                              <Input placeholder="E.g. Bachelor of Science" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Experience Tab */}
-        <TabsContent value="experience" className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle>Work Experience</CardTitle>
-                <CardDescription>Add your professional experience</CardDescription>
-              </div>
-              <Button 
-                size="sm" 
-                onClick={() => {
-                  experienceForm.reset({
-                    title: "",
-                    company: "",
-                    location: "",
-                    startDate: new Date(),
-                    endDate: null,
-                    current: false,
-                    description: "",
-                  });
-                  setEditingExperience(null);
-                  setIsAddingExperience(true);
-                }}
-                disabled={isAddingExperience}
-              >
-                <Plus className="mr-1 h-4 w-4" />
-                Add Experience
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Form for adding/editing experience */}
-              {(isAddingExperience || editingExperience) && (
-                <div className="rounded-lg border p-4 bg-muted/30 shadow-sm">
-                  <h3 className="font-medium mb-3">
-                    {editingExperience ? "Edit Experience" : "Add New Experience"}
-                  </h3>
-                  <Form {...experienceForm}>
-                    <form onSubmit={experienceForm.handleSubmit(onSaveExperience)} className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={experienceForm.control}
-                          name="title"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Job Title</FormLabel>
-                              <FormControl>
-                                <Input placeholder="E.g. Software Engineer" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={experienceForm.control}
-                          name="company"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Company</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Company name" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={experienceForm.control}
-                        name="location"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Location (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="E.g. San Francisco, CA" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={experienceForm.control}
-                          name="startDate"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel>Start Date</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant={"outline"}
-                                      className={cn(
-                                        "pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                      )}
-                                    >
-                                      {field.value ? (
-                                        format(field.value, "PPP")
-                                      ) : (
-                                        <span>Pick a date</span>
-                                      )}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    disabled={(date) => date > new Date()}
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={experienceForm.control}
-                          name="current"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-6">
-                              <FormControl>
-                                <div className="flex items-center space-x-2">
-                                  <Switch
-                                    checked={field.value}
-                                    onCheckedChange={(checked) => {
-                                      field.onChange(checked);
-                                      if (checked) {
-                                        experienceForm.setValue("endDate", null);
-                                      }
-                                    }}
-                                  />
-                                  <span>I currently work here</span>
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      {!experienceForm.watch("current") && (
-                        <FormField
-                          control={experienceForm.control}
-                          name="endDate"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel>End Date</FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant={"outline"}
-                                      className={cn(
-                                        "pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                      )}
-                                    >
-                                      {field.value ? (
-                                        format(field.value, "PPP")
-                                      ) : (
-                                        <span>Pick a date</span>
-                                      )}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar
-                                    mode="single"
-                                    selected={field.value || undefined}
-                                    onSelect={field.onChange}
-                                    disabled={(date) => 
-                                      date > new Date() || 
-                                      (experienceForm.watch("startDate") && date < experienceForm.watch("startDate"))
-                                    }
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      <FormField
-                        control={experienceForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description (Optional)</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Describe your role, responsibilities, and achievements" 
-                                className="min-h-[100px]" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="flex justify-end space-x-2 pt-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setIsAddingExperience(false);
-                            setEditingExperience(null);
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit" disabled={saving}>
-                          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          {editingExperience ? "Update" : "Add"} Experience
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </div>
-              )}
-
-              {/* List of experiences */}
-              <div className="space-y-4">
-                {experiences.length === 0 && !isAddingExperience ? (
-                  <div className="text-center p-4 border rounded-lg bg-muted/20">
-                    <p className="text-muted-foreground">No work experience added yet.</p>
-                    <Button 
-                      variant="link" 
-                      onClick={() => setIsAddingExperience(true)}
-                    >
-                      Add your first work experience
-                    </Button>
-                  </div>
-                ) : (
-                  experiences
-                    .sort((a, b) => {
-                      if (a.current && !b.current) return -1;
-                      if (!a.current && b.current) return 1;
-                      
-                      const dateA = a.endDate ? new Date(a.endDate) : new Date();
-                      const dateB = b.endDate ? new Date(b.endDate) : new Date();
-                      return dateB.getTime() - dateA.getTime();
-                    })
-                    .map((experience) => (
-                      <div 
-                        key={experience.$id} 
-                        className="p-4 border rounded-lg hover:border-primary/50 transition-colors"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium text-base">{experience.title}</h3>
-                            <p className="text-muted-foreground">{experience.company}</p>
-                            <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                              {experience.location && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" />
-                                  {experience.location}
-                                </span>
-                              )}
-                              <span className="flex items-center gap-1">
-                                <CalendarIcon className="h-3 w-3" />
-                                {new Date(experience.startDate).toLocaleDateString('en-US', { 
-                                  month: 'short', 
-                                  year: 'numeric' 
-                                })}
-                                {" - "}
-                                {experience.current ? (
-                                  "Present"
-                                ) : (
-                                  experience.endDate && new Date(experience.endDate).toLocaleDateString('en-US', { 
-                                    month: 'short', 
-                                    year: 'numeric' 
-                                  })
-                                )}
-                              </span>
-                            </div>
-                            {experience.description && (
-                              <p className="mt-2 text-sm">{experience.description}</p>
-                            )}
-                          </div>
-                          <div className="flex gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => setEditingExperience(experience)}
-                            >
-                              Edit
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleDeleteExperience(experience.$id)}
-                            >
-                              <Trash className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Education Tab */}
-        <TabsContent value="education" className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle>Education</CardTitle>
-                <CardDescription>Add your academic qualifications</CardDescription>
-              </div>
-              <Button 
-                size="sm" 
-                onClick={() => {
-                  educationForm.reset({
-                    degree: "",
-                    institution: "",
-                    location: "",
-                    startYear: "",
-                    endYear: "",
-                    description: "",
-                  });
-                  setEditingEducation(null);
-                  setIsAddingEducation(true);
-                }}
-                disabled={isAddingEducation}
-              >
-                <Plus className="mr-1 h-4 w-4" />
-                Add Education
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Form for adding/editing education */}
-              {(isAddingEducation || editingEducation) && (
-                <div className="rounded-lg border p-4 bg-muted/30 shadow-sm">
-                  <h3 className="font-medium mb-3">
-                    {editingEducation ? "Edit Education" : "Add New Education"}
-                  </h3>
-                  <Form {...educationForm}>
-                    <form onSubmit={educationForm.handleSubmit(onSaveEducation)} className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={educationForm.control}
-                          name="degree"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Degree</FormLabel>
-                              <FormControl>
-                                <Input placeholder="E.g. Bachelor of Science" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={educationForm.control}
-                          name="institution"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Institution</FormLabel>
-                              <FormControl>
-                                <Input placeholder="E.g. University of California" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={educationForm.control}
-                        name="location"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Location (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="E.g. Berkeley, CA" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={educationForm.control}
-                          name="startYear"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Start Year</FormLabel>
-                              <FormControl>
-                                <Input placeholder="E.g. 2015" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={educationForm.control}
-                          name="endYear"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>End Year</FormLabel>
-                              <FormControl>
-                                <Input placeholder="E.g. 2019" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={educationForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description (Optional)</FormLabel>
-                            <FormControl>
-                              <Textarea 
-                                placeholder="Describe your studies, achievements, or activities" 
-                                className="min-h-[100px]" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="flex justify-end space-x-2 pt-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setIsAddingEducation(false);
-                            setEditingEducation(null);
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button type="submit" disabled={saving}>
-                          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          {editingEducation ? "Update" : "Add"} Education
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </div>
-              )}
-
-              {/* List of education entries */}
-              <div className="space-y-4">
-                {educations.length === 0 && !isAddingEducation ? (
-                  <div className="text-center p-4 border rounded-lg bg-muted/20">
-                    <p className="text-muted-foreground">No education added yet.</p>
-                    <Button 
-                      variant="link" 
-                      onClick={() => setIsAddingEducation(true)}
-                    >
-                      Add your education
-                    </Button>
-                  </div>
-                ) : (
-                  educations
-                    .sort((a, b) => parseInt(b.endYear) - parseInt(a.endYear))
-                    .map((education) => (
-                      <div 
-                        key={education.$id} 
-                        className="p-4 border rounded-lg hover:border-primary/50 transition-colors"
-                      >
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium text-base">{education.degree}</h3>
-                            <p className="text-muted-foreground">{education.institution}</p>
-                            <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                              {education.location && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" />
-                                  {education.location}
-                                </span>
-                              )}
-                              <span className="flex items-center gap-1">
-                                <CalendarIcon className="h-3 w-3" />
-                                {education.startYear} - {education.endYear}
-                              </span>
-                            </div>
-                            {education.description && (
-                              <p className="mt-2 text-sm">{education.description}</p>
-                            )}
-                          </div>
-                          <div className="flex gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => setEditingEducation(education)}
-                            >
-                              Edit
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleDeleteEducation(education.$id)}
-                            >
-                              <Trash className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Additional Info Tab */}
-        <TabsContent value="extras" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Skills */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Skills</CardTitle>
-                <CardDescription>List your professional skills and competencies</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...profileForm}>
-                  <form className="space-y-4">
-                    <FormField
-                      control={profileForm.control}
-                      name="skills"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Professional Skills</FormLabel>
-                          <FormControl>
-                            <SkillInput 
-                              value={field.value || []} 
-                              onChange={field.onChange} 
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Add skills like &quot;Project Management&quot;, &quot;JavaScript&quot;, &quot;Data Analysis&quot;, etc.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-
-            {/* Interests */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Interests</CardTitle>
-                <CardDescription>Share your professional interests and hobbies</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...profileForm}>
-                  <form className="space-y-4">
-                    <FormField
-                      control={profileForm.control}
-                      name="interests"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Interests</FormLabel>
-                          <FormControl>
-                            <SkillInput 
-                              value={field.value || []} 
-                              onChange={field.onChange} 
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Add interests like &quot;Machine Learning&quot;, &quot;Entrepreneurship&quot;, &quot;Photography&quot;, etc.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-
-            {/* Languages */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div>
-                  <CardTitle>Languages</CardTitle>
-                  <CardDescription>Add languages you speak</CardDescription>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    languageForm.reset({
-                      language: "",
-                      proficiency: "",
-                    });
-                    setEditingLanguage(null);
-                    setIsAddingLanguage(true);
-                  }}
-                  disabled={isAddingLanguage}
-                >
-                  <Plus className="mr-1 h-4 w-4" />
-                  Add Language
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Form for adding/editing languages */}
-                {(isAddingLanguage || editingLanguage) && (
-                  <div className="rounded-lg border p-4 bg-muted/30 shadow-sm">
-                    <h3 className="font-medium mb-3">
-                      {editingLanguage ? "Edit Language" : "Add New Language"}
-                    </h3>
-                    <Form {...languageForm}>
-                      <form className="space-y-3" onSubmit={languageForm.handleSubmit(onSaveLanguage)}>
-                        <FormField
-                          control={languageForm.control}
-                          name="language"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Language</FormLabel>
-                              <FormControl>
-                                <Input placeholder="E.g. English, Spanish" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={languageForm.control}
-                          name="proficiency"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Proficiency</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select proficiency level" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="Native">Native</SelectItem>
-                                  <SelectItem value="Fluent">Fluent</SelectItem>
-                                  <SelectItem value="Advanced">Advanced</SelectItem>
-                                  <SelectItem value="Intermediate">Intermediate</SelectItem>
-                                  <SelectItem value="Basic">Basic</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <div className="flex justify-end space-x-2 pt-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              setIsAddingLanguage(false);
-                              setEditingLanguage(null);
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            type="submit"
-                            disabled={saving}
-                          >
-                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {editingLanguage ? "Update" : "Add"} Language
-                          </Button>
-                        </div>
-                      </form>
-                    </Form>
-                  </div>
-                )}
-
-                {/* List of languages */}
-                <div className="space-y-2">
-                  {languages.length === 0 && !isAddingLanguage ? (
-                    <div className="text-center p-4 border rounded-lg bg-muted/20">
-                      <p className="text-muted-foreground">No languages added yet.</p>
-                      <Button 
-                        variant="link" 
-                        onClick={() => setIsAddingLanguage(true)}
-                      >
-                        Add your first language
-                      </Button>
-                    </div>
-                  ) : (
-                    languages.map((language) => (
-                      <div 
-                        key={language.$id} 
-                        className="p-3 border rounded-lg flex justify-between items-center"
-                      >
-                        <div>
-                          <h3 className="font-medium">{language.language}</h3>
-                          <p className="text-sm text-muted-foreground">{language.proficiency}</p>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => setEditingLanguage(language)}
-                          >
-                            Edit
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDeleteLanguage(language.$id)}
-                          >
-                            <Trash className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Social Links */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div>
-                  <CardTitle>Social Links</CardTitle>
-                  <CardDescription>Connect your social profiles</CardDescription>
-                </div>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    socialForm.reset({
-                      platform: "",
-                      url: "",
-                    });
-                    setEditingSocial(null);
-                    setIsAddingSocial(true);
-                  }}
-                  disabled={isAddingSocial}
-                >
-                  <Plus className="mr-1 h-4 w-4" />
-                  Add Link
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Form for adding/editing social links */}
-                {(isAddingSocial || editingSocial) && (
-                  <div className="rounded-lg border p-4 bg-muted/30 shadow-sm">
-                    <h3 className="font-medium mb-3">
-                      {editingSocial ? "Edit Social Link" : "Add New Social Link"}
-                    </h3>
-                    <Form {...socialForm}>
-                      <form className="space-y-3" onSubmit={socialForm.handleSubmit(onSaveSocial)}>
-                        <FormField
-                          control={socialForm.control}
-                          name="platform"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Platform</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select platform" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="linkedin">LinkedIn</SelectItem>
-                                  <SelectItem value="twitter">Twitter/X</SelectItem>
-                                  <SelectItem value="github">GitHub</SelectItem>
-                                  <SelectItem value="website">Personal Website</SelectItem>
-                                  <SelectItem value="instagram">Instagram</SelectItem>
-                                  <SelectItem value="facebook">Facebook</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={socialForm.control}
-                          name="url"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>URL</FormLabel>
-                              <FormControl>
-                                <Input placeholder="https://..." {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <div className="flex justify-end space-x-2 pt-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              setIsAddingSocial(false);
-                              setEditingSocial(null);
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            type="submit"
-                            disabled={saving}
-                          >
-                            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {editingSocial ? "Update" : "Add"} Link
-                          </Button>
-                        </div>
-                      </form>
-                    </Form>
-                  </div>
-                )}
-
-                {/* List of social links */}
-                <div className="space-y-2">
-                  {socialLinks.length === 0 && !isAddingSocial ? (
-                    <div className="text-center p-4 border rounded-lg bg-muted/20">
-                      <p className="text-muted-foreground">No social links added yet.</p>
-                      <Button 
-                        variant="link" 
-                        onClick={() => setIsAddingSocial(true)}
-                      >
-                        Add your first social link
-                      </Button>
-                    </div>
-                  ) : (
-                    socialLinks.map((link) => (
-                      <div 
-                        key={link.$id} 
-                        className="p-3 border rounded-lg flex justify-between items-center"
-                      >
-                        <div>
-                          <h3 className="font-medium capitalize">{link.platform}</h3>
-                          <p className="text-sm text-muted-foreground truncate max-w-[250px]">{link.url}</p>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => setEditingSocial(link)}
-                          >
-                            Edit
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDeleteSocial(link.$id)}
-                          >
-                            <Trash className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Privacy Tab */}
-        <TabsContent value="privacy" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Privacy Settings</CardTitle>
-              <CardDescription>Control who can see your information</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...privacyForm}>
-                <form className="space-y-4">
-                  <FormField
-                    control={privacyForm.control}
-                    name="showEmail"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Show Email Address</FormLabel>
-                          <FormDescription>
-                            Allow other alumni to see your email address
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={privacyForm.control}
-                    name="showPhone"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Show Phone Number</FormLabel>
-                          <FormDescription>
-                            Allow other alumni to see your phone number
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={privacyForm.control}
-                    name="showSocial"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Show Social Links</FormLabel>
-                          <FormDescription>
-                            Allow other alumni to see your social media profiles
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={privacyForm.control}
-                    name="allowMessages"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Allow Messages</FormLabel>
-                          <FormDescription>
-                            Allow other alumni to send you direct messages
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={privacyForm.control}
-                    name="allowMentoring"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Open to Mentoring</FormLabel>
-                          <FormDescription>
-                            Display your profile in the mentoring section
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="pt-4">
-                    <Button 
-                      type="button" 
-                      className="w-full"
-                      onClick={() => {
-                        // Save privacy settings
-                        toast({
-                          title: "Privacy settings saved",
-                          description: "Your privacy preferences have been updated.",
-                        });
-                      }}
-                    >
-                      Save Privacy Settings
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 } 

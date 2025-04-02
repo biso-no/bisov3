@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Search, Filter, UserRound, Sparkles, Briefcase, GraduationCap, ArrowRight, Calendar, Medal, Lightbulb, Clock, MapPin, Users } from "lucide-react"
+import { Search, Filter, UserRound, Sparkles, Briefcase, GraduationCap, ArrowRight, Calendar as CalendarIcon, Medal, Lightbulb, Clock, MapPin, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -33,6 +33,7 @@ import Link from "next/link"
 import { Mentor, MentoringProgram } from "@/lib/types/alumni"
 import { getMentors, getMentoringPrograms, applyToBeMentor } from "@/app/(alumni)/alumni/actions"
 import { Skeleton } from "@/components/ui/skeleton"
+import { PageHeader } from "@/components/ui/page-header"
 
 // Mock data for programs until we have the real data
 const programs: MentoringProgram[] = [
@@ -105,6 +106,9 @@ export default function MentoringPage() {
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(true)
 
   useEffect(() => {
+    // Set document title
+    document.title = "Alumni Mentoring | BISO";
+    
     const fetchData = async () => {
       try {
         // Fetch mentors
@@ -116,12 +120,14 @@ export default function MentoringPage() {
         // Fetch mentoring programs
         setIsLoadingPrograms(true);
         const fetchedPrograms = await getMentoringPrograms();
-        setMentoringPrograms(fetchedPrograms);
+        setMentoringPrograms(fetchedPrograms.length > 0 ? fetchedPrograms : programs);
         setIsLoadingPrograms(false);
       } catch (error) {
         console.error("Error fetching data:", error);
         setIsLoadingMentors(false);
         setIsLoadingPrograms(false);
+        // Fall back to mock data if API fails
+        setMentoringPrograms(programs);
       }
     };
     
@@ -150,178 +156,315 @@ export default function MentoringPage() {
   })
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Alumni Mentoring</h1>
-        <p className="text-muted-foreground mt-2">
-          Connect with experienced alumni mentors for career guidance and professional development
-        </p>
+    <div className="relative min-h-screen pb-12">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden -z-10">
+        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
-      <Card className="border-none bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 overflow-hidden">
-        <CardContent className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex flex-col justify-center space-y-4">
-            <div className="bg-primary/10 p-3 rounded-full w-12 h-12 flex items-center justify-center">
-              <UserRound className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-medium">Find a Mentor</h3>
-            <p className="text-sm text-muted-foreground">Connect with industry experts who can guide your career journey and professional development</p>
-          </div>
-          
-          <div className="flex flex-col justify-center space-y-4">
-            <div className="bg-primary/10 p-3 rounded-full w-12 h-12 flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-medium">Join Programs</h3>
-            <p className="text-sm text-muted-foreground">Participate in structured mentoring programs designed for specific career stages and goals</p>
-          </div>
-          
-          <div className="flex flex-col justify-center space-y-4">
-            <div className="bg-primary/10 p-3 rounded-full w-12 h-12 flex items-center justify-center">
-              <GraduationCap className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="text-xl font-medium">Become a Mentor</h3>
-            <p className="text-sm text-muted-foreground">Share your expertise and give back to the alumni community by mentoring the next generation</p>
-          </div>
-        </CardContent>
-      </Card>
+      <section className="container pt-8 pb-8">
+        <PageHeader
+          gradient
+          heading="Alumni Mentoring"
+          subheading="Connect with experienced alumni mentors for career guidance and professional development"
+        />
       
-      <Tabs defaultValue="find-mentor" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="find-mentor">Find a Mentor</TabsTrigger>
-          <TabsTrigger value="programs">Programs</TabsTrigger>
-          <TabsTrigger value="become-mentor">Become a Mentor</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="find-mentor" className="space-y-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search mentors by name, expertise, or background..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+        <Card variant="glass-dark" className="border-0 overflow-hidden mt-8 group hover:shadow-card-hover transition-all duration-300">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-accent/10 via-secondary-100/10 to-blue-accent/10 opacity-20"></div>
+          <CardContent className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+            <div className="flex flex-col justify-center space-y-4">
+              <div className="bg-blue-accent/10 p-3 rounded-full w-12 h-12 flex items-center justify-center group-hover:scale-105 transition-all duration-300">
+                <UserRound className="h-6 w-6 text-blue-accent" />
+              </div>
+              <h3 className="text-xl font-medium text-white">Find a Mentor</h3>
+              <p className="text-sm text-gray-300">Connect with industry experts who can guide your career journey and professional development</p>
             </div>
             
-            <Select value={selectedIndustry || "all"} onValueChange={(value) => setSelectedIndustry(value === "all" ? null : value)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Industries" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Industries</SelectItem>
-                {industries.map((industry) => (
-                  <SelectItem key={industry} value={industry}>
-                    {industry}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {isLoadingMentors ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <MentorCardSkeleton />
-              <MentorCardSkeleton />
-              <MentorCardSkeleton />
+            <div className="flex flex-col justify-center space-y-4">
+              <div className="bg-secondary-100/10 p-3 rounded-full w-12 h-12 flex items-center justify-center group-hover:scale-105 transition-all duration-300">
+                <Sparkles className="h-6 w-6 text-secondary-100" />
+              </div>
+              <h3 className="text-xl font-medium text-white">Join Programs</h3>
+              <p className="text-sm text-gray-300">Participate in structured mentoring programs designed for specific career stages and goals</p>
             </div>
-          ) : filteredMentors.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredMentors.map((mentor) => (
-                <MentorCard key={mentor.$id} mentor={mentor} />
-              ))}
+            
+            <div className="flex flex-col justify-center space-y-4">
+              <div className="bg-gold-default/10 p-3 rounded-full w-12 h-12 flex items-center justify-center group-hover:scale-105 transition-all duration-300">
+                <GraduationCap className="h-6 w-6 text-gold-default" />
+              </div>
+              <h3 className="text-xl font-medium text-white">Become a Mentor</h3>
+              <p className="text-sm text-gray-300">Share your expertise and give back to the alumni community by mentoring the next generation</p>
             </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No mentors found matching your criteria.</p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedIndustry(null);
-                }}
-              >
-                Clear filters
-              </Button>
-            </div>
-          )}
-        </TabsContent>
+          </CardContent>
+        </Card>
+      </section>
+      
+      <section className="container">
+        <Tabs defaultValue="find-mentor" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3 glass-dark backdrop-blur-md border border-secondary-100/20 p-1 h-12">
+            <TabsTrigger 
+              value="find-mentor" 
+              className={cn(
+                "data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
+                activeTab === "find-mentor" ? "bg-gradient-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
+              )}
+            >
+              Find a Mentor
+            </TabsTrigger>
+            <TabsTrigger 
+              value="programs" 
+              className={cn(
+                "data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
+                activeTab === "programs" ? "bg-gradient-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
+              )}
+            >
+              Programs
+            </TabsTrigger>
+            <TabsTrigger 
+              value="become-mentor" 
+              className={cn(
+                "data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
+                activeTab === "become-mentor" ? "bg-gradient-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
+              )}
+            >
+              Become a Mentor
+            </TabsTrigger>
+          </TabsList>
         
-        <TabsContent value="programs" className="space-y-6">
-          {isLoadingPrograms ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ProgramCardSkeleton />
-              <ProgramCardSkeleton />
-            </div>
-          ) : mentoringPrograms.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {mentoringPrograms.map((program) => (
-                <ProgramCard key={program.$id} program={program} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">No mentoring programs are currently available.</p>
-              <p className="text-sm text-muted-foreground mt-2">Please check back later or contact the alumni office for more information.</p>
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="become-mentor" className="space-y-6">
-          <Card className="border border-primary/10">
-            <CardHeader>
-              <CardTitle>Share Your Expertise</CardTitle>
-              <CardDescription>
-                Make a meaningful impact by mentoring students and alumni
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex flex-col items-center text-center p-4 space-y-3 bg-muted/30 rounded-lg">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Clock className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-medium">Flexible Commitment</h3>
-                  <p className="text-sm text-muted-foreground">Choose your availability and mentoring format that works with your schedule</p>
-                </div>
+          <TabsContent value="find-mentor" className="space-y-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-accent/20 via-secondary-100/20 to-blue-accent/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-500"></div>
+                <div className="absolute inset-0 rounded-md backdrop-blur-sm border border-secondary-100/20 group-hover:border-secondary-100/30 group-focus-within:border-secondary-100/50 transition-all duration-300"></div>
                 
-                <div className="flex flex-col items-center text-center p-4 space-y-3 bg-muted/30 rounded-lg">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Lightbulb className="h-6 w-6 text-primary" />
+                <div className="relative flex items-center backdrop-blur-0">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-7 h-7 rounded-full bg-blue-accent/10 group-focus-within:bg-blue-accent/20 transition-all duration-300">
+                    <Search className="h-3.5 w-3.5 text-blue-accent" />
                   </div>
-                  <h3 className="font-medium">Personal Growth</h3>
-                  <p className="text-sm text-muted-foreground">Develop leadership skills and gain new perspectives through mentoring relationships</p>
-                </div>
-                
-                <div className="flex flex-col items-center text-center p-4 space-y-3 bg-muted/30 rounded-lg">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Medal className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-medium">Community Impact</h3>
-                  <p className="text-sm text-muted-foreground">Help shape the next generation of professionals and strengthen the alumni network</p>
+                  <Input
+                    type="search"
+                    placeholder="Search mentors by name, expertise, or background..."
+                    className="pl-12 pr-10 py-6 bg-transparent shadow-none border-0 h-12 text-white placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{ background: 'transparent' }}
+                  />
+                  {searchQuery && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0 flex items-center justify-center rounded-full bg-primary-70/50 text-gray-300 hover:text-white hover:bg-blue-accent/30"
+                      onClick={() => setSearchQuery("")}
+                    >
+                      <span className="sr-only">Clear search</span>
+                      ×
+                    </Button>
+                  )}
                 </div>
               </div>
               
-              <Separator className="my-6" />
-              
-              <div className="flex flex-col items-center text-center space-y-4">
-                <h3 className="text-xl font-medium">Ready to Make a Difference?</h3>
-                <p className="text-muted-foreground max-w-2xl">
-                  By becoming a mentor, you&apos;ll join a community of dedicated alumni who are helping to shape the future of our graduates.
-                </p>
-                <Button size="lg" className="mt-4" asChild>
-                  <Link href="/alumni/mentoring/apply">
-                    Apply to Become a Mentor
+              <Select value={selectedIndustry || "all"} onValueChange={(value) => setSelectedIndustry(value === "all" ? null : value)}>
+                <SelectTrigger 
+                  className="w-[180px] glass-dark border-secondary-100/20 group hover:border-secondary-100/30 text-gray-300 h-12 px-4"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center w-6 h-6 rounded-full bg-secondary-100/10 group-hover:bg-secondary-100/20 transition-all duration-300">
+                      <Briefcase className="h-3.5 w-3.5 text-secondary-100" />
+                    </div>
+                    <SelectValue placeholder="All Industries" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="glass-dark border-secondary-100/20 backdrop-blur-md">
+                  <SelectItem value="all" className="focus:bg-blue-accent/20">All Industries</SelectItem>
+                  {industries.map((industry) => (
+                    <SelectItem key={industry} value={industry} className="focus:bg-blue-accent/20">
+                      {industry}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {isLoadingMentors ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <MentorCardSkeleton />
+                <MentorCardSkeleton />
+                <MentorCardSkeleton />
+              </div>
+            ) : filteredMentors.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredMentors.map((mentor) => (
+                  <MentorCard key={mentor.$id} mentor={mentor} />
+                ))}
+              </div>
+            ) : (
+              <Card variant="glass-dark" className="border-0 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/10 opacity-20" />
+                <CardContent className="flex flex-col items-center justify-center py-12 relative z-10">
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 rounded-full blur-xl bg-blue-accent/20 animate-pulse"></div>
+                    <div className="relative z-10 p-4 rounded-full bg-primary-90/50 backdrop-blur-sm border border-secondary-100/20">
+                      <UserRound className="h-10 w-10 text-blue-accent" />
+                    </div>
+                  </div>
+                  <p className="text-xl font-medium text-white mb-3">No mentors found</p>
+                  <p className="text-gray-300 max-w-md mb-6 text-center">No mentors match your current search criteria. Try adjusting your filters or search terms.</p>
+                  <Button 
+                    variant="gradient" 
+                    onClick={() => {
+                      setSearchQuery("");
+                      setSelectedIndustry(null);
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="programs" className="space-y-6">
+            <Card variant="glass-dark" className="border-0 overflow-hidden mb-6">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-accent/10 via-secondary-100/10 to-blue-accent/10 opacity-20"></div>
+              <CardContent className="p-6 md:flex items-center justify-between relative z-10">
+                <div className="mb-4 md:mb-0">
+                  <h3 className="text-xl font-medium text-white">Mentoring Programs</h3>
+                  <p className="text-sm text-gray-300 mt-1">
+                    Join structured mentoring programs tailored to specific career paths and professional goals
+                  </p>
+                </div>
+                <Button 
+                  variant="glass" 
+                  className="backdrop-blur-sm border border-secondary-100/20 hover:border-secondary-100/40 transition-colors"
+                  asChild
+                >
+                  <Link href="/alumni/mentoring/programs/all">
+                    View All Programs
                   </Link>
                 </Button>
+              </CardContent>
+            </Card>
+
+            {isLoadingPrograms ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ProgramCardSkeleton />
+                <ProgramCardSkeleton />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ) : mentoringPrograms.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {mentoringPrograms.map((program) => (
+                  <ProgramCard key={program.$id} program={program} />
+                ))}
+              </div>
+            ) : (
+              <Card variant="glass-dark" className="border-0 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/10 opacity-20" />
+                <CardContent className="flex flex-col items-center justify-center py-12 relative z-10">
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 rounded-full blur-xl bg-blue-accent/20 animate-pulse"></div>
+                    <div className="relative z-10 p-4 rounded-full bg-primary-90/50 backdrop-blur-sm border border-secondary-100/20">
+                      <Sparkles className="h-10 w-10 text-blue-accent" />
+                    </div>
+                  </div>
+                  <p className="text-xl font-medium text-white mb-3">No programs available</p>
+                  <p className="text-gray-300 max-w-md mb-6 text-center">
+                    There are currently no mentoring programs available. Please check back soon for new opportunities.
+                  </p>
+                  <Button 
+                    variant="gradient" 
+                    onClick={() => window.location.reload()}
+                  >
+                    Refresh Programs
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="become-mentor" className="space-y-6">
+            <Card variant="glass-dark" className="border-0 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-gold-default/10 to-blue-accent/10 opacity-20" />
+              <CardHeader className="relative z-10">
+                <CardTitle className="text-white text-2xl">Share Your Expertise</CardTitle>
+                <CardDescription className="text-gray-300">
+                  Make a meaningful impact by mentoring students and alumni
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6 relative z-10">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="flex flex-col items-center text-center p-6 space-y-4 glass rounded-lg border border-secondary-100/10 hover:border-secondary-100/20 transition-all duration-300 group">
+                    <div className="h-16 w-16 rounded-full bg-blue-accent/10 flex items-center justify-center group-hover:scale-105 transition-all duration-300">
+                      <Clock className="h-8 w-8 text-blue-accent" />
+                    </div>
+                    <h3 className="font-medium text-white text-lg">Flexible Commitment</h3>
+                    <p className="text-sm text-gray-300">Choose your availability and mentoring format that works with your schedule</p>
+                  </div>
+                  
+                  <div className="flex flex-col items-center text-center p-6 space-y-4 glass rounded-lg border border-secondary-100/10 hover:border-secondary-100/20 transition-all duration-300 group">
+                    <div className="h-16 w-16 rounded-full bg-secondary-100/10 flex items-center justify-center group-hover:scale-105 transition-all duration-300">
+                      <Lightbulb className="h-8 w-8 text-secondary-100" />
+                    </div>
+                    <h3 className="font-medium text-white text-lg">Personal Growth</h3>
+                    <p className="text-sm text-gray-300">Develop leadership skills and gain new perspectives through mentoring relationships</p>
+                  </div>
+                  
+                  <div className="flex flex-col items-center text-center p-6 space-y-4 glass rounded-lg border border-secondary-100/10 hover:border-secondary-100/20 transition-all duration-300 group">
+                    <div className="h-16 w-16 rounded-full bg-gold-default/10 flex items-center justify-center group-hover:scale-105 transition-all duration-300">
+                      <Medal className="h-8 w-8 text-gold-default" />
+                    </div>
+                    <h3 className="font-medium text-white text-lg">Community Impact</h3>
+                    <p className="text-sm text-gray-300">Help shape the next generation of professionals and strengthen the alumni network</p>
+                  </div>
+                </div>
+                
+                <Card variant="glass-dark" className="border border-secondary-100/10 mt-8">
+                  <CardContent className="p-6 md:p-8 flex flex-col items-center justify-center text-center space-y-6">
+                    <div className="relative">
+                      <div className="absolute inset-0 rounded-full blur-xl bg-blue-accent/20 animate-pulse"></div>
+                      <div className="relative z-10 p-4 rounded-full bg-blue-accent/10 backdrop-blur-sm border border-secondary-100/20">
+                        <GraduationCap className="h-10 w-10 text-blue-accent" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 max-w-2xl">
+                      <h3 className="text-2xl font-medium text-white">Ready to Make a Difference?</h3>
+                      <p className="text-gray-300">
+                        By becoming a mentor, you&apos;ll join a community of dedicated alumni who are helping to shape the future of our graduates. Share your expertise, provide guidance, and create meaningful connections.
+                      </p>
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                      <Button 
+                        variant="gradient" 
+                        size="lg" 
+                        className="group"
+                        asChild
+                      >
+                        <Link href="/alumni/mentoring/apply" className="flex items-center gap-2">
+                          Apply to Become a Mentor
+                          <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+                        </Link>
+                      </Button>
+                      
+                      <Button 
+                        variant="glass" 
+                        size="lg"
+                        asChild
+                      >
+                        <Link href="/alumni/mentoring/faq">
+                          Learn More About Mentoring
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </section>
     </div>
   )
 }
@@ -341,52 +484,60 @@ function MentorCard({ mentor }: MentorCardProps) {
     : "ME"
     
   return (
-    <Card className="overflow-hidden border border-primary/10 hover:border-primary/20 transition-colors group h-full flex flex-col">
-      <CardHeader className="pb-0">
+    <Card variant="glass-dark" className="overflow-hidden border-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover group h-full flex flex-col">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+      <CardHeader className="pb-0 relative z-10">
         <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16 border-2 border-background">
-            <AvatarImage src={mentor.avatarUrl} alt={mentor.name} />
-            <AvatarFallback className="text-lg">{initials}</AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-blue-accent/50 to-secondary-100/30 blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+            <Avatar className="h-16 w-16 border-2 border-primary-90/50 relative">
+              <AvatarImage src={mentor.avatarUrl} alt={mentor.name} />
+              <AvatarFallback className="text-lg bg-primary-80">{initials}</AvatarFallback>
+            </Avatar>
+          </div>
           <div>
-            <CardTitle className="text-lg">
+            <CardTitle className="text-lg text-white">
               <Link 
                 href={`/alumni/mentoring/${mentor.$id}`}
-                className="hover:text-primary transition-colors inline-flex items-center gap-1"
+                className="hover:text-blue-accent transition-colors inline-flex items-center gap-1"
               >
                 {mentor.name}
               </Link>
             </CardTitle>
-            <CardDescription className="mt-1">{mentor.title} {mentor.company ? `at ${mentor.company}` : ''}</CardDescription>
+            <CardDescription className="mt-1 text-gray-300">{mentor.title} {mentor.company ? `at ${mentor.company}` : ''}</CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-4 flex-1">
+      <CardContent className="pt-4 flex-1 relative z-10">
         <div className="flex items-center gap-2 mb-3">
           {mentor.industry && (
-            <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+            <Badge variant="gradient" className="border border-blue-accent/20 text-xs">
               {mentor.industry}
             </Badge>
           )}
           {mentor.graduationYear && (
-            <Badge variant="outline" className="bg-muted/50">Class of {mentor.graduationYear}</Badge>
+            <Badge variant="outline" className="bg-primary-80/50 text-xs">Class of {mentor.graduationYear}</Badge>
           )}
         </div>
         
-        <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
+        <p className="text-sm text-gray-300 line-clamp-3 mb-3">
           {mentor.bio}
         </p>
         
         <div className="grid grid-cols-2 gap-2 mb-3">
           {mentor.experience && (
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Briefcase className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-1.5 text-sm text-gray-400">
+              <div className="p-1.5 rounded-md bg-blue-accent/10 group-hover:bg-blue-accent/20 transition-colors">
+                <Briefcase className="h-3.5 w-3.5 text-blue-accent" />
+              </div>
               <span>{mentor.experience} years exp.</span>
             </div>
           )}
           {mentor.location && (
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <MapPin className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-1.5 text-sm text-gray-400">
+              <div className="p-1.5 rounded-md bg-secondary-100/10 group-hover:bg-secondary-100/20 transition-colors">
+                <MapPin className="h-3.5 w-3.5 text-secondary-100" />
+              </div>
               <span className="truncate">{mentor.location}</span>
             </div>
           )}
@@ -395,17 +546,18 @@ function MentorCard({ mentor }: MentorCardProps) {
         {mentor.expertise && mentor.expertise.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {mentor.expertise.slice(0, 3).map((skill, i) => (
-              <Badge key={i} variant="secondary" className="bg-secondary/30">
+              <Badge key={i} variant="outline" className="border-secondary-100/20 text-secondary-100 bg-secondary-100/5 text-xs">
                 {skill}
               </Badge>
             ))}
           </div>
         )}
       </CardContent>
-      <CardFooter className="border-t bg-muted/20 pt-3">
-        <Button className="w-full group-hover:bg-primary group-hover:text-primary-foreground" asChild>
-          <Link href={`/alumni/mentoring/${mentor.$id}`}>
-            Connect <ArrowRight className="h-4 w-4 ml-1" />
+      <CardFooter className="border-t border-secondary-100/10 bg-primary-80/30 pt-3 relative z-10">
+        <Button variant="gradient" className="w-full gap-1 group" asChild>
+          <Link href={`/alumni/mentoring/${mentor.$id}`} className="flex items-center">
+            Connect 
+            <ArrowRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-0.5" />
           </Link>
         </Button>
       </CardFooter>
@@ -421,61 +573,76 @@ function ProgramCard({ program }: ProgramCardProps) {
   const defaultImage = "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3";
   
   return (
-    <Card className="overflow-hidden border border-primary/10 hover:border-primary/20 transition-colors group">
+    <Card variant="glass-dark" className="overflow-hidden border-0 hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1 group">
       <div className="relative h-48 w-full overflow-hidden">
         <div 
-          className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
+          className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
           style={{ backgroundImage: `url(${program.image || defaultImage})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"></div>
-        <div className="absolute bottom-4 left-4 right-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-primary-90 via-primary-90/70 to-transparent"></div>
+        <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
           {program.category && (
             <Badge 
               variant="outline" 
               className={cn(
-                "bg-background/80 backdrop-blur-sm font-medium",
-                program.category === "Career Development" && "border-blue-500/50 text-blue-500",
-                program.category === "Leadership" && "border-purple-500/50 text-purple-500",
-                program.category === "Entrepreneurship" && "border-amber-500/50 text-amber-500",
+                "backdrop-blur-sm font-medium",
+                program.category === "Career Development" && "text-blue-accent border-blue-accent/30",
+                program.category === "Leadership" && "text-purple-500 border-purple-500/30",
+                program.category === "Entrepreneurship" && "text-amber-500 border-amber-500/30",
               )}
             >
               {program.category}
             </Badge>
           )}
+          
+          {program.featured && (
+            <Badge variant="gradient" className="backdrop-blur-sm border-blue-accent/20">
+              Featured
+            </Badge>
+          )}
         </div>
       </div>
       
-      <CardContent className="p-4">
-        <h3 className="font-medium text-lg">{program.title}</h3>
-        <p className="text-sm text-muted-foreground line-clamp-2 mt-1 h-10">{program.description}</p>
+      <CardContent className="p-5 relative">
+        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-accent/20 to-transparent opacity-30 blur-3xl"></div>
         
-        <div className="grid grid-cols-2 gap-3 mt-4 text-xs text-muted-foreground">
+        <h3 className="font-medium text-xl truncate text-white group-hover:text-blue-accent transition-colors">{program.title}</h3>
+        <p className="text-sm text-gray-300 line-clamp-2 mt-2 h-10">{program.description}</p>
+        
+        <div className="grid grid-cols-2 gap-3 mt-4 text-xs text-gray-400">
           {program.startDate && (
             <div className="flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5" />
+              <div className="p-1.5 rounded-md bg-blue-accent/10 group-hover:bg-blue-accent/20 transition-colors">
+                <CalendarIcon className="h-3.5 w-3.5 text-blue-accent" />
+              </div>
               <span>Starts: {new Date(program.startDate).toLocaleDateString()}</span>
             </div>
           )}
           {program.duration && (
             <div className="flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5" />
+              <div className="p-1.5 rounded-md bg-secondary-100/10 group-hover:bg-secondary-100/20 transition-colors">
+                <Clock className="h-3.5 w-3.5 text-secondary-100" />
+              </div>
               <span>{program.duration}</span>
             </div>
           )}
           {program.spots && (
             <div className="flex items-center gap-1.5 col-span-2">
-              <Users className="h-3.5 w-3.5" />
-              <span className="text-foreground font-medium">{program.spotsRemaining || 0}</span>
+              <div className="p-1.5 rounded-md bg-gold-default/10 group-hover:bg-gold-default/20 transition-colors">
+                <Users className="h-3.5 w-3.5 text-gold-default" />
+              </div>
+              <span className="text-white font-medium">{program.spotsRemaining || 0}</span>
               <span> of {program.spots} spots remaining</span>
             </div>
           )}
         </div>
       </CardContent>
       
-      <CardFooter className="px-4 py-3 border-t bg-muted/20">
-        <Button asChild className="w-full">
-          <Link href={`/alumni/mentoring/program/${program.$id}`}>
+      <CardFooter className="px-5 py-4 border-t border-secondary-100/10 bg-primary-80/30">
+        <Button variant="gradient" className="w-full gap-1 group" asChild>
+          <Link href={`/alumni/mentoring/program/${program.$id}`} className="flex items-center">
             Apply Now
+            <span className="ml-1 transition-transform group-hover:translate-x-0.5">→</span>
           </Link>
         </Button>
       </CardFooter>
