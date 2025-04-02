@@ -108,9 +108,9 @@ export default function SettingsPage() {
           <TabsContent value="notifications" className="space-y-4 animate-in fade-in-50 duration-300">
             <Card variant="glass-dark" className="border border-secondary-100/10">
               <CardHeader>
-                <CardTitle className="text-xl flex items-center">
+                <CardTitle className="text-xl flex items-center text-secondary-100">
                   <Bell className="h-5 w-5 mr-2 text-blue-accent" />
-                  <span>Notification Preferences</span>
+                  Notification Preferences
                 </CardTitle>
                 <CardDescription>
                   Choose how and when you want to be notified
@@ -234,9 +234,9 @@ export default function SettingsPage() {
           <TabsContent value="privacy" className="space-y-4 animate-in fade-in-50 duration-300">
             <Card variant="glass-dark" className="border border-secondary-100/10">
               <CardHeader>
-                <CardTitle className="text-xl flex items-center">
+                <CardTitle className="text-xl flex items-center text-secondary-100">
                   <Lock className="h-5 w-5 mr-2 text-blue-accent" />
-                  <span>Privacy Settings</span>
+                  Privacy Settings
                 </CardTitle>
                 <CardDescription>
                   Control who can see your information and how it&apos;s used
@@ -337,9 +337,9 @@ export default function SettingsPage() {
             
             <Card variant="glass-dark" className="border border-secondary-100/10">
               <CardHeader>
-                <CardTitle className="text-xl flex items-center">
+                <CardTitle className="text-xl flex items-center text-secondary-100">
                   <Shield className="h-5 w-5 mr-2 text-gold-default" />
-                  <span>Data & Privacy</span>
+                  Data & Privacy
                 </CardTitle>
                 <CardDescription>
                   Manage your personal data and privacy options
@@ -380,7 +380,7 @@ export default function SettingsPage() {
           <TabsContent value="appearance" className="space-y-4 animate-in fade-in-50 duration-300">
             <Card variant="glass-dark" className="border border-secondary-100/10">
               <CardHeader>
-                <CardTitle className="text-xl flex items-center">
+                <CardTitle className="text-xl flex items-center text-secondary-100">
                   <Sun className="h-5 w-5 mr-2 text-blue-accent" />
                   <span>Theme Settings</span>
                 </CardTitle>

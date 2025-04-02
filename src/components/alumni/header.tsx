@@ -66,9 +66,9 @@ export function AlumniHeader() {
           </Button>
           <Link href="/alumni" className="hidden md:flex items-center gap-2 group">
             <Image 
-              src="/images/logo-home.png" 
+              src="/images/biso-dare-to-be-more-dark.png" 
               alt="BISO Alumni" 
-              width={120} 
+              width={160} 
               height={50} 
               className="group-hover:opacity-80 transition-opacity"
             />
