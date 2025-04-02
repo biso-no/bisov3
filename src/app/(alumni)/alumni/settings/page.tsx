@@ -63,7 +63,7 @@ export default function SettingsPage() {
         <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
       </div>
       
-      <div className="container pt-8 pb-8 space-y-6">
+      <div className="container p-8 space-y-6">
         <PageHeader
           gradient
           heading="Settings"

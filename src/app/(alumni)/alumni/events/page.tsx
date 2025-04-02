@@ -90,7 +90,7 @@ export default function EventsPage() {
         <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
       </div>
       
-      <section className="container pt-8 pb-8">
+      <section className="container p-8">
         <PageHeader
           gradient
           heading="Alumni Events"
@@ -206,7 +206,7 @@ export default function EventsPage() {
         </div>
       </section>
       
-      <section className="container">
+      <section className="container p-8">
         {/* Enhanced count card */}
         <Card variant="glass-dark" className="mb-6 border-0 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-gold-default/10 to-secondary-100/10 opacity-30" />

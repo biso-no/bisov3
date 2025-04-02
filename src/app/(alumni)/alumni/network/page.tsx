@@ -163,7 +163,7 @@ export default function NetworkPage() {
         <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
       </div>
       
-      <section className="container pt-8 pb-8">
+      <section className="container p-8">
         <PageHeader
           gradient
           heading="Alumni Network"
@@ -360,7 +360,7 @@ export default function NetworkPage() {
         </div>
       </section>
       
-      <section className="container">
+      <section className="container p-8">
         {activeFilterCount > 0 && (
           <div className="flex items-center gap-2 flex-wrap mb-6 animate-in fade-in-50 slide-in-from-bottom-3 duration-500">
             {searchQuery && (

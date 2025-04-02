@@ -162,7 +162,7 @@ export default function JobsPage() {
         <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
-      <section className="container pt-8 pb-8">
+      <section className="container p-8">
         <PageHeader
           gradient
           heading="Alumni Job Board"

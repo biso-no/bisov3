@@ -18,8 +18,8 @@ export default function AlumniPage() {
       <section className="container pt-8 pb-12">
         <PageHeader
           gradient
-          heading="Alumni Network"
-          subheading="Connect with our global community of graduates and industry professionals"
+          heading="BISO Alumni Network"
+          subheading="Connect with our community of graduates and industry professionals"
           actions={
             <>
               <Button variant="glass-dark">Join Network</Button>

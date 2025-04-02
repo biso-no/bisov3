@@ -164,7 +164,7 @@ export default function MentoringPage() {
         <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
-      <section className="container pt-8 pb-8">
+      <section className="container p-8">
         <PageHeader
           gradient
           heading="Alumni Mentoring"
@@ -201,7 +201,7 @@ export default function MentoringPage() {
         </Card>
       </section>
       
-      <section className="container">
+      <section className="container p-8">
         <Tabs defaultValue="find-mentor" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 glass-dark backdrop-blur-md border border-secondary-100/20 p-1 h-12">
             <TabsTrigger 
