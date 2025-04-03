@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createSessionClient } from "./lib/appwrite";
 import { Query } from "node-appwrite";
+import {
+  networksFeatureFlag,
+  eventsFeatureFlag,
+  mentoringFeatureFlag,
+  jobsFeatureFlag,
+  resourcesFeatureFlag,
+  messagesFeatureFlag
+} from '@/lib/flags';
 
 // Define available roles and their corresponding admin paths
 const roleAccessMap = {
@@ -17,6 +25,16 @@ const adminPath = '/admin';
 const protectedPaths = ['/', ...Object.values(roleAccessMap).flat()];
 // Paths that any authenticated user can access
 const authenticatedPaths = ['/expenses'];
+
+// Define route-to-flag mapping for protected pages
+const PROTECTED_ROUTES: Record<string, () => Promise<boolean>> = {
+  '/alumni/network': networksFeatureFlag,
+  '/alumni/events': eventsFeatureFlag,
+  '/alumni/mentoring': mentoringFeatureFlag,
+  '/alumni/jobs': jobsFeatureFlag,
+  '/alumni/resources': resourcesFeatureFlag, 
+  '/alumni/messages': messagesFeatureFlag
+};
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -101,5 +119,28 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
+  // Only check routes in the alumni section
+  if (pathname.startsWith('/alumni')) {
+    // Check if the route is protected by a feature flag
+    for (const [route, flagFn] of Object.entries(PROTECTED_ROUTES)) {
+      if (pathname === route || pathname.startsWith(`${route}/`)) {
+        // Evaluate the feature flag
+        const isEnabled = await flagFn();
+        
+        // If the feature is disabled, redirect to the dashboard
+        if (!isEnabled) {
+          return NextResponse.redirect(new URL('/alumni', req.url));
+        }
+      }
+    }
+  }
+
   return res;
 }
+
+// Configure middleware to run on specific paths
+export const config = {
+  matcher: [
+    '/alumni/:path*',
+  ],
+};

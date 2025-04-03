@@ -190,6 +190,15 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
       roles: ['Admin', 'finance'],
     },
     {
+      href: '/admin/alumni',
+      icon: Users,
+      label: 'Alumni',
+      roles: ['Admin'],
+      subItems: [
+        { href: '/admin/alumni/mentors', label: 'Mentor Approvals', roles: ['Admin'] },
+      ],
+    },
+    {
       href: '/admin/units',
       icon: Building2,
       label: 'Units',

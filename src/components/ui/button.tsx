@@ -6,27 +6,31 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 ease-in-out relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+  "inline-flex items-center justify-center rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background",
   {
     variants: {
       variant: {
-        default:
-          "bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-lg hover:shadow-xl hover:from-primary/95 hover:to-primary/85 active:scale-[0.98] before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent disabled:pointer-events-none disabled:opacity-50",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
-          "bg-gradient-to-r from-destructive to-destructive/90 text-destructive-foreground shadow-md hover:shadow-lg hover:from-destructive/95 hover:to-destructive/85 active:scale-[0.98] before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-input/50 bg-gradient-to-b from-background to-background/5 backdrop-blur-sm shadow-sm hover:shadow-md hover:border-primary/20 hover:bg-accent/5 hover:text-accent-foreground active:scale-[0.98] before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent",
+          "border border-input hover:bg-accent hover:text-accent-foreground",
         secondary:
-          "bg-gradient-to-r from-secondary to-secondary/90 text-secondary-foreground shadow-sm hover:shadow-md hover:from-secondary/95 hover:to-secondary/85 active:scale-[0.98] before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent",
-        ghost: 
-          "hover:bg-gradient-to-r hover:from-accent/50 hover:to-accent/30 hover:text-accent-foreground active:scale-[0.98]",
-        link: 
-          "text-primary underline-offset-4 hover:underline hover:text-primary/90 active:scale-[0.98]",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "underline-offset-4 hover:underline text-primary",
+        glass: "glass text-foreground hover:brightness-110 backdrop-blur-sm border border-white/10 shadow-md",
+        "glass-dark": "glass-dark text-white hover:brightness-110 shadow-md",
+        gradient: "relative overflow-hidden bg-primary text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-r before:from-blue-accent before:to-secondary-100 before:opacity-0 before:transition-opacity hover:before:opacity-100 before:-z-10",
+        glow: "bg-primary-80 text-white shadow-glow hover:shadow-glow-blue transition-all duration-300 hover:-translate-y-0.5",
+        "golden-gradient": "relative text-primary-100 bg-gradient-to-r from-gold-default to-gold-accent shadow-card-gold hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300",
+        animated: "bg-primary-90 text-white hover:bg-primary-80 transition-all duration-300 relative overflow-hidden shadow-md hover:shadow-lg hover:-translate-y-0.5 hover:translate-x-0.5 after:absolute after:inset-0 after:bg-gradient-to-r after:from-transparent after:via-white/20 after:to-transparent after:translate-x-[-200%] hover:after:translate-x-[200%] after:transition-transform after:duration-700",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3 text-xs",
-        lg: "h-11 rounded-md px-8 text-base",
+        default: "h-10 py-2 px-4",
+        sm: "h-9 px-3 rounded-md",
+        lg: "h-11 px-8 rounded-md",
+        xl: "h-12 px-10 rounded-lg text-base",
         icon: "h-10 w-10",
       },
     },
