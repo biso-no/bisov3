@@ -1,4 +1,4 @@
-import { MapPin, Briefcase, GraduationCap, ArrowRight, MessageCircle, SearchX } from "lucide-react"
+import { MapPin, Briefcase, GraduationCap, ArrowRight, MessageCircle, SearchX, Lock } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -41,57 +41,57 @@ export function AlumniList({ alumni }: AlumniListProps) {
   
   if (alumni.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center text-center py-16 px-4">
+      <div className="flex flex-col items-center justify-center py-16 text-center">
         <div className="relative mb-6">
           <div className="absolute inset-0 rounded-full blur-xl bg-blue-accent/20 animate-pulse"></div>
-          <div className="relative z-10 p-4 rounded-full bg-primary-90/50 backdrop-blur-sm border border-secondary-100/20">
-            <SearchX className="h-10 w-10 text-secondary-100" />
+          <div className="relative z-10 p-5 rounded-full bg-primary-90/50 backdrop-blur-sm border border-secondary-100/20">
+            <SearchX className="h-12 w-12 text-blue-accent" />
           </div>
         </div>
-        <h3 className="text-xl font-medium mb-3 text-white">No alumni found</h3>
-        <p className="text-gray-300 max-w-md mb-6">Try adjusting your search criteria or filters to find alumni members in our network.</p>
-        <Button variant="gradient">Clear Filters</Button>
+        <h2 className="text-xl font-semibold text-white mb-2">No alumni found</h2>
+        <p className="text-gray-300 max-w-md">
+          No alumni match your current filters. Try adjusting your search criteria.
+        </p>
       </div>
     );
   }
   
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {alumni.map((profile) => (
         <Card 
-          key={profile.$id} 
+          key={profile.$id}
           variant="glass-dark" 
-          className="group hover:shadow-card-hover transition-all duration-300 overflow-hidden"
+          className="overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover group border-0"
         >
-          <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-b opacity-80 transition-all duration-300 group-hover:w-2.5"
-            style={{
-              background: profile.company?.includes("Gold") 
-                ? "linear-gradient(to bottom, #F7D64A, #BD9E16)" 
-                : profile.location?.includes("York") 
-                ? "linear-gradient(to bottom, #3DA9E0, #1A77E9)" 
-                : "linear-gradient(to bottom, #1A77E9, #01417B)"
-            }}
-          />
-          
-          <div className={cn(
-            "absolute inset-0 bg-gradient-to-r opacity-5 group-hover:opacity-10 transition-opacity duration-300",
-            getGradient(profile.name)
-          )} />
-
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-accent/10 to-secondary-100/10 opacity-30" />
           <CardContent className="p-4 z-10 relative">
             <div className="flex flex-col sm:flex-row gap-4">
-              <Avatar className="h-16 w-16 border-2 border-secondary-100/20 shadow-glow-blue transition-all duration-300 group-hover:scale-105">
-                <AvatarImage src={profile.avatarUrl || ""} alt={profile.name} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-accent to-secondary-100 text-white font-bold">
-                  {getInitials(profile.name)}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-16 w-16 border-2 border-secondary-100/20 shadow-glow-blue transition-all duration-300 group-hover:scale-105">
+                  <AvatarImage src={profile.avatarUrl || ""} alt={profile.name} />
+                  <AvatarFallback className="bg-gradient-to-br from-blue-accent to-secondary-100 text-white font-bold">
+                    {getInitials(profile.name)}
+                  </AvatarFallback>
+                </Avatar>
+                
+                {profile.privacySettings?.profileVisibility === 'limited' && (
+                  <div className="absolute -top-1 -right-1 bg-primary-90 rounded-full p-1 border border-secondary-100/20" title="Limited Profile">
+                    <Lock className="h-3 w-3 text-secondary-100" />
+                  </div>
+                )}
+              </div>
               
               <div className="flex-1 space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
-                    <h3 className="font-medium text-white group-hover:text-secondary-100 transition-colors duration-300">
+                    <h3 className="font-medium text-white group-hover:text-secondary-100 transition-colors duration-300 flex items-center gap-2">
                       {profile.name}
+                      {profile.privacySettings?.profileVisibility === 'connections' && (
+                        <Badge variant="glass-dark" className="text-xs font-normal">
+                          Connections
+                        </Badge>
+                      )}
                     </h3>
                     <p className="text-sm text-gray-300">{profile.title || "Alumni"}</p>
                   </div>
@@ -103,51 +103,56 @@ export function AlumniList({ alumni }: AlumniListProps) {
                         <ArrowRight className="h-3.5 w-3.5 opacity-70 group-hover:translate-x-0.5 transition-transform" />
                       </Link>
                     </Button>
-                    <Button variant="gradient" size="sm" className="transition-all duration-300 gap-1">
-                      <MessageCircle className="h-3.5 w-3.5" />
-                      Connect
-                    </Button>
+                    {profile.privacySettings?.allowMessages !== false && (
+                      <Button variant="gradient" size="sm" className="transition-all duration-300 gap-1">
+                        <MessageCircle className="h-3.5 w-3.5" />
+                        Connect
+                      </Button>
+                    )}
                   </div>
                 </div>
                 
-                <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
-                  {profile.company && (
-                    <div className="flex items-center gap-2 group/item">
-                      <div className="p-1.5 rounded-md bg-blue-accent/20 group-hover/item:bg-blue-accent/30 transition-colors">
-                        <Briefcase className="h-3.5 w-3.5 text-blue-accent" />
-                      </div>
-                      <span className="text-gray-200">{profile.company}</span>
+                <div className="flex flex-wrap gap-4">
+                  {profile.location && profile.privacySettings?.showLocation !== false && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-gold-default" />
+                      <span className="text-gray-300">{profile.location}</span>
                     </div>
                   )}
-                  {profile.location && (
-                    <div className="flex items-center gap-2 group/item">
-                      <div className="p-1.5 rounded-md bg-gold-default/20 group-hover/item:bg-gold-default/30 transition-colors">
-                        <MapPin className="h-3.5 w-3.5 text-gold-default" />
-                      </div>
-                      <span className="text-gray-200">{profile.location}</span>
+                  
+                  {profile.company && profile.privacySettings?.showWork !== false && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Briefcase className="h-4 w-4 text-blue-accent" />
+                      <span className="text-gray-300">{profile.company}</span>
                     </div>
                   )}
+                  
                   {profile.graduationYear && (
-                    <div className="flex items-center gap-2 group/item">
-                      <div className="p-1.5 rounded-md bg-secondary-100/20 group-hover/item:bg-secondary-100/30 transition-colors">
-                        <GraduationCap className="h-3.5 w-3.5 text-secondary-100" />
-                      </div>
-                      <span className="text-gray-200">Class of {profile.graduationYear}</span>
+                    <div className="flex items-center gap-2 text-sm">
+                      <GraduationCap className="h-4 w-4 text-secondary-100" />
+                      <span className="text-gray-300">Class of {profile.graduationYear}</span>
                     </div>
                   )}
                 </div>
                 
-                <div className="flex flex-wrap gap-1.5 mt-3">
-                  {profile.skills && profile.skills.map((skill, i) => (
-                    <Badge 
-                      key={i} 
-                      variant={i % 3 === 0 ? "gradient" : i % 3 === 1 ? "glass-dark" : "gold"} 
-                      className="text-xs font-normal"
-                    >
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
+                {profile.skills && profile.skills.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {profile.skills.slice(0, 5).map((skill, i) => (
+                      <Badge 
+                        key={i} 
+                        variant="outline" 
+                        className="bg-blue-accent/10 text-blue-accent border-blue-accent/20 text-xs"
+                      >
+                        {skill}
+                      </Badge>
+                    ))}
+                    {profile.skills.length > 5 && (
+                      <Badge variant="outline" className="bg-primary-80/30 text-gray-300 border-white/10 text-xs">
+                        +{profile.skills.length - 5} more
+                      </Badge>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

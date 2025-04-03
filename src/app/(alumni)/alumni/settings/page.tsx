@@ -13,7 +13,9 @@ import {
   HelpCircle, 
   LogOut,
   Shield,
-  Loader2
+  Loader2,
+  Users,
+  Handshake
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -46,7 +48,13 @@ import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { cn } from "@/lib/utils"
 import { PageHeader } from "@/components/ui/page-header"
-import { fetchUserSubscriptions, updateSubscriptionStatus } from "../actions"
+import { 
+  fetchUserSubscriptions, 
+  updateSubscriptionStatus, 
+  fetchPrivacySettings,
+  updatePrivacySettings,
+  UserPrivacySettings
+} from "../actions"
 import { toast } from "@/components/ui/use-toast"
 
 interface Subscription {
@@ -57,12 +65,42 @@ interface Subscription {
   subscriber_id?: string;
 }
 
+// Using our local interface to match the backend UserPrivacySettings
+interface PrivacyConfig {
+  profileVisibility: 'all_alumni' | 'connections' | 'limited';
+  showEmail: boolean;
+  showPhone: boolean;
+  showEducation: boolean;
+  showWork: boolean;
+  showLocation: boolean;
+  showSocial: boolean;
+  allowMessages: boolean;
+  allowConnections: boolean;
+  allowMentoring: boolean;
+}
+
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("notifications")
   const [subscriptions, setSubscriptions] = useState<Record<string, Subscription>>({})
   const [loading, setLoading] = useState(true)
   const [updatingTopic, setUpdatingTopic] = useState<string | null>(null)
   const [saveLoading, setSaveLoading] = useState(false)
+  
+  // Privacy settings state
+  const [privacySettings, setPrivacySettings] = useState<PrivacyConfig>({
+    profileVisibility: 'all_alumni',
+    showEmail: true,
+    showPhone: false,
+    showEducation: true,
+    showWork: true,
+    showLocation: true,
+    showSocial: true,
+    allowMessages: true,
+    allowConnections: true,
+    allowMentoring: true
+  })
+  const [privacyLoading, setPrivacyLoading] = useState(true)
+  const [savingPrivacy, setSavingPrivacy] = useState(false)
   
   // Set document title
   useEffect(() => {
@@ -89,6 +127,28 @@ export default function SettingsPage() {
     }
     
     loadSubscriptions();
+  }, []);
+
+  // Load user privacy settings
+  useEffect(() => {
+    async function loadPrivacySettings() {
+      try {
+        setPrivacyLoading(true);
+        const settings = await fetchPrivacySettings();
+        setPrivacySettings(settings);
+      } catch (error) {
+        console.error('Failed to load privacy settings:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load your privacy settings",
+          variant: "destructive"
+        });
+      } finally {
+        setPrivacyLoading(false);
+      }
+    }
+    
+    loadPrivacySettings();
   }, []);
 
   // Handle subscription toggle
@@ -134,6 +194,88 @@ export default function SettingsPage() {
       }));
     } finally {
       setUpdatingTopic(null);
+    }
+  };
+
+  // Handle privacy setting change
+  const handlePrivacyChange = (key: keyof PrivacyConfig, value: any) => {
+    setPrivacySettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  // Handle saving privacy settings
+  const handleSavePrivacy = async () => {
+    try {
+      setSavingPrivacy(true);
+      
+      // Cast our local state to match the API interface
+      const success = await updatePrivacySettings(privacySettings);
+      
+      if (success) {
+        toast({
+          title: "Privacy Settings Saved",
+          description: "Your privacy settings have been updated successfully",
+        });
+      } else {
+        throw new Error("Failed to update privacy settings");
+      }
+    } catch (error) {
+      console.error('Error saving privacy settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save privacy settings",
+        variant: "destructive"
+      });
+    } finally {
+      setSavingPrivacy(false);
+    }
+  };
+
+  // Reset privacy settings to default
+  const handleResetPrivacy = async () => {
+    if (privacyLoading || savingPrivacy) return;
+    
+    try {
+      setSavingPrivacy(true);
+      
+      // Reset to default values
+      const defaultSettings: PrivacyConfig = {
+        profileVisibility: 'all_alumni',
+        showEmail: true,
+        showPhone: false,
+        showEducation: true,
+        showWork: true,
+        showLocation: true,
+        showSocial: true,
+        allowMessages: true,
+        allowConnections: true,
+        allowMentoring: true
+      };
+      
+      setPrivacySettings(defaultSettings);
+      
+      // Update in database
+      const success = await updatePrivacySettings(defaultSettings);
+      
+      if (success) {
+        toast({
+          title: "Reset Complete",
+          description: "Your privacy settings have been reset to default",
+        });
+      } else {
+        throw new Error("Failed to reset privacy settings");
+      }
+    } catch (error) {
+      console.error('Error resetting privacy settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reset privacy settings",
+        variant: "destructive"
+      });
+    } finally {
+      setSavingPrivacy(false);
     }
   };
 
@@ -463,95 +605,179 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-secondary-100 flex items-center">
-                    <UserRound className="h-4 w-4 mr-2" />
-                    <span>Profile Visibility</span>
-                  </h3>
-                  <RadioGroup defaultValue="all_alumni" className="space-y-3">
-                    <div className="flex items-start space-x-2 p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <RadioGroupItem value="all_alumni" id="all_alumni" className="mt-1" />
-                      <Label htmlFor="all_alumni" className="grid gap-1 font-normal">
-                        <span className="text-white">All Alumni</span>
-                        <span className="text-xs text-gray-400">
-                          Your profile is visible to all members of the alumni network
-                        </span>
-                      </Label>
-                    </div>
-                    <div className="flex items-start space-x-2 p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <RadioGroupItem value="connections" id="connections" className="mt-1" />
-                      <Label htmlFor="connections" className="grid gap-1 font-normal">
-                        <span className="text-white">Connections Only</span>
-                        <span className="text-xs text-gray-400">
-                          Only your connections can view your full profile
-                        </span>
-                      </Label>
-                    </div>
-                    <div className="flex items-start space-x-2 p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <RadioGroupItem value="limited" id="limited" className="mt-1" />
-                      <Label htmlFor="limited" className="grid gap-1 font-normal">
-                        <span className="text-white">Limited Profile</span>
-                        <span className="text-xs text-gray-400">
-                          Only show basic information to other alumni
-                        </span>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-                
-                <Separator className="bg-white/10" />
-                
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-blue-accent flex items-center">
-                    <Globe className="h-4 w-4 mr-2" />
-                    <span>Information Visibility</span>
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <Label htmlFor="show-email" className="text-white">Show email address</Label>
-                      <Switch id="show-email" defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <Label htmlFor="show-phone" className="text-white">Show phone number</Label>
-                      <Switch id="show-phone" />
-                    </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <Label htmlFor="show-education" className="text-white">Show education details</Label>
-                      <Switch id="show-education" defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <Label htmlFor="show-work" className="text-white">Show work experience</Label>
-                      <Switch id="show-work" defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <Label htmlFor="show-location" className="text-white">Show current location</Label>
-                      <Switch id="show-location" defaultChecked />
-                    </div>
+                {privacyLoading && (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="animate-spin h-8 w-8 text-blue-accent" />
+                    <span className="ml-2 text-gray-400">Loading your privacy settings...</span>
                   </div>
-                </div>
+                )}
                 
-                <Separator className="bg-white/10" />
-                
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-secondary-100 flex items-center">
-                    <Mail className="h-4 w-4 mr-2" />
-                    <span>Communication Preferences</span>
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <Label htmlFor="allow-messages" className="text-white">Allow direct messages</Label>
-                      <Switch id="allow-messages" defaultChecked />
+                {!privacyLoading && (
+                  <>
+                    <div className="p-3 border border-blue-accent/30 rounded-md bg-blue-accent/10">
+                      <p className="text-sm text-white">
+                        <strong>Privacy Notice:</strong> Your privacy choices affect how your profile appears to other alumni. 
+                        By enabling more visibility options, you increase your chances of making meaningful connections in our community.
+                      </p>
                     </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <Label htmlFor="allow-connections" className="text-white">Allow connection requests</Label>
-                      <Switch id="allow-connections" defaultChecked />
+                    
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-secondary-100 flex items-center">
+                        <UserRound className="h-4 w-4 mr-2" />
+                        <span>Profile Visibility</span>
+                      </h3>
+                      <RadioGroup 
+                        value={privacySettings.profileVisibility} 
+                        onValueChange={(value) => handlePrivacyChange('profileVisibility', value)}
+                        className="space-y-3"
+                      >
+                        <div className="flex items-start space-x-2 p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <RadioGroupItem value="all_alumni" id="all_alumni" className="mt-1 border-white text-white" />
+                          <Label htmlFor="all_alumni" className="grid gap-1 font-normal">
+                            <span className="text-white">All Alumni</span>
+                            <span className="text-xs text-gray-400">
+                              Your profile is visible to all members of the alumni network
+                            </span>
+                          </Label>
+                        </div>
+                        <div className="flex items-start space-x-2 p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <RadioGroupItem value="connections" id="connections" className="mt-1 border-white text-white" />
+                          <Label htmlFor="connections" className="grid gap-1 font-normal">
+                            <span className="text-white">Connections Only</span>
+                            <span className="text-xs text-gray-400">
+                              Only your connections can view your full profile
+                            </span>
+                          </Label>
+                        </div>
+                        <div className="flex items-start space-x-2 p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <RadioGroupItem value="limited" id="limited" className="mt-1 border-white text-white" />
+                          <Label htmlFor="limited" className="grid gap-1 font-normal">
+                            <span className="text-white">Limited Profile</span>
+                            <span className="text-xs text-gray-400">
+                              Only show basic information to other alumni
+                            </span>
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </div>
-                  </div>
-                </div>
+                    
+                    <Separator className="bg-white/10" />
+                    
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-blue-accent flex items-center">
+                        <Globe className="h-4 w-4 mr-2" />
+                        <span>Information Visibility</span>
+                      </h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <Label htmlFor="show-email" className="text-white">Show email address</Label>
+                          <Switch 
+                            id="show-email" 
+                            checked={privacySettings.showEmail}
+                            onCheckedChange={(checked) => handlePrivacyChange('showEmail', checked)}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <Label htmlFor="show-phone" className="text-white">Show phone number</Label>
+                          <Switch 
+                            id="show-phone" 
+                            checked={privacySettings.showPhone}
+                            onCheckedChange={(checked) => handlePrivacyChange('showPhone', checked)}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <Label htmlFor="show-education" className="text-white">Show education details</Label>
+                          <Switch 
+                            id="show-education" 
+                            checked={privacySettings.showEducation}
+                            onCheckedChange={(checked) => handlePrivacyChange('showEducation', checked)}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <Label htmlFor="show-work" className="text-white">Show work experience</Label>
+                          <Switch 
+                            id="show-work" 
+                            checked={privacySettings.showWork}
+                            onCheckedChange={(checked) => handlePrivacyChange('showWork', checked)}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <Label htmlFor="show-location" className="text-white">Show current location</Label>
+                          <Switch 
+                            id="show-location" 
+                            checked={privacySettings.showLocation}
+                            onCheckedChange={(checked) => handlePrivacyChange('showLocation', checked)}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <Label htmlFor="show-social" className="text-white">Show social media profiles</Label>
+                          <Switch 
+                            id="show-social" 
+                            checked={privacySettings.showSocial}
+                            onCheckedChange={(checked) => handlePrivacyChange('showSocial', checked)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <Separator className="bg-white/10" />
+                    
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-secondary-100 flex items-center">
+                        <Mail className="h-4 w-4 mr-2" />
+                        <span>Communication Preferences</span>
+                      </h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <Label htmlFor="allow-messages" className="text-white">Allow direct messages</Label>
+                          <Switch 
+                            id="allow-messages" 
+                            checked={privacySettings.allowMessages}
+                            onCheckedChange={(checked) => handlePrivacyChange('allowMessages', checked)}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <Label htmlFor="allow-connections" className="text-white">Allow connection requests</Label>
+                          <Switch 
+                            id="allow-connections" 
+                            checked={privacySettings.allowConnections}
+                            onCheckedChange={(checked) => handlePrivacyChange('allowConnections', checked)}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <Label htmlFor="allow-mentoring" className="text-white">Allow mentoring requests</Label>
+                          <Switch 
+                            id="allow-mentoring" 
+                            checked={privacySettings.allowMentoring}
+                            onCheckedChange={(checked) => handlePrivacyChange('allowMentoring', checked)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
               <CardFooter className="flex justify-end gap-2 border-t border-white/10 pt-4">
-                <Button variant="glass">Cancel</Button>
-                <Button variant="gradient">Save Privacy Settings</Button>
+                <Button 
+                  variant="glass" 
+                  disabled={privacyLoading || savingPrivacy}
+                  onClick={handleResetPrivacy}
+                >
+                  {savingPrivacy ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
+                  Reset to Default
+                </Button>
+                <Button 
+                  variant="gradient" 
+                  disabled={privacyLoading || savingPrivacy}
+                  onClick={handleSavePrivacy}
+                >
+                  {savingPrivacy ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
+                  Save Privacy Settings
+                </Button>
               </CardFooter>
             </Card>
             
@@ -566,7 +792,34 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="p-3 border border-gold-default/30 rounded-md bg-gold-default/10 mb-4">
+                  <p className="text-sm text-white">
+                    <strong>Data Processing Notice:</strong> We process your data in accordance with our privacy policy and applicable data protection laws.
+                    You have the right to access, rectify, port, and erase your data. Data is retained according to your selected data retention period.
+                  </p>
+                </div>
+              
                 <div className="space-y-2">
+                  <div className="flex items-center justify-between p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
+                    <div>
+                      <p className="font-medium text-white">Data Retention</p>
+                      <p className="text-sm text-gray-400">
+                        Control how long we keep your data
+                      </p>
+                    </div>
+                    <Select defaultValue="indefinite">
+                      <SelectTrigger className="w-[180px] bg-primary-90/30 border-white/10">
+                        <SelectValue placeholder="Select retention period" />
+                      </SelectTrigger>
+                      <SelectContent className="glass-dark border-secondary-100/20">
+                        <SelectItem value="indefinite">Indefinite</SelectItem>
+                        <SelectItem value="1year">1 Year After Inactivity</SelectItem>
+                        <SelectItem value="2years">2 Years After Inactivity</SelectItem>
+                        <SelectItem value="5years">5 Years After Inactivity</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
                   <div className="flex items-center justify-between p-4 border border-white/10 rounded-lg hover:bg-white/5 transition-colors">
                     <div>
                       <p className="font-medium text-white">Download Your Data</p>
@@ -593,6 +846,104 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </CardContent>
+            </Card>
+
+            <Card variant="glass-dark" className="border border-secondary-100/10">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center text-secondary-100">
+                  <Lock className="h-5 w-5 mr-2 text-blue-accent" />
+                  Advanced Privacy Controls
+                </CardTitle>
+                <CardDescription>
+                  Control how your data is used by our site and third parties
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-blue-accent flex items-center">
+                      <Shield className="h-4 w-4 mr-2" />
+                      <span>Cookie Preferences</span>
+                    </h3>
+                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="essential-cookies" className="text-white">Essential Cookies</Label>
+                        <p className="text-xs text-gray-400">
+                          Required for the website to function properly
+                        </p>
+                      </div>
+                      <Switch id="essential-cookies" checked disabled />
+                    </div>
+                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="functional-cookies" className="text-white">Functional Cookies</Label>
+                        <p className="text-xs text-gray-400">
+                          Enhance your experience by remembering your preferences
+                        </p>
+                      </div>
+                      <Switch id="functional-cookies" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="analytics-cookies" className="text-white">Analytics Cookies</Label>
+                        <p className="text-xs text-gray-400">
+                          Help us understand how you use our site
+                        </p>
+                      </div>
+                      <Switch id="analytics-cookies" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="marketing-cookies" className="text-white">Marketing Cookies</Label>
+                        <p className="text-xs text-gray-400">
+                          Used to tailor ads to your interests
+                        </p>
+                      </div>
+                      <Switch id="marketing-cookies" />
+                    </div>
+                  </div>
+
+                  <Separator className="bg-white/10" />
+
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-gold-default flex items-center">
+                      <Globe className="h-4 w-4 mr-2" />
+                      <span>Third-Party Integrations</span>
+                    </h3>
+                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="social-sharing" className="text-white">Social Media Sharing</Label>
+                        <p className="text-xs text-gray-400">
+                          Allow content to be shared to social networks
+                        </p>
+                      </div>
+                      <Switch id="social-sharing" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="analytics-tracking" className="text-white">Analytics Tracking</Label>
+                        <p className="text-xs text-gray-400">
+                          Allow tracking of your usage for insights
+                        </p>
+                      </div>
+                      <Switch id="analytics-tracking" defaultChecked />
+                    </div>
+                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="personalized-content" className="text-white">Personalized Content</Label>
+                        <p className="text-xs text-gray-400">
+                          Allow us to show you personalized content based on your interests
+                        </p>
+                      </div>
+                      <Switch id="personalized-content" defaultChecked />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-end gap-2 border-t border-white/10 pt-4">
+                <Button variant="glass">Reset to Default</Button>
+                <Button variant="gradient">Save Preferences</Button>
+              </CardFooter>
             </Card>
           </TabsContent>
           

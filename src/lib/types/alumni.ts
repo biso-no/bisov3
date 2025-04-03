@@ -66,6 +66,7 @@ export interface Education extends AppwriteDocument {
   startYear: string;
   endYear: string;
   description?: string;
+  fieldOfStudy?: string;
   userId: string;
   
   // Relationship reference (populated at runtime)
@@ -103,10 +104,15 @@ export interface SocialLink extends AppwriteDocument {
 }
 
 export interface PrivacySettings extends AppwriteDocument {
+  profileVisibility: 'all_alumni' | 'connections' | 'limited';
   showEmail: boolean;
   showPhone: boolean;
   showSocial: boolean;
+  showEducation: boolean;
+  showWork: boolean;
+  showLocation: boolean;
   allowMessages: boolean;
+  allowConnections: boolean;
   allowMentoring: boolean;
   userId: string;
   

@@ -11,7 +11,6 @@ import {
   Certification,
   Language,
   SocialLink,
-  PrivacySettings,
   Event,
   Job,
   Mentor,
@@ -1139,7 +1138,15 @@ export async function getAlumniProfiles(
     limit: number = 100
   ): Promise<UserProfile[]> {
     try {
-      const { db } = await createSessionClient();
+      const { account, db } = await createSessionClient();
+      
+      // Get current user for connection-based privacy
+      let currentUser = null;
+      try {
+        currentUser = await account.get();
+      } catch (error) {
+        console.error('Error getting current user:', error);
+      }
       
       // Build the query filters
       const queryFilters: string[] = [];
@@ -1210,7 +1217,38 @@ export async function getAlumniProfiles(
         queryFilters
       );
       
-      return profiles.documents;
+      // Post-process profiles based on privacy settings
+      const processedProfiles = profiles.documents.filter(profile => {
+        // Always include the current user's profile
+        if (currentUser && profile.userId === currentUser.$id) {
+          return true;
+        }
+        
+        // Check privacy settings
+        const privacySettings = profile.privacySettings || {
+          profileVisibility: 'all_alumni'
+        };
+        
+        // Filter out profiles with 'connections' visibility if we can't verify connections
+        // In a real app, you would implement a connection check here
+        if (privacySettings.profileVisibility === 'connections') {
+          // For now, we'll include them with a connections badge
+          // In a real implementation, you would check if users are connected
+          // const isConnected = checkIfUsersAreConnected(currentUser.$id, profile.userId);
+          // return isConnected;
+          return true;
+        }
+        
+        // Filter out profiles with 'limited' visibility for non-search results
+        // For search, we'll include them but with limited data
+        if (privacySettings.profileVisibility === 'limited' && !searchQuery) {
+          return false;
+        }
+        
+        return true;
+      });
+      
+      return processedProfiles;
     } catch (error) {
       console.error('Error fetching alumni profiles:', error);
       return [];
@@ -2175,5 +2213,137 @@ export async function updateSubscriptionStatus(topic: string, subscribe: boolean
     return await subscribeToTopic(topic, provider);
   } else {
     return await unsubscribeFromTopic(topic);
+  }
+}
+
+export interface UserPrivacySettings extends Models.Document {
+  userId: string;
+  profileVisibility: 'all_alumni' | 'connections' | 'limited';
+  showEmail: boolean;
+  showPhone: boolean;
+  showEducation: boolean;
+  showWork: boolean;
+  showLocation: boolean;
+  showSocial: boolean;
+  allowMessages: boolean;
+  allowConnections: boolean;
+  allowMentoring: boolean;
+  userProfile?: any;
+}
+
+export async function fetchPrivacySettings(): Promise<UserPrivacySettings> {
+  try {
+    const { account, db } = await createSessionClient();
+    
+    // Get the current user
+    const user = await account.get();
+    
+    // Query for the user's privacy settings
+    const settings = await db.listDocuments<UserPrivacySettings>(
+      DATABASE_ID,
+      'privacySettings',
+      [Query.equal('userId', user.$id)]
+    );
+    
+    // If settings exist, return them
+    if (settings.documents.length > 0) {
+      return settings.documents[0];
+    }
+    
+    // If no settings exist, create default settings
+    const defaultSettings: Partial<UserPrivacySettings> = {
+      userId: user.$id,
+      profileVisibility: 'all_alumni',
+      showEmail: true,
+      showPhone: false,
+      showEducation: true,
+      showWork: true,
+      showLocation: true,
+      showSocial: true,
+      allowMessages: true,
+      allowConnections: true,
+      allowMentoring: true
+    };
+    
+    // Create the document
+    const newSettings = await db.createDocument<UserPrivacySettings>(
+      DATABASE_ID,
+      'privacySettings',
+      ID.unique(),
+      defaultSettings as UserPrivacySettings
+    );
+    
+    return newSettings;
+  } catch (error) {
+    console.error('Failed to fetch privacy settings:', error);
+    
+    // Return default settings as fallback
+    return {
+      userId: '',
+      profileVisibility: 'all_alumni',
+      showEmail: true,
+      showPhone: false,
+      showEducation: true,
+      showWork: true,
+      showLocation: true,
+      showSocial: true,
+      allowMessages: true,
+      allowConnections: true,
+      allowMentoring: true,
+      $id: '',
+      $createdAt: '',
+      $updatedAt: '',
+      $permissions: [],
+      $collectionId: '',
+      $databaseId: ''
+    };
+  }
+}
+
+export async function updatePrivacySettings(settings: Partial<UserPrivacySettings>): Promise<boolean> {
+  try {
+    const { account, db } = await createSessionClient();
+    
+    // Get the current user
+    const user = await account.get();
+    
+    // Query for existing settings
+    const existingSettings = await db.listDocuments<UserPrivacySettings>(
+      DATABASE_ID,
+      'privacySettings',
+      [Query.equal('userId', user.$id)]
+    );
+    
+    if (existingSettings.documents.length > 0) {
+      // Update existing settings
+      await db.updateDocument(
+        DATABASE_ID,
+        'privacySettings',
+        existingSettings.documents[0].$id,
+        settings
+      );
+    } else {
+      // Create new settings
+      const newSettings = {
+        ...settings,
+        userId: user.$id
+      };
+      
+      await db.createDocument(
+        DATABASE_ID,
+        'privacySettings',
+        ID.unique(),
+        newSettings
+      );
+    }
+    
+    // Revalidate relevant paths
+    revalidatePath('/alumni/settings');
+    revalidatePath('/profile');
+    
+    return true;
+  } catch (error) {
+    console.error('Failed to update privacy settings:', error);
+    return false;
   }
 }

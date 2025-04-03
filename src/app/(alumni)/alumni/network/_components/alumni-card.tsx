@@ -1,4 +1,4 @@
-import { MapPin, Briefcase, GraduationCap, MessageCircle } from "lucide-react"
+import { MapPin, Briefcase, GraduationCap, MessageCircle, Lock } from "lucide-react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -39,6 +39,23 @@ export function AlumniCard({ profile }: AlumniCardProps) {
     }
   };
 
+  // Get privacy settings with defaults
+  const privacySettings = profile.privacySettings || {
+    profileVisibility: 'all_alumni',
+    showEmail: true,
+    showPhone: false,
+    showEducation: true,
+    showWork: true,
+    showLocation: true,
+    showSocial: true,
+    allowMessages: true,
+    allowConnections: true,
+    allowMentoring: true
+  };
+
+  // Check if profile has limited visibility
+  const hasLimitedVisibility = privacySettings.profileVisibility === 'limited';
+
   return (
     <Card 
       variant="glass-dark" 
@@ -53,20 +70,33 @@ export function AlumniCard({ profile }: AlumniCardProps) {
       
       <CardContent className="p-6 pt-0 -mt-12 relative z-10">
         <div className="flex flex-col items-center text-center">
-          <Avatar className="h-24 w-24 border-4 border-primary-90 shadow-glow-blue transition-all duration-300 group-hover:scale-105">
-            <AvatarImage src={profile.avatarUrl || ""} alt={profile.name} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-accent to-secondary-100 text-white font-bold">
-              {getInitials(profile.name)}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="h-24 w-24 border-4 border-primary-90 shadow-glow-blue transition-all duration-300 group-hover:scale-105">
+              <AvatarImage src={profile.avatarUrl || ""} alt={profile.name} />
+              <AvatarFallback className="bg-gradient-to-br from-blue-accent to-secondary-100 text-white font-bold">
+                {getInitials(profile.name)}
+              </AvatarFallback>
+            </Avatar>
+            
+            {hasLimitedVisibility && (
+              <div className="absolute -top-2 -right-2 bg-primary-90 rounded-full p-1 border border-secondary-100/20" title="Limited Profile">
+                <Lock className="h-4 w-4 text-secondary-100" />
+              </div>
+            )}
+          </div>
           
           <h3 className="text-lg font-semibold mt-4 text-white group-hover:text-secondary-100 transition-colors">
             {profile.name}
+            {privacySettings.profileVisibility === 'connections' && (
+              <Badge variant="glass-dark" className="ml-2 text-xs font-normal">
+                Connections
+              </Badge>
+            )}
           </h3>
           <p className="text-sm text-gray-300">{profile.title || "Alumni"}</p>
           
           <div className="w-full space-y-3 mt-5">
-            {profile.company && (
+            {profile.company && privacySettings.showWork && (
               <div className="flex items-center gap-2 text-sm group/item">
                 <div className="p-1.5 rounded-md bg-blue-accent/20 group-hover/item:bg-blue-accent/30 transition-colors">
                   <Briefcase className="h-3.5 w-3.5 text-blue-accent" />
@@ -76,7 +106,7 @@ export function AlumniCard({ profile }: AlumniCardProps) {
                 </span>
               </div>
             )}
-            {profile.location && (
+            {profile.location && privacySettings.showLocation && (
               <div className="flex items-center gap-2 text-sm group/item">
                 <div className="p-1.5 rounded-md bg-gold-default/20 group-hover/item:bg-gold-default/30 transition-colors">
                   <MapPin className="h-3.5 w-3.5 text-gold-default" />
@@ -121,10 +151,12 @@ export function AlumniCard({ profile }: AlumniCardProps) {
         <Button variant="glass" size="sm" asChild className="flex-1">
           <Link href={`/alumni/profile/${profile.$id}`}>View Profile</Link>
         </Button>
-        <Button variant="gradient" size="sm" className="flex-1 gap-1">
-          <MessageCircle className="h-4 w-4" />
-          Connect
-        </Button>
+        {privacySettings.allowMessages && (
+          <Button variant="gradient" size="sm" className="flex-1 gap-1">
+            <MessageCircle className="h-4 w-4" />
+            Connect
+          </Button>
+        )}
       </CardFooter>
     </Card>
   )

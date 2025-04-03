@@ -17,7 +17,9 @@ import {
   Globe,
   Award,
   Users,
-  BookOpen
+  BookOpen,
+  Shield,
+  Lock
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -26,10 +28,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-import { getUserProfile, getUserExperiences, getUserEducation, getUserActivities, getUserUpcomingEvents, Activity } from "../../actions"
+import { getUserProfile, getUserExperiences, getUserEducation, getUserActivities, getUserUpcomingEvents, Activity, fetchPrivacySettings } from "../../actions"
 import { useEffect, useState } from "react"
 import { UserProfile, Experience, Education, Event } from "@/lib/types/alumni"
 import { format } from "date-fns"
+import { toast } from "@/components/ui/use-toast"
 
 // Add interfaces for the missing properties we need
 interface UserProfileExtended extends UserProfile {
@@ -55,47 +58,85 @@ export default function AlumniProfilePage() {
   const [education, setEducation] = useState<Education[]>([])
   const [activities, setActivities] = useState<Activity[]>([])
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([])
+  const [currentUserSettings, setCurrentUserSettings] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
   
   // Find profile by ID
   useEffect(() => {
     const fetchProfile = async () => {
-      const profile = await getUserProfile(id as string)
-      // We need to transform the profile to match our extended type
-      if (profile) {
-        const extendedProfile: UserProfileExtended = {
-          ...profile,
-          position: profile.title, // Map title to position
-          social: {
-            linkedin: profile.socialLinks?.find(link => link.platform === 'linkedin')?.url,
-            twitter: profile.socialLinks?.find(link => link.platform === 'twitter')?.url,
-            website: profile.socialLinks?.find(link => link.platform === 'website')?.url,
-          },
-          availabilityDetails: {
-            mentoring: profile.privacySettings?.allowMentoring || false,
-            jobOpportunities: false, // Default values
-            speaking: false,
-            networking: profile.available || false
+      setIsLoading(true)
+      
+      try {
+        // Get current user's privacy settings
+        const currentUserPrivacy = await fetchPrivacySettings()
+        setCurrentUserSettings(currentUserPrivacy)
+        
+        const profile = await getUserProfile(id as string)
+        // We need to transform the profile to match our extended type
+        if (profile) {
+          // Get profile privacy settings
+          const privacySettings = profile.privacySettings || {
+            profileVisibility: 'all_alumni',
+            showEmail: true,
+            showPhone: false,
+            showEducation: true,
+            showWork: true,
+            showLocation: true,
+            showSocial: true,
+            allowMessages: true,
+            allowConnections: true,
+            allowMentoring: true
           }
+          
+          const extendedProfile: UserProfileExtended = {
+            ...profile,
+            position: profile.title, // Map title to position
+            social: {
+              linkedin: privacySettings.showSocial ? profile.socialLinks?.find(link => link.platform === 'linkedin')?.url : undefined,
+              twitter: privacySettings.showSocial ? profile.socialLinks?.find(link => link.platform === 'twitter')?.url : undefined,
+              website: privacySettings.showSocial ? profile.socialLinks?.find(link => link.platform === 'website')?.url : undefined,
+            },
+            availabilityDetails: {
+              mentoring: privacySettings.allowMentoring || false,
+              jobOpportunities: false, // Default values
+              speaking: false,
+              networking: profile.available || false
+            }
+          }
+          setProfile(extendedProfile)
+          
+          // Fetch experiences and education
+          if (privacySettings.showWork) {
+            const experienceData = await getUserExperiences(profile.userId)
+            setExperiences(experienceData)
+          }
+          
+          if (privacySettings.showEducation) {
+            const educationData = await getUserEducation(profile.userId)
+            setEducation(educationData)
+          }
+          
+          // Fetch activities and upcoming events
+          const activitiesData = await getUserActivities(profile.userId)
+          setActivities(activitiesData)
+          
+          const eventsData = await getUserUpcomingEvents(profile.userId)
+          setUpcomingEvents(eventsData)
+        } else {
+          setProfile(null)
         }
-        setProfile(extendedProfile)
-        
-        // Fetch experiences and education
-        const experienceData = await getUserExperiences(profile.userId)
-        setExperiences(experienceData)
-        
-        const educationData = await getUserEducation(profile.userId)
-        setEducation(educationData)
-        
-        // Fetch activities and upcoming events
-        const activitiesData = await getUserActivities(profile.userId)
-        setActivities(activitiesData)
-        
-        const eventsData = await getUserUpcomingEvents(profile.userId)
-        setUpcomingEvents(eventsData)
-      } else {
-        setProfile(null)
+      } catch (error) {
+        console.error("Error fetching profile:", error)
+        toast({
+          title: "Failed to load profile",
+          description: "There was an error loading this alumni profile",
+          variant: "destructive"
+        })
+      } finally {
+        setIsLoading(false)
       }
     }
+    
     fetchProfile()
   }, [id])
   
@@ -183,122 +224,67 @@ export default function AlumniProfilePage() {
                 Back to Network
               </Link>
             </Button>
-            <Button variant="gradient">
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Send Message
-            </Button>
+            {profile.privacySettings?.allowMessages !== false && (
+              <Button variant="gradient">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Send Message
+              </Button>
+            )}
           </div>
           
           {/* Profile Header */}
           <div className="relative">
             <div className="absolute inset-0 h-48 bg-gradient-to-r from-blue-accent/20 via-secondary-100/10 to-primary-90/5 rounded-xl"></div>
             
-            <div className="relative pt-16 px-6 pb-6 flex flex-col md:flex-row md:items-end gap-6">
-              <div className="relative group">
-                <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-blue-accent/50 to-secondary-100/30 blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
-                <Avatar className="h-24 w-24 border-4 border-primary-90 relative shadow-lg group-hover:shadow-glow-blue transition-all duration-300">
+            <div className="relative pt-12 px-6 pb-6 md:pt-16 md:px-12 md:pb-8 flex flex-col md:flex-row md:items-end gap-6">
+              <div className="relative">
+                <Avatar className="h-24 w-24 border-4 border-primary-90 shadow-lg">
                   <AvatarImage src={profile.avatarUrl} alt={profile.name} />
-                  <AvatarFallback className="text-xl bg-primary-80 text-white">{initials}</AvatarFallback>
+                  <AvatarFallback className="text-xl bg-gradient-to-br from-blue-accent to-secondary-100 text-white">{initials}</AvatarFallback>
                 </Avatar>
+                
+                {profile.privacySettings?.profileVisibility === 'limited' && (
+                  <div className="absolute -top-2 -right-2 bg-primary-90 rounded-full p-1 border border-secondary-100/20" title="Limited Profile">
+                    <Lock className="h-4 w-4 text-secondary-100" />
+                  </div>
+                )}
               </div>
               
               <div className="flex-1">
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div>
-                    <h1 className="text-2xl font-bold text-white">{profile.name}</h1>
-                    <p className="text-gray-300 mt-1">{profile.position || profile.title} at {profile.company}</p>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                      {profile.name}
+                      {profile.privacySettings?.profileVisibility !== 'all_alumni' && (
+                        <Badge variant="glass-dark" className="text-xs font-normal">
+                          {profile.privacySettings?.profileVisibility === 'connections' ? 'Connections Only' : 'Limited Profile'}
+                        </Badge>
+                      )}
+                    </h1>
+                    <p className="text-gray-300 mt-1">{profile.position} {profile.company ? `at ${profile.company}` : ''}</p>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      <Badge variant="gradient" className="border border-blue-accent/20 text-xs">
-                        <GraduationCap className="h-3 w-3 mr-1" />
-                        <span>Class of {profile.graduationYear}</span>
-                      </Badge>
-                      <Badge variant="outline" className="bg-secondary-100/5 border-secondary-100/20 text-xs text-secondary-100">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        <span>{profile.location}</span>
-                      </Badge>
+                      {profile.graduationYear && (
+                        <Badge variant="gradient" className="text-xs border border-blue-accent/20">
+                          <GraduationCap className="h-3 w-3 mr-1" />
+                          <span>Class of {profile.graduationYear}</span>
+                        </Badge>
+                      )}
+                      {profile.location && profile.privacySettings?.showLocation !== false && (
+                        <Badge variant="outline" className="text-xs bg-secondary-100/5 border-secondary-100/20 text-secondary-100">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          <span>{profile.location}</span>
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   
-                  <div className="flex flex-wrap gap-2">
-                    {profile.availabilityDetails?.mentoring && (
-                      <Badge variant="outline" className="border-blue-accent/40 text-blue-accent bg-blue-accent/10">
-                        Available for mentoring
-                      </Badge>
-                    )}
-                    
-                    {profile.availabilityDetails?.jobOpportunities && (
-                      <Badge variant="outline" className="border-green-500/40 text-green-500 bg-green-500/10">
-                        Has job opportunities
-                      </Badge>
-                    )}
-                    
-                    {profile.availabilityDetails?.speaking && (
-                      <Badge variant="outline" className="border-purple-500/40 text-purple-500 bg-purple-500/10">
-                        Available for speaking
-                      </Badge>
-                    )}
-                    
-                    {profile.availabilityDetails?.networking && (
-                      <Badge variant="outline" className="border-gold-default/40 text-gold-default bg-gold-default/10">
-                        Open to networking
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex flex-wrap gap-3 mt-4">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-md bg-gold-default/10 group-hover:bg-gold-default/20 transition-colors">
-                      <MapPin className="h-4 w-4 text-gold-default" />
+                  {profile.privacySettings?.allowMentoring && (
+                    <div className="hidden md:block">
+                      <Button variant="gradient" size="sm" className="gap-1">
+                        <Award className="h-4 w-4" />
+                        Request Mentoring
+                      </Button>
                     </div>
-                    <span className="text-gray-300">{profile.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-md bg-secondary-100/10 group-hover:bg-secondary-100/20 transition-colors">
-                      <Briefcase className="h-4 w-4 text-secondary-100" />
-                    </div>
-                    <span className="text-gray-300">{profile.company}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-md bg-blue-accent/10 group-hover:bg-blue-accent/20 transition-colors">
-                      <GraduationCap className="h-4 w-4 text-blue-accent" />
-                    </div>
-                    <span className="text-gray-300">{profile.department}</span>
-                  </div>
-                </div>
-                
-                <div className="flex gap-3 mt-4">
-                  {profile.social?.linkedin && (
-                    <a 
-                      href={profile.social.linkedin} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="p-2 flex items-center justify-center rounded-full bg-blue-accent/10 text-blue-accent hover:bg-blue-accent/20 transition-colors"
-                    >
-                      <Linkedin className="h-4 w-4" />
-                    </a>
-                  )}
-                  
-                  {profile.social?.twitter && (
-                    <a 
-                      href={profile.social.twitter} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="p-2 flex items-center justify-center rounded-full bg-blue-accent/10 text-blue-accent hover:bg-blue-accent/20 transition-colors"
-                    >
-                      <Twitter className="h-4 w-4" />
-                    </a>
-                  )}
-                  
-                  {profile.social?.website && (
-                    <a 
-                      href={profile.social.website} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="p-2 flex items-center justify-center rounded-full bg-secondary-100/10 text-secondary-100 hover:bg-secondary-100/20 transition-colors"
-                    >
-                      <Globe className="h-4 w-4" />
-                    </a>
                   )}
                 </div>
               </div>
@@ -397,62 +383,130 @@ export default function AlumniProfilePage() {
             </div>
           </TabsContent>
           
-          <TabsContent value="experience" className="space-y-6 pt-4 animate-in fade-in-50 duration-300">
-            <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
-              <CardHeader className="relative z-10">
-                <CardTitle className="text-lg text-white flex items-center gap-2">
-                  <Briefcase className="h-5 w-5 text-blue-accent" />
-                  Work Experience
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 relative z-10">
-                {experiences.length > 0 ? (
-                  experiences.map((exp, index) => (
-                    <div key={exp.$id} className="relative pl-6">
-                      <div className="absolute top-1 left-0 w-4 h-4 rounded-full border-2 border-blue-accent bg-primary-90"></div>
-                      <div className={`${index < experiences.length - 1 ? 'border-l border-secondary-100/20 ml-2 pb-6 pl-4' : 'ml-2 pl-4'}`}>
-                        <h3 className="font-medium text-white">{exp.title}</h3>
-                        <p className="text-sm text-gray-300">{exp.company}</p>
-                        <p className="text-xs text-gray-400">
-                          {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
+          <TabsContent value="experience" className="animate-in fade-in-50 duration-300">
+            {/* Work Experience */}
+            {(!profile.privacySettings?.showWork || experiences.length === 0) ? (
+              <Card variant="glass-dark" className="border-0 overflow-hidden mb-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <CardHeader className="pb-3 relative z-10">
+                  <CardTitle className="text-lg text-white">Work Experience</CardTitle>
+                </CardHeader>
+                <CardContent className="relative z-10">
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    {!profile.privacySettings?.showWork ? (
+                      <>
+                        <Lock className="h-16 w-16 text-gray-400 mb-4" />
+                        <p className="text-gray-300">This user&apos;s work experience is private</p>
+                      </>
+                    ) : (
+                      <>
+                        <Briefcase className="h-16 w-16 text-gray-400 mb-4" />
+                        <p className="text-gray-300">No work experience added yet</p>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card variant="glass-dark" className="border-0 overflow-hidden mb-6">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <CardHeader className="pb-3 relative z-10">
+                  <CardTitle className="text-lg text-white">Work Experience</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6 relative z-10">
+                  {experiences.map((exp) => (
+                    <div key={exp.$id} className="relative pl-7 pb-1">
+                      <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-blue-accent/80 to-secondary-100/50 z-0" />
+                      <div className="absolute left-0 top-1 h-4 w-4 rounded-full bg-blue-accent/30 border-2 border-blue-accent z-10" />
+                      
+                      <div className="flex flex-wrap justify-between gap-2 mb-1">
+                        <h3 className="text-white font-medium">{exp.title}</h3>
+                        {exp.current ? (
+                          <Badge variant="gradient" className="text-xs font-normal">Current</Badge>
+                        ) : (
+                          exp.endDate && (
+                            <span className="text-xs text-gray-400">
+                              {new Date(exp.startDate).getFullYear()} - {new Date(exp.endDate).getFullYear()}
+                            </span>
+                          )
+                        )}
+                      </div>
+                      
+                      <p className="text-gray-300 text-sm">{exp.company}</p>
+                      {exp.location && (
+                        <p className="text-gray-400 text-xs flex items-center mt-1">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          {exp.location}
                         </p>
-                        <p className="text-sm mt-2 text-gray-300">{exp.description}</p>
-                      </div>
+                      )}
+                      
+                      {exp.description && (
+                        <p className="text-gray-300 text-sm mt-2">{exp.description}</p>
+                      )}
                     </div>
-                  ))
-                ) : (
-                  <p className="text-gray-400">No work experience listed</p>
-                )}
-              </CardContent>
-            </Card>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
             
-            <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
-              <CardHeader className="relative z-10">
-                <CardTitle className="text-lg text-white flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-secondary-100" />
-                  Education
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6 relative z-10">
-                {education.length > 0 ? (
-                  education.map((edu, index) => (
-                    <div key={edu.$id} className="relative pl-6">
-                      <div className="absolute top-1 left-0 w-4 h-4 rounded-full border-2 border-secondary-100 bg-primary-90"></div>
-                      <div className={`${index < education.length - 1 ? 'border-l border-secondary-100/20 ml-2 pb-6 pl-4' : 'ml-2 pl-4'}`}>
-                        <h3 className="font-medium text-white">{edu.degree}</h3>
-                        <p className="text-sm text-gray-300">{edu.institution}</p>
-                        <p className="text-xs text-gray-400">{edu.startYear} - {edu.endYear}</p>
-                        <p className="text-sm mt-2 text-gray-300">{edu.description}</p>
+            {/* Education */}
+            {(!profile.privacySettings?.showEducation || education.length === 0) ? (
+              <Card variant="glass-dark" className="border-0 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <CardHeader className="pb-3 relative z-10">
+                  <CardTitle className="text-lg text-white">Education</CardTitle>
+                </CardHeader>
+                <CardContent className="relative z-10">
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    {!profile.privacySettings?.showEducation ? (
+                      <>
+                        <Lock className="h-16 w-16 text-gray-400 mb-4" />
+                        <p className="text-gray-300">This user&apos;s education information is private</p>
+                      </>
+                    ) : (
+                      <>
+                        <GraduationCap className="h-16 w-16 text-gray-400 mb-4" />
+                        <p className="text-gray-300">No education information added yet</p>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card variant="glass-dark" className="border-0 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <CardHeader className="pb-3 relative z-10">
+                  <CardTitle className="text-lg text-white">Education</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6 relative z-10">
+                  {education.map((edu) => (
+                    <div key={edu.$id} className="relative pl-7 pb-1">
+                      <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-gold-default/80 to-gold-strong/50 z-0" />
+                      <div className="absolute left-0 top-1 h-4 w-4 rounded-full bg-gold-default/30 border-2 border-gold-default z-10" />
+                      
+                      <div className="flex flex-wrap justify-between gap-2 mb-1">
+                        <h3 className="text-white font-medium">{edu.degree}</h3>
+                        <span className="text-xs text-gray-400">
+                          {edu.startYear} - {edu.endYear}
+                        </span>
                       </div>
+                      
+                      <p className="text-gray-300 text-sm">{edu.institution}</p>
+                      {edu.fieldOfStudy && (
+                        <p className="text-gray-400 text-xs flex items-center mt-1">
+                          <BookOpen className="h-3 w-3 mr-1" />
+                          {edu.fieldOfStudy}
+                        </p>
+                      )}
+                      
+                      {edu.description && (
+                        <p className="text-gray-300 text-sm mt-2">{edu.description}</p>
+                      )}
                     </div>
-                  ))
-                ) : (
-                  <p className="text-gray-400">No education listed</p>
-                )}
-              </CardContent>
-            </Card>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
           
           <TabsContent value="activity" className="space-y-6 pt-4 animate-in fade-in-50 duration-300">
