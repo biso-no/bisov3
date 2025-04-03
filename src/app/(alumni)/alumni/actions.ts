@@ -25,7 +25,8 @@ import {
   ProgramApplication,
   MentoringProgram,
   Testimonial,
-  Mentorship
+  Mentorship,
+  NewsItem
 } from '@/lib/types/alumni';
 import { networksFeatureFlag, eventsFeatureFlag, mentoringFeatureFlag, jobsFeatureFlag, resourcesFeatureFlag, messagesFeatureFlag, adminFeatureFlag, autoAcceptMentorsFlag } from '@/lib/flags';
 
@@ -1880,5 +1881,85 @@ export async function getStats(
   } catch (error) {
     console.error(`Error fetching ${type} ${period} stats:`, error);
     return [];
+  }
+}
+
+// ============================================================
+// NEWS ACTIONS
+// ============================================================
+
+/**
+ * Fetches a list of news items with optional filters
+ * @param limit The maximum number of news items to fetch
+ * @param filters Additional query filters
+ * @returns An array of news items
+ */
+export async function getNews(limit = 10, filters: string[] = []): Promise<NewsItem[]> {
+  try {
+    const { db } = await createSessionClient();
+    
+    // Combine user filters with base queries
+    const queries = [
+      ...filters,
+      Query.orderDesc('date'),
+      Query.limit(limit)
+    ];
+    
+    const result = await db.listDocuments<NewsItem>(
+      DATABASE_ID,
+      'news',
+      queries
+    );
+    
+    return result.documents;
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetches a specific news item by ID
+ * @param newsId The ID of the news item to fetch
+ * @returns The news item or null if not found
+ */
+export async function getNewsById(newsId: string): Promise<NewsItem | null> {
+  try {
+    const { db } = await createSessionClient();
+    
+    const newsItem = await db.getDocument<NewsItem>(
+      DATABASE_ID,
+      'news',
+      newsId
+    );
+    
+    return newsItem;
+  } catch (error) {
+    console.error('Error fetching news item:', error);
+    return null;
+  }
+}
+
+/**
+ * Updates the view count for a news item
+ * @param newsId The ID of the news item to update
+ * @param views The new view count
+ * @returns The updated news item
+ */
+export async function updateNewsViews(newsId: string, views: number): Promise<NewsItem | null> {
+  try {
+    const { db } = await createSessionClient();
+    
+    const newsItem = await db.updateDocument<NewsItem>(
+      DATABASE_ID,
+      'news',
+      newsId,
+      { views }
+    );
+    
+    return newsItem;
+  } catch (error) {
+    console.error('Error updating news views:', error);
+    return null;
   }
 }

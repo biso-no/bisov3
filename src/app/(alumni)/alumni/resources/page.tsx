@@ -31,42 +31,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { format } from "date-fns"
-import { getResources } from "../actions"
-import type { Resource } from "@/lib/types/alumni"
+import { getResources, getNews } from "../actions"
+import type { Resource, NewsItem } from "@/lib/types/alumni"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PageHeader } from "@/components/ui/page-header"
-
-
-// Mock data for news
-const news = [
-  {
-    id: "news-001",
-    title: "BISO Alumni Network Launches New Mentoring Platform",
-    summary: "The BISO Alumni Network has launched a new mentoring platform to facilitate connections between alumni and current students.",
-    date: "2023-08-10",
-    author: "BISO Alumni Office",
-    image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3",
-    url: "#"
-  },
-  {
-    id: "news-002",
-    title: "Alumni Spotlight: Maria Olsen Named CEO of Tech Innovator",
-    summary: "BISO graduate Maria Olsen has been appointed CEO of one of Norway's fastest-growing technology companies.",
-    date: "2023-08-05",
-    author: "BISO Alumni Magazine",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3",
-    url: "#"
-  },
-  {
-    id: "news-003",
-    title: "Annual Alumni Survey Results: Career Trends and Insights",
-    summary: "The results of our annual alumni survey reveal interesting trends in career development and industry shifts among graduates.",
-    date: "2023-07-20",
-    author: "BISO Research Team",
-    image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3",
-    url: "#"
-  },
-];
 
 // Helper function to get icon by resource type
 function getResourceTypeIcon(type: string) {
@@ -93,24 +61,36 @@ export default function ResourcesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [resources, setResources] = useState<Resource[]>([])
+  const [news, setNews] = useState<NewsItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isNewsLoading, setIsNewsLoading] = useState(true)
 
   useEffect(() => {
     // Set document title
     document.title = "Alumni Resources | BISO";
     
-    const fetchResources = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
+        setIsNewsLoading(true);
+        
+        // Fetch resources
         const fetchedResources = await getResources();
         setResources(fetchedResources);
-      } catch (error) {
-        console.error("Error fetching resources:", error);
-      } finally {
         setIsLoading(false);
+        
+        // Fetch news items
+        const fetchedNews = await getNews(3); // Get latest 3 news items
+        setNews(fetchedNews);
+        setIsNewsLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setIsLoading(false);
+        setIsNewsLoading(false);
       }
     };
-    fetchResources();
+    
+    fetchData();
   }, []);
   
   const categories = Array.from(new Set(resources.map(resource => resource.category)))
@@ -323,11 +303,33 @@ export default function ResourcesPage() {
           
           <TabsContent value="news">
             <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {news.map((item) => (
-                  <NewsCard key={item.id} news={item} />
-                ))}
-              </div>
+              {isNewsLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <NewsCardSkeleton />
+                  <NewsCardSkeleton />
+                  <NewsCardSkeleton />
+                </div>
+              ) : news.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {news.map((item) => (
+                    <NewsCard key={item.$id} news={item} />
+                  ))}
+                </div>
+              ) : (
+                <Card variant="glass-dark" className="border-0 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/10 opacity-20" />
+                  <CardContent className="flex flex-col items-center justify-center py-12 relative z-10">
+                    <div className="relative mb-6">
+                      <div className="absolute inset-0 rounded-full blur-xl bg-blue-accent/20 animate-pulse"></div>
+                      <div className="relative z-10 p-4 rounded-full bg-primary-90/50 backdrop-blur-sm border border-secondary-100/20">
+                        <Newspaper className="h-10 w-10 text-blue-accent" />
+                      </div>
+                    </div>
+                    <p className="text-xl font-medium text-white mb-3">No news available</p>
+                    <p className="text-gray-300 max-w-md mb-6 text-center">Check back later for updates and announcements.</p>
+                  </CardContent>
+                </Card>
+              )}
               
               <div className="flex justify-center">
                 <Button variant="gradient" asChild className="gap-2">
@@ -406,14 +408,14 @@ function ResourceCard({ resource }: ResourceCardProps) {
           <div>
             {resource.format === "PDF" || resource.format === "ZIP Archive" ? (
               <Button size="sm" variant="ghost" className="h-8 text-gray-300 hover:text-white hover:bg-primary-80/50" asChild>
-                <Link href={resource.downloadUrl || "#"} className="flex items-center gap-1 group">
+                <Link href={resource.downloadUrl || `/alumni/resources/download/${resource.$id}`} className="flex items-center gap-1 group">
                   <Download className="h-3.5 w-3.5 mr-1 group-hover:translate-y-0.5 transition-transform" />
                   <span>Download</span>
                 </Link>
               </Button>
             ) : (
               <Button size="sm" variant="ghost" className="h-8 text-gray-300 hover:text-white hover:bg-primary-80/50" asChild>
-                <Link href={resource.watchUrl || resource.listenUrl || "#"} className="flex items-center gap-1">
+                <Link href={resource.watchUrl || resource.listenUrl || `/alumni/resources/${resource.$id}`} className="flex items-center gap-1">
                   <ExternalLink className="h-3.5 w-3.5 mr-1 group-hover:translate-x-0.5 transition-transform" />
                   <span>View</span>
                 </Link>
@@ -427,6 +429,8 @@ function ResourceCard({ resource }: ResourceCardProps) {
 }
 
 function FeaturedResourceCard({ resource }: ResourceCardProps) {
+  const ResourceIcon = getResourceTypeIcon(resource.type);
+  
   return (
     <Card variant="glass-dark" className="overflow-hidden border-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover group">
       <div className="relative h-36 w-full overflow-hidden">
@@ -458,7 +462,7 @@ function FeaturedResourceCard({ resource }: ResourceCardProps) {
         
         <div className="flex items-start gap-2 mb-2">
           <div className="h-8 w-8 rounded-md flex items-center justify-center bg-blue-accent/10 flex-shrink-0 group-hover:bg-blue-accent/20 transition-all duration-300">
-            <ResourceIcon resource={resource} className="h-4 w-4 text-blue-accent" />
+            <ResourceIcon className="h-4 w-4 text-blue-accent" />
           </div>
           <h3 className="font-medium text-lg truncate text-white group-hover:text-blue-accent transition-colors">{resource.title}</h3>
         </div>
@@ -483,14 +487,14 @@ function FeaturedResourceCard({ resource }: ResourceCardProps) {
       <CardFooter className="px-4 py-3 border-t border-secondary-100/10 bg-primary-80/30 relative z-10">
         {resource.format === "PDF" || resource.format === "ZIP Archive" ? (
           <Button variant="gradient" asChild className="w-full gap-1 group">
-            <Link href={resource.downloadUrl || "#"} className="flex items-center">
+            <Link href={resource.downloadUrl || `/alumni/resources/download/${resource.$id}`} className="flex items-center">
               <Download className="h-4 w-4 mr-1 group-hover:translate-y-0.5 transition-transform" />
               <span>Download Resource</span>
             </Link>
           </Button>
         ) : (
           <Button variant="gradient" asChild className="w-full gap-1 group">
-            <Link href={resource.watchUrl || resource.listenUrl || "#"} className="flex items-center">
+            <Link href={resource.watchUrl || resource.listenUrl || `/alumni/resources/${resource.$id}`} className="flex items-center">
               <ExternalLink className="h-4 w-4 mr-1 group-hover:translate-x-0.5 transition-transform" />
               <span>View Resource</span>
             </Link>
@@ -557,7 +561,7 @@ function FeaturedResourceCardSkeleton() {
 }
 
 interface NewsCardProps {
-  news: typeof news[0]
+  news: NewsItem
 }
 
 function NewsCard({ news }: NewsCardProps) {
@@ -583,7 +587,7 @@ function NewsCard({ news }: NewsCardProps) {
         
         <h3 className="font-medium text-lg mt-2 line-clamp-2 text-white">
           <Link 
-            href={news.url || "#"}
+            href={`/alumni/news/${news.$id}`}
             className="hover:text-blue-accent transition-colors inline-flex items-center gap-1"
           >
             {news.title}
@@ -594,12 +598,37 @@ function NewsCard({ news }: NewsCardProps) {
       
       <CardFooter className="px-4 py-3 border-t border-secondary-100/10 bg-primary-80/30 relative z-10">
         <Button variant="gradient" asChild className="w-full gap-1 group">
-          <Link href={news.url || "#"} className="flex items-center">
+          <Link href={`/alumni/news/${news.$id}`} className="flex items-center">
             <Newspaper className="h-4 w-4 mr-2" />
             <span>Read Full Story</span>
             <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </Button>
+      </CardFooter>
+    </Card>
+  )
+}
+
+function NewsCardSkeleton() {
+  return (
+    <Card variant="glass-dark" className="overflow-hidden border-0">
+      <Skeleton className="h-40 w-full" />
+      
+      <CardContent className="p-4 relative z-10">
+        <div className="flex items-center gap-1.5 mb-2">
+          <Skeleton className="h-7 w-7 rounded-md" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        
+        <Skeleton className="h-6 w-full mb-2" />
+        <Skeleton className="h-6 w-3/4 mb-3" />
+        <Skeleton className="h-4 w-full mb-1" />
+        <Skeleton className="h-4 w-full mb-1" />
+        <Skeleton className="h-4 w-2/3" />
+      </CardContent>
+      
+      <CardFooter className="px-4 py-3 border-t border-secondary-100/10 bg-primary-80/30 relative z-10">
+        <Skeleton className="h-9 w-full" />
       </CardFooter>
     </Card>
   )

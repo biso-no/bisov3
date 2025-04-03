@@ -389,3 +389,20 @@ export interface ProgramApplication extends AppwriteDocument {
   program?: MentoringProgram;
   user?: UserProfile;
 }
+
+// ============================================================
+// NEWS INTERFACE
+// ============================================================
+
+export interface NewsItem extends AppwriteDocument {
+  title: string;
+  summary: string;
+  content: string;
+  date: string; // ISO date string
+  author: string;
+  category?: string;
+  image: string;
+  tags?: string[];
+  featured: boolean;
+  views?: number;
+}
