@@ -12,7 +12,8 @@ import {
   Smartphone, 
   HelpCircle, 
   LogOut,
-  Shield
+  Shield,
+  Loader2
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -45,14 +46,164 @@ import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { cn } from "@/lib/utils"
 import { PageHeader } from "@/components/ui/page-header"
+import { fetchUserSubscriptions, updateSubscriptionStatus } from "../actions"
+import { toast } from "@/components/ui/use-toast"
+
+interface Subscription {
+  $id?: string;
+  user_id: string;
+  topic: string;
+  subscribed: boolean;
+  subscriber_id?: string;
+}
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("notifications")
+  const [subscriptions, setSubscriptions] = useState<Record<string, Subscription>>({})
+  const [loading, setLoading] = useState(true)
+  const [updatingTopic, setUpdatingTopic] = useState<string | null>(null)
+  const [saveLoading, setSaveLoading] = useState(false)
   
   // Set document title
   useEffect(() => {
     document.title = "Settings | BISO";
   }, []);
+
+  // Load user subscription settings
+  useEffect(() => {
+    async function loadSubscriptions() {
+      try {
+        setLoading(true);
+        const userSubs = await fetchUserSubscriptions();
+        setSubscriptions(userSubs);
+      } catch (error) {
+        console.error('Failed to load subscription settings:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load your notification preferences",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    loadSubscriptions();
+  }, []);
+
+  // Handle subscription toggle
+  const handleSubscriptionToggle = async (topic: string, subscribe: boolean) => {
+    try {
+      setUpdatingTopic(topic);
+      
+      const success = await updateSubscriptionStatus(topic, subscribe, 'email');
+      
+      if (success) {
+        // Update local state
+        setSubscriptions(prev => ({
+          ...prev,
+          [topic]: {
+            ...prev[topic] || { topic, user_id: "" },
+            subscribed: subscribe
+          }
+        }));
+        
+        toast({
+          title: subscribe ? "Subscribed" : "Unsubscribed",
+          description: `You have ${subscribe ? 'subscribed to' : 'unsubscribed from'} ${topic.replace('alumni_', '')} notifications`,
+        });
+      } else {
+        throw new Error("Failed to update subscription");
+      }
+    } catch (error) {
+      console.error(`Failed to ${subscribe ? 'subscribe to' : 'unsubscribe from'} ${topic}:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to update your notification preferences`,
+        variant: "destructive"
+      });
+      
+      // Revert the local state change in case of error
+      const prevValue = subscriptions[topic]?.subscribed ?? false;
+      setSubscriptions(prev => ({
+        ...prev,
+        [topic]: {
+          ...prev[topic] || { topic, user_id: "" },
+          subscribed: prevValue
+        }
+      }));
+    } finally {
+      setUpdatingTopic(null);
+    }
+  };
+
+  // Handle saving all preferences
+  const handleSavePreferences = async () => {
+    setSaveLoading(true);
+    
+    try {
+      // Any additional save logic here
+      
+      toast({
+        title: "Settings Saved",
+        description: "Your notification preferences have been updated",
+      });
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save preferences",
+        variant: "destructive"
+      });
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  // Reset preferences to default
+  const handleResetPreferences = async () => {
+    if (loading || saveLoading) return;
+    
+    const defaultTopics = ["alumni_newsletters", "alumni_jobs", "alumni_messages", "alumni_events"];
+    setSaveLoading(true);
+    
+    try {
+      // Reset all to subscribed
+      for (const topic of defaultTopics) {
+        if (!subscriptions[topic]?.subscribed) {
+          await updateSubscriptionStatus(topic, true, 'email');
+        }
+      }
+      
+      // Update local state
+      const updatedSubs: Record<string, Subscription> = {};
+      for (const topic of defaultTopics) {
+        updatedSubs[topic] = {
+          ...subscriptions[topic] || { topic, user_id: "" },
+          subscribed: true
+        };
+      }
+      
+      setSubscriptions(updatedSubs);
+      
+      toast({
+        title: "Reset Complete",
+        description: "Your notification preferences have been reset to default",
+      });
+    } catch (error) {
+      console.error('Error resetting preferences:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reset preferences",
+        variant: "destructive"
+      });
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  // Helper to check if subscription is enabled
+  const isSubscribed = (topic: string) => subscriptions[topic]?.subscribed ?? false;
 
   return (
     <div className="relative min-h-screen pb-12 bg-primary-100">
@@ -117,115 +268,184 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-secondary-100 flex items-center">
-                    <Mail className="h-4 w-4 mr-2" />
-                    <span>Email Notifications</span>
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="email-events" className="text-white">Events and activities</Label>
-                        <p className="text-xs text-gray-400">
-                          Receive emails about upcoming alumni events
-                        </p>
-                      </div>
-                      <Switch id="email-events" defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="email-messages" className="text-white">Messages</Label>
-                        <p className="text-xs text-gray-400">
-                          Receive emails when you get a new message
-                        </p>
-                      </div>
-                      <Switch id="email-messages" defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="email-jobs" className="text-white">Job opportunities</Label>
-                        <p className="text-xs text-gray-400">
-                          Receive emails about new job postings
-                        </p>
-                      </div>
-                      <Switch id="email-jobs" defaultChecked />
-                    </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="email-newsletters" className="text-white">Newsletters</Label>
-                        <p className="text-xs text-gray-400">
-                          Receive monthly alumni newsletters
-                        </p>
-                      </div>
-                      <Switch id="email-newsletters" defaultChecked />
-                    </div>
+                {loading && (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="animate-spin h-8 w-8 text-blue-accent" />
+                    <span className="ml-2 text-gray-400">Loading your preferences...</span>
                   </div>
-                </div>
+                )}
                 
-                <Separator className="bg-white/10" />
-                
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-secondary-100 flex items-center">
-                    <Smartphone className="h-4 w-4 mr-2" />
-                    <span>In-App Notifications</span>
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="app-messages" className="text-white">Messages</Label>
-                        <p className="text-xs text-gray-400">
-                          Show notification when you receive a new message
-                        </p>
+                {!loading && (
+                  <>
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-secondary-100 flex items-center">
+                        <Mail className="h-4 w-4 mr-2" />
+                        <span>Email Notifications</span>
+                      </h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="email-events" className="text-white">Events and activities</Label>
+                            <p className="text-xs text-gray-400">
+                              Receive emails about upcoming alumni events
+                            </p>
+                          </div>
+                          <div className="flex items-center">
+                            {updatingTopic === 'alumni_events' && (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin text-blue-accent" />
+                            )}
+                            <Switch 
+                              id="email-events" 
+                              checked={isSubscribed('alumni_events')}
+                              disabled={loading || updatingTopic === 'alumni_events'}
+                              onCheckedChange={(checked) => handleSubscriptionToggle('alumni_events', checked)}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="email-messages" className="text-white">Messages</Label>
+                            <p className="text-xs text-gray-400">
+                              Receive emails when you get a new message
+                            </p>
+                          </div>
+                          <div className="flex items-center">
+                            {updatingTopic === 'alumni_messages' && (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin text-blue-accent" />
+                            )}
+                            <Switch 
+                              id="email-messages" 
+                              checked={isSubscribed('alumni_messages')}
+                              disabled={loading || updatingTopic === 'alumni_messages'}
+                              onCheckedChange={(checked) => handleSubscriptionToggle('alumni_messages', checked)}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="email-jobs" className="text-white">Job opportunities</Label>
+                            <p className="text-xs text-gray-400">
+                              Receive emails about new job postings
+                            </p>
+                          </div>
+                          <div className="flex items-center">
+                            {updatingTopic === 'alumni_jobs' && (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin text-blue-accent" />
+                            )}
+                            <Switch 
+                              id="email-jobs" 
+                              checked={isSubscribed('alumni_jobs')}
+                              disabled={loading || updatingTopic === 'alumni_jobs'}
+                              onCheckedChange={(checked) => handleSubscriptionToggle('alumni_jobs', checked)}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="email-newsletters" className="text-white">Newsletters</Label>
+                            <p className="text-xs text-gray-400">
+                              Receive monthly alumni newsletters
+                            </p>
+                          </div>
+                          <div className="flex items-center">
+                            {updatingTopic === 'alumni_newsletters' && (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin text-blue-accent" />
+                            )}
+                            <Switch 
+                              id="email-newsletters" 
+                              checked={isSubscribed('alumni_newsletters')}
+                              disabled={loading || updatingTopic === 'alumni_newsletters'}
+                              onCheckedChange={(checked) => handleSubscriptionToggle('alumni_newsletters', checked)}
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <Switch id="app-messages" defaultChecked />
                     </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="app-mentions" className="text-white">Mentions</Label>
-                        <p className="text-xs text-gray-400">
-                          Notify when someone mentions you
-                        </p>
+                    
+                    <Separator className="bg-white/10" />
+                    
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-secondary-100 flex items-center">
+                        <Smartphone className="h-4 w-4 mr-2" />
+                        <span>In-App Notifications</span>
+                      </h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="app-messages" className="text-white">Messages</Label>
+                            <p className="text-xs text-gray-400">
+                              Show notification when you receive a new message
+                            </p>
+                          </div>
+                          <Switch id="app-messages" defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="app-mentions" className="text-white">Mentions</Label>
+                            <p className="text-xs text-gray-400">
+                              Notify when someone mentions you
+                            </p>
+                          </div>
+                          <Switch id="app-mentions" defaultChecked />
+                        </div>
+                        <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="app-events" className="text-white">Events</Label>
+                            <p className="text-xs text-gray-400">
+                              Reminders for events you&apos;re attending
+                            </p>
+                          </div>
+                          <Switch id="app-events" defaultChecked />
+                        </div>
                       </div>
-                      <Switch id="app-mentions" defaultChecked />
                     </div>
-                    <div className="flex items-center justify-between p-2 hover:bg-white/5 rounded-md transition-colors">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="app-events" className="text-white">Events</Label>
-                        <p className="text-xs text-gray-400">
-                          Reminders for events you&apos;re attending
-                        </p>
+                    
+                    <Separator className="bg-white/10" />
+                    
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-blue-accent flex items-center">
+                        <HelpCircle className="h-4 w-4 mr-2" />
+                        <span>Notification Digest</span>
+                      </h3>
+                      <div className="space-y-2 p-2 hover:bg-white/5 rounded-md transition-colors">
+                        <Label className="text-white">How often would you like to receive notification summaries?</Label>
+                        <Select defaultValue="daily">
+                          <SelectTrigger className="mt-2 bg-primary-90/30 border-white/10">
+                            <SelectValue placeholder="Select frequency" />
+                          </SelectTrigger>
+                          <SelectContent className="glass-dark border-secondary-100/20">
+                            <SelectItem value="realtime">Real-time</SelectItem>
+                            <SelectItem value="daily">Daily digest</SelectItem>
+                            <SelectItem value="weekly">Weekly digest</SelectItem>
+                            <SelectItem value="never">Never</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <Switch id="app-events" defaultChecked />
                     </div>
-                  </div>
-                </div>
-                
-                <Separator className="bg-white/10" />
-                
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-blue-accent flex items-center">
-                    <HelpCircle className="h-4 w-4 mr-2" />
-                    <span>Notification Digest</span>
-                  </h3>
-                  <div className="space-y-2 p-2 hover:bg-white/5 rounded-md transition-colors">
-                    <Label className="text-white">How often would you like to receive notification summaries?</Label>
-                    <Select defaultValue="daily">
-                      <SelectTrigger className="mt-2 bg-primary-90/30 border-white/10">
-                        <SelectValue placeholder="Select frequency" />
-                      </SelectTrigger>
-                      <SelectContent className="glass-dark border-secondary-100/20">
-                        <SelectItem value="realtime">Real-time</SelectItem>
-                        <SelectItem value="daily">Daily digest</SelectItem>
-                        <SelectItem value="weekly">Weekly digest</SelectItem>
-                        <SelectItem value="never">Never</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                  </>
+                )}
               </CardContent>
               <CardFooter className="flex justify-end gap-2 border-t border-white/10 pt-4">
-                <Button variant="glass">Reset to Default</Button>
-                <Button variant="gradient">Save Preferences</Button>
+                <Button 
+                  variant="glass" 
+                  disabled={loading || saveLoading}
+                  onClick={handleResetPreferences}
+                >
+                  {saveLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
+                  Reset to Default
+                </Button>
+                <Button 
+                  variant="gradient" 
+                  disabled={loading || saveLoading}
+                  onClick={handleSavePreferences}
+                >
+                  {saveLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
+                  Save Preferences
+                </Button>
               </CardFooter>
             </Card>
           </TabsContent>

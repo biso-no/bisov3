@@ -1963,3 +1963,217 @@ export async function updateNewsViews(newsId: string, views: number): Promise<Ne
     return null;
   }
 }
+
+// ============================================================
+// NOTIFICATION SUBSCRIPTION ACTIONS
+// ============================================================
+
+interface Subscription {
+  $id?: string;
+  user_id: string;
+  topic: string;
+  subscribed: boolean;
+  subscriber_id?: string;
+}
+
+/**
+ * Fetches all subscription statuses for the current user
+ */
+export async function fetchUserSubscriptions() {
+  try {
+    const { account, db } = await createSessionClient();
+    
+    // Get current user
+    const user = await account.get();
+    
+    // Get all subscription records
+    const subs = await db.listDocuments(
+      'app', // Database ID
+      'subs', // Collection ID
+      [
+        Query.equal('user_id', user.$id)
+      ]
+    );
+    
+    // Convert to a map of topic -> subscription status
+    const subscriptionMap: Record<string, Subscription> = {};
+    
+    for (const sub of subs.documents) {
+      subscriptionMap[sub.topic] = {
+        $id: sub.$id,
+        user_id: sub.user_id,
+        topic: sub.topic,
+        subscribed: sub.subscribed,
+        subscriber_id: sub.subscriber_id
+      };
+    }
+    
+    return subscriptionMap;
+  } catch (error) {
+    console.error('Error fetching user subscriptions:', error);
+    return {};
+  }
+}
+
+/**
+ * Subscribe a user to a messaging topic and update the database
+ */
+type Provider = 'email' | 'push';
+
+export async function subscribeToTopic(topic: string, provider: Provider): Promise<boolean> {
+  try {
+    const { account, db, messaging } = await createSessionClient();
+    
+    // Get current user
+    const user = await account.get();
+    
+    // First check if a subscription record already exists
+    const subs = await db.listDocuments(
+      'app',
+      'subs',
+      [
+        Query.equal('user_id', user.$id),
+        Query.equal('topic', topic)
+      ]
+    );
+    
+    let subscriberId = '';
+    let targetId = '';
+    
+    // Find the appropriate target for the specified provider
+    if (user.targets && Array.isArray(user.targets) && user.targets.length > 0) {
+      // Find target with matching provider
+      const target = user.targets.find((t: any) => 
+        (provider === 'email' && t.providerType === 'email') || 
+        (provider === 'push' && t.providerType === 'push')
+      );
+      
+      if (target) {
+        targetId = target.$id;
+      } else {
+        console.error(`User does not have a target set up for ${provider}`);
+        return false;
+      }
+    } else {
+      console.error(`User does not have any targets set up`);
+      return false;
+    }
+    
+    // Create a subscriber using the messaging client
+    try {
+      // Create a subscriber using the found targetId
+      const result = await messaging.createSubscriber(
+        topic,      // topicId
+        ID.unique(), // subscriberId
+        targetId     // targetId from the user's targets
+      );
+      
+      // The subscriberId is returned in the response
+      subscriberId = result.$id;
+    } catch (e) {
+      console.error('Failed to create messaging subscriber:', e);
+      throw new Error(`Failed to subscribe to messaging topic: ${e.message || e}`);
+    }
+    
+    // Update or create subscription record
+    if (subs.documents.length > 0) {
+      // Update existing record
+      await db.updateDocument(
+        'app',
+        'subs',
+        subs.documents[0].$id,
+        {
+          subscribed: true,
+          subscriber_id: subscriberId
+        }
+      );
+    } else {
+      // Create new record
+      await db.createDocument(
+        'app',
+        'subs',
+        ID.unique(),
+        {
+          user_id: user.$id,
+          topic: topic,
+          subscribed: true,
+          subscriber_id: subscriberId
+        }
+      );
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error subscribing to topic ${topic}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Unsubscribe a user from a messaging topic and update the database
+ */
+export async function unsubscribeFromTopic(topic: string): Promise<boolean> {
+  try {
+    const { account, db, messaging } = await createSessionClient();
+    
+    // Get current user
+    const user = await account.get();
+    
+    // First get the subscription record to get the subscriber_id
+    const subs = await db.listDocuments(
+      'app',
+      'subs',
+      [
+        Query.equal('user_id', user.$id),
+        Query.equal('topic', topic)
+      ]
+    );
+    
+    if (subs.documents.length === 0) {
+      return true; // No subscription found, so nothing to unsubscribe
+    }
+    
+    const subscriberId = subs.documents[0].subscriber_id;
+    
+    if (subscriberId) {
+      // Delete the subscriber directly using the messaging client
+      try {
+        await messaging.deleteSubscriber(
+          topic,       // topicId
+          subscriberId // subscriberId
+        );
+      } catch (e) {
+        console.error('Failed to delete messaging subscriber:', e);
+        // Continue execution even if the delete fails
+        // The subscriber might have already been deleted
+      }
+    }
+    
+    // Update subscription record
+    await db.updateDocument(
+      'app',
+      'subs',
+      subs.documents[0].$id,
+      {
+        subscribed: false,
+        subscriber_id: '' // Clear the subscriber ID
+      }
+    );
+    
+    return true;
+  } catch (error) {
+    console.error(`Error unsubscribing from topic ${topic}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Update subscription status based on the switch state
+ */
+export async function updateSubscriptionStatus(topic: string, subscribe: boolean, provider: Provider): Promise<boolean> {
+  if (subscribe) {
+    return await subscribeToTopic(topic, provider);
+  } else {
+    return await unsubscribeFromTopic(topic);
+  }
+}
