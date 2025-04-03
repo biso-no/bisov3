@@ -23,9 +23,11 @@ import {
   RegisterData,
   PasswordResetData,
   ProgramApplication,
-  MentoringProgram
+  MentoringProgram,
+  Testimonial,
+  Mentorship
 } from '@/lib/types/alumni';
-import { networksFeatureFlag, eventsFeatureFlag, mentoringFeatureFlag, jobsFeatureFlag, resourcesFeatureFlag, messagesFeatureFlag, adminFeatureFlag } from '@/lib/flags';
+import { networksFeatureFlag, eventsFeatureFlag, mentoringFeatureFlag, jobsFeatureFlag, resourcesFeatureFlag, messagesFeatureFlag, adminFeatureFlag, autoAcceptMentorsFlag } from '@/lib/flags';
 
 const DATABASE_ID = 'alumni';
 
@@ -1275,7 +1277,7 @@ export async function getAlumniProfiles(
       const profiles = await db.listDocuments<UserProfile>(
         DATABASE_ID,
         'userProfiles',
-        [Query.limit(0)] // We just need the count, not the documents
+        [Query.limit(1000)] // We just need the count, not the documents
       );
       
       return profiles.total;
@@ -1432,6 +1434,9 @@ export async function applyToBeMentor(mentorData: Partial<Mentor>): Promise<Ment
       throw new Error("User profile not found");
     }
     
+    // Check the auto-accept mentors feature flag
+    const autoAcceptMentors = await autoAcceptMentorsFlag();
+    
     // Create mentor profile
     const mentor = await db.createDocument<Mentor>(
       DATABASE_ID,
@@ -1442,7 +1447,9 @@ export async function applyToBeMentor(mentorData: Partial<Mentor>): Promise<Ment
         userId: user.$id,
         featured: false,
         reviewCount: 0,
-        menteeCount: 0
+        menteeCount: 0,
+        status: autoAcceptMentors ? 'approved' : 'pending', // Auto-approve if flag is enabled
+        applicationDate: new Date().toISOString()
       } as Mentor
     );
     
@@ -1616,14 +1623,15 @@ export async function getFeatureFlags(): Promise<Record<string, boolean>> {
   
   try {
     // Evaluate all feature flags
-    const [network, events, mentoring, jobs, resources, messages, admin] = await Promise.all([
+    const [network, events, mentoring, jobs, resources, messages, admin, autoAcceptMentors] = await Promise.all([
       networksFeatureFlag(),
       eventsFeatureFlag(),
       mentoringFeatureFlag(),
       jobsFeatureFlag(),
       resourcesFeatureFlag(),
       messagesFeatureFlag(),
-      adminFeatureFlag()
+      adminFeatureFlag(),
+      autoAcceptMentorsFlag()
     ]);
 
     // Return all feature flags
@@ -1634,7 +1642,8 @@ export async function getFeatureFlags(): Promise<Record<string, boolean>> {
       'alumni-jobs': jobs,
       'alumni-resources': resources,
       'alumni-messages': messages,
-      'alumni-admin': admin
+      'alumni-admin': admin,
+      'alumni-auto-accept-mentors': autoAcceptMentors
     };
   } catch (error) {
     console.error('Error evaluating feature flags:', error);
@@ -1647,7 +1656,229 @@ export async function getFeatureFlags(): Promise<Record<string, boolean>> {
       'alumni-jobs': true,
       'alumni-resources': true,
       'alumni-messages': true,
-      'alumni-admin': false // Default to false for admin flag
+      'alumni-admin': false, // Default to false for admin flag
+      'alumni-auto-accept-mentors': false // Default to false for auto-accept mentors flag
     };
+  }
+}
+
+/**
+ * Check if auto-accept mentors feature is enabled
+ * @returns Boolean indicating if auto-accept mentors is enabled
+ */
+export async function isAutoAcceptMentorsEnabled(): Promise<boolean> {
+  try {
+    const isEnabled = await autoAcceptMentorsFlag();
+    return isEnabled;
+  } catch (error) {
+    console.error('Error checking auto-accept mentors flag:', error);
+    return false;
+  }
+}
+
+/**
+ * Fetches all pending mentor applications
+ * @returns Array of mentors with pending status
+ */
+export async function getPendingMentorApplications(): Promise<Mentor[]> {
+  try {
+    const { db } = await createSessionClient();
+    
+    const pendingMentors = await db.listDocuments<Mentor>(
+      DATABASE_ID,
+      'mentors',
+      [
+        Query.equal('status', 'pending'),
+        Query.orderDesc('applicationDate'),
+      ]
+    );
+    
+    return pendingMentors.documents;
+  } catch (error) {
+    console.error('Error fetching pending mentor applications:', error);
+    return [];
+  }
+}
+
+/**
+ * Updates a mentor's application status
+ * @param mentorId The ID of the mentor to update
+ * @param status The new status (approved or rejected)
+ * @returns The updated mentor
+ */
+export async function updateMentorStatus(mentorId: string, status: 'approved' | 'rejected'): Promise<Mentor> {
+  try {
+    const { db } = await createSessionClient();
+    
+    // Update the mentor status
+    const mentor = await db.updateDocument<Mentor>(
+      DATABASE_ID,
+      'mentors',
+      mentorId,
+      { status } as Partial<Mentor>
+    );
+    
+    revalidatePath('/admin/alumni/mentors');
+    revalidatePath('/alumni/mentoring');
+    return mentor;
+  } catch (error) {
+    console.error('Error updating mentor status:', error);
+    throw error;
+  }
+}
+
+/**
+ * Updates the auto-accept mentors feature flag
+ * @param enabled Whether to enable or disable auto-accepting of mentors
+ * @returns boolean indicating success
+ */
+export async function updateAutoAcceptMentorsFlag(enabled: boolean): Promise<boolean> {
+  try {
+    const { db } = await createSessionClient();
+    
+    // Find the feature flag document
+    const flags = await db.listDocuments(
+      'app',
+      'feature_flags',
+      [Query.equal('key', 'alumni-auto-accept-mentors')]
+    );
+    
+    if (flags.documents.length > 0) {
+      // Update existing flag
+      await db.updateDocument(
+        'app',
+        'feature_flags',
+        flags.documents[0].$id,
+        { enabled }
+      );
+    } else {
+      // Create new flag
+      await db.createDocument(
+        'app',
+        'feature_flags',
+        ID.unique(),
+        { 
+          key: 'alumni-auto-accept-mentors', 
+          enabled,
+          description: 'Automatically approve mentor applications'
+        }
+      );
+    }
+    
+    revalidatePath('/admin/alumni/mentors');
+    return true;
+  } catch (error) {
+    console.error('Error updating auto-accept mentors flag:', error);
+    return false;
+  }
+}
+
+// ============================================================
+// TESTIMONIAL ACTIONS
+// ============================================================
+
+/**
+ * Fetches all testimonials, with optional filters
+ * @param filters Optional array of Query filters
+ * @param limit Maximum number of testimonials to return
+ * @returns Array of testimonials
+ */
+export async function getTestimonials(filters: string[] = [], limit = 3): Promise<Testimonial[]> {
+  try {
+    const { db } = await createSessionClient();
+    
+    const testimonials = await db.listDocuments<Testimonial>(
+      DATABASE_ID,
+      'testimonials',
+      [
+        ...filters,
+        Query.equal('featured', true),
+        Query.limit(limit)
+      ]
+    );
+    
+    return testimonials.documents;
+  } catch (error) {
+    console.error('Error fetching testimonials:', error);
+    return [];
+  }
+}
+
+/**
+ * Fetches all mentorships with optional filters
+ * @param filters Optional array of Query filters
+ * @param limit Maximum number of mentorships to return
+ * @returns Array of mentorships
+ */
+export async function getMentorships(filters: string[] = [], limit = 100): Promise<Mentorship[]> {
+  try {
+    const { db } = await createSessionClient();
+    
+    const mentorships = await db.listDocuments<Mentorship>(
+      DATABASE_ID,
+      'mentorships',
+      [
+        ...filters,
+        Query.orderDesc('$createdAt'),
+        Query.limit(limit)
+      ]
+    );
+    
+    return mentorships.documents;
+  } catch (error) {
+    console.error('Error fetching mentorships:', error);
+    return [];
+  }
+}
+
+/**
+ * Represents a statistic record stored in the database
+ */
+export interface StatRecord extends Models.Document {
+  type: 'alumni' | 'events' | 'mentorships' | 'jobs';
+  count: number;
+  date: string;
+  period: 'daily' | 'monthly';
+  monthYear?: string; // Only present for monthly records
+}
+
+/**
+ * Fetches stats from the alumniStats collection
+ * @param type Type of stat to fetch (alumni, events, mentorships, jobs)
+ * @param period Period of stats to fetch (daily, monthly)
+ * @param limit Maximum number of stats to return
+ * @returns Array of stat records
+ */
+export async function getStats(
+  type: 'alumni' | 'events' | 'mentorships' | 'jobs', 
+  period: 'daily' | 'monthly' = 'daily',
+  limit: number = 60
+) {
+  try {
+    const { db } = await createSessionClient();
+    
+    // Make sure DATABASE_ID is defined
+    if (!DATABASE_ID) {
+      throw new Error("DATABASE_ID is not defined");
+    }
+    
+    const stats = await db.listDocuments(
+      DATABASE_ID,
+      'alumniStats',
+      [
+        Query.equal('type', type),
+        Query.equal('period', period),
+        Query.orderDesc('date'),
+        Query.limit(limit)
+      ]
+    );
+    console.log("stats.documents", stats.documents);
+    return stats.documents.map(doc => ({
+      ...doc,
+      count: typeof doc.count === 'number' ? doc.count : parseInt(doc.count) || 0
+    }));
+  } catch (error) {
+    console.error(`Error fetching ${type} ${period} stats:`, error);
+    return [];
   }
 }

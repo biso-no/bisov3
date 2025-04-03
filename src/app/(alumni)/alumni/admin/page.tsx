@@ -162,6 +162,12 @@ export default function AdminDashboard() {
       description: "Oversee mentoring programs and applications" 
     },
     { 
+      title: "Manage Mentors", 
+      href: "/alumni/admin/mentors", 
+      icon: BookOpen,
+      description: "Oversee mentoring programs and applications" 
+    },
+    { 
       title: "Post Job", 
       href: "/alumni/admin/jobs/new", 
       icon: Briefcase,

@@ -16,6 +16,10 @@ module.exports = {
         protocol: 'https',
         hostname: 'biso.no',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
   },
 };

@@ -115,6 +115,20 @@ export interface PrivacySettings extends AppwriteDocument {
 }
 
 // ============================================================
+// TESTIMONIAL INTERFACE
+// ============================================================
+
+export interface Testimonial extends AppwriteDocument {
+  name: string;
+  role: string;
+  graduationYear: string;
+  quote: string;
+  avatarUrl?: string;
+  featured: boolean;
+  userId?: string;
+}
+
+// ============================================================
 // EVENT INTERFACES
 // ============================================================
 
@@ -221,6 +235,8 @@ export interface Mentor extends AppwriteDocument {
   meetingPreference?: string[];
   userId: string;
   available?: boolean;
+  status: 'pending' | 'approved' | 'rejected'; // Status field for admin approval
+  applicationDate: string; // Date when the application was submitted
   
   // Relationship references (populated at runtime)
   userProfile?: UserProfile;

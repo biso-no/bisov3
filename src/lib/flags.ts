@@ -210,4 +210,19 @@ export const adminFeatureFlag = flag<boolean, Entities>({
       return false;
     }
   }
+});
+
+export const autoAcceptMentorsFlag = flag<boolean, Entities>({
+  key: 'alumni-auto-accept-mentors',
+  identify,
+  async decide({ entities }) {
+    const flags = await getFeatureFlags();
+    
+    if (flags && 'alumni-auto-accept-mentors' in flags) {
+      return flags['alumni-auto-accept-mentors'];
+    }
+    
+    // Default to false - don't auto-accept mentors by default for safety
+    return false;
+  }
 }); 

@@ -3,43 +3,217 @@
 import { UsersRound, GraduationCap, Calendar, Briefcase } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { useEffect, useState } from "react"
+// Using the proper client-side Appwrite client
+import { clientDatabase } from "@/lib/appwrite-client"
+import { Query, Models } from "appwrite"
 
-const stats = [
+// Define the stat record interface
+interface StatRecord extends Models.Document {
+  type: 'alumni' | 'events' | 'mentorships' | 'jobs';
+  count: number;
+  date: string;
+  period: 'daily' | 'monthly';
+  monthYear?: string;
+}
+
+// Define a client-side getStats function
+async function getStatsClient(
+  type: 'alumni' | 'events' | 'mentorships' | 'jobs', 
+  period: 'daily' | 'monthly' = 'daily',
+  limit: number = 60
+): Promise<StatRecord[]> {
+  try {
+    const DATABASE_ID = 'alumni';
+    
+    const stats = await clientDatabase.listDocuments<StatRecord>(
+      DATABASE_ID,
+      'alumniStats',
+      [
+        Query.equal('type', type),
+        Query.equal('period', period),
+        Query.orderDesc('date'),
+        Query.limit(limit)
+      ]
+    );
+    
+    return stats.documents.map(doc => ({
+      ...doc,
+      count: typeof doc.count === 'number' ? doc.count : parseInt(doc.count) || 0
+    }));
+  } catch (error) {
+    console.error(`Error fetching ${type} ${period} stats:`, error);
+    return [];
+  }
+}
+
+interface StatItem {
+  name: string;
+  value: string | number;
+  description: string;
+  icon: React.ElementType;
+  change: string;
+  positive: boolean;
+}
+
+const defaultStats: StatItem[] = [
   {
     name: "Active alumni",
-    value: "2,481",
+    value: "0",
     description: "Registered users",
     icon: UsersRound,
-    change: "+12% from last month",
+    change: "Loading...",
     positive: true,
   },
   {
     name: "Alumni events",
-    value: "24",
+    value: "0",
     description: "This year",
     icon: Calendar,
-    change: "+8 new this month",
+    change: "Loading...",
     positive: true,
   },
   {
     name: "Mentorship connections",
-    value: "153",
+    value: "0",
     description: "Active mentorships",
     icon: GraduationCap,
-    change: "+35% from last month",
+    change: "Loading...",
     positive: true,
   },
   {
     name: "Job opportunities",
-    value: "47",
+    value: "0",
     description: "Active postings",
     icon: Briefcase,
-    change: "+15 new this month",
+    change: "Loading...",
     positive: true,
   },
 ]
 
 export function AlumniStats() {
+  const [stats, setStats] = useState<StatItem[]>(defaultStats);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        // Get current date
+        const now = new Date();
+        
+        // Format numbers with commas for thousands
+        const formatNumber = (num: number): string => {
+          return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        };
+        
+        // Format percentage change
+        const formatPercentChange = (change: number): string => {
+          const formatted = Math.abs(change).toFixed(1);
+          return change >= 0 
+            ? `+${formatted}% from last month`
+            : `-${formatted}% from last month`;
+        };
+
+        // Add a slight delay to make sure any authentication is completed
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Fetch the most recent stats for each type
+        const [alumniStats, eventsStats, mentorshipsStats, jobsStats] = await Promise.all([
+          getStatsClient('alumni', 'daily', 60),
+          getStatsClient('events', 'daily', 60),
+          getStatsClient('mentorships', 'daily', 60),
+          getStatsClient('jobs', 'daily', 60)
+        ]);
+        
+        // Check if we have any stats
+        if (alumniStats.length === 0 && eventsStats.length === 0 && 
+            mentorshipsStats.length === 0 && jobsStats.length === 0) {
+          setLoading(false);
+          return;
+        }
+        
+        // Get latest stat for each type
+        const latestAlumni = alumniStats[0] || { count: 0 };
+        const latestEvents = eventsStats[0] || { count: 0 };
+        const latestMentorships = mentorshipsStats[0] || { count: 0 };
+        const latestJobs = jobsStats[0] || { count: 0 };
+        
+        // Get stats from 30 days ago for comparison
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        // Find previous month stats for comparison
+        const previousAlumni = alumniStats.find(stat => 
+          new Date(stat.date || stat.$createdAt) <= thirtyDaysAgo
+        ) || { count: latestAlumni.count * 0.9 };
+        
+        const previousMentorships = mentorshipsStats.find(stat => 
+          new Date(stat.date || stat.$createdAt) <= thirtyDaysAgo
+        ) || { count: latestMentorships.count * 0.9 };
+        
+        // Calculate percent changes
+        const alumniChange = previousAlumni.count > 0 
+          ? ((latestAlumni.count - previousAlumni.count) / previousAlumni.count) * 100 
+          : 0;
+          
+        const mentorshipsChange = previousMentorships.count > 0 
+          ? ((latestMentorships.count - previousMentorships.count) / previousMentorships.count) * 100 
+          : 0;
+        
+        // Count new events and jobs in last 30 days
+        const newEventsCount = latestEvents.count - (
+          eventsStats.find(stat => new Date(stat.date || stat.$createdAt) <= thirtyDaysAgo)?.count || 0
+        );
+        
+        const newJobsThisMonth = latestJobs.count - (
+          jobsStats.find(stat => new Date(stat.date || stat.$createdAt) <= thirtyDaysAgo)?.count || 0
+        );
+        
+        // Update stats with real data
+        setStats([
+          {
+            name: "Active alumni",
+            value: formatNumber(latestAlumni.count),
+            description: "Registered users",
+            icon: UsersRound,
+            change: formatPercentChange(alumniChange),
+            positive: alumniChange >= 0,
+          },
+          {
+            name: "Alumni events",
+            value: latestEvents.count,
+            description: "This year",
+            icon: Calendar,
+            change: `${newEventsCount} new this month`,
+            positive: newEventsCount > 0,
+          },
+          {
+            name: "Mentorship connections",
+            value: latestMentorships.count,
+            description: "Active mentorships",
+            icon: GraduationCap,
+            change: formatPercentChange(mentorshipsChange),
+            positive: mentorshipsChange >= 0,
+          },
+          {
+            name: "Job opportunities",
+            value: latestJobs.count,
+            description: "Active postings",
+            icon: Briefcase,
+            change: `${newJobsThisMonth} new this month`,
+            positive: newJobsThisMonth > 0,
+          },
+        ]);
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchStats();
+  }, []);
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 pb-8">
       {stats.map((stat, index) => (
@@ -94,7 +268,7 @@ export function AlumniStats() {
                     index === 2 ? "text-secondary-100" :
                     "gradient-text-gold"
                   )}>
-                    {stat.value}
+                    {loading ? "-" : stat.value}
                   </p>
                   <span className="text-xs text-gray-400 font-medium">
                     {stat.description}
@@ -107,7 +281,7 @@ export function AlumniStats() {
                   <span className="inline-block">
                     {stat.positive ? "↑" : "↓"}
                   </span>
-                  {stat.change}
+                  {loading ? "Loading..." : stat.change}
                 </p>
               </div>
               <div className={cn(
@@ -137,7 +311,7 @@ export function AlumniStats() {
                   index === 2 ? "bg-secondary-100" :
                   "bg-gold-default"
                 )}
-                style={{ width: `${(index + 1) * 25}%` }}
+                style={{ width: loading ? `${(index + 1) * 25}%` : "100%" }}
               />
             </div>
           </CardContent>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Search, Filter, UserRound, Sparkles, Briefcase, GraduationCap, ArrowRight, Calendar as CalendarIcon, Medal, Lightbulb, Clock, MapPin, Users } from "lucide-react"
+import { Search, Filter, UserRound, Sparkles, Briefcase, GraduationCap, ArrowRight, Calendar as CalendarIcon, Medal, Lightbulb, Clock, MapPin, Users, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -34,81 +34,51 @@ import { Mentor, MentoringProgram } from "@/lib/types/alumni"
 import { getMentors, getMentoringPrograms, applyToBeMentor } from "@/app/(alumni)/alumni/actions"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PageHeader } from "@/components/ui/page-header"
-
-// Mock data for programs until we have the real data
-const programs: MentoringProgram[] = [
-  {
-    $id: "program-001",
-    $createdAt: "2023-01-01T00:00:00.000Z",
-    $updatedAt: "2023-01-01T00:00:00.000Z",
-    $permissions: [],
-    $collectionId: "mentoringPrograms",
-    $databaseId: "alumni",
-    title: "Career Accelerator Program",
-    description: "A structured 3-month mentoring program designed to help early-career professionals accelerate their career development through personalized guidance.",
-    category: "Career Development",
-    duration: "3 months",
-    commitment: "4-6 hours per month",
-    startDate: "2023-09-01",
-    applicationDeadline: "2023-08-15",
-    spots: 25,
-    spotsRemaining: 8,
-    featured: true,
-    image: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3"
-  },
-  {
-    $id: "program-002",
-    $createdAt: "2023-01-01T00:00:00.000Z",
-    $updatedAt: "2023-01-01T00:00:00.000Z",
-    $permissions: [],
-    $collectionId: "mentoringPrograms",
-    $databaseId: "alumni",
-    title: "Leadership Excellence Initiative",
-    description: "Designed for mid-level managers looking to develop advanced leadership skills through mentoring, workshops, and peer learning.",
-    category: "Leadership",
-    duration: "6 months",
-    commitment: "6-8 hours per month",
-    startDate: "2023-10-15",
-    applicationDeadline: "2023-09-30",
-    spots: 20,
-    spotsRemaining: 5,
-    featured: true,
-    image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3"
-  },
-  {
-    $id: "program-003",
-    $createdAt: "2023-01-01T00:00:00.000Z",
-    $updatedAt: "2023-01-01T00:00:00.000Z",
-    $permissions: [],
-    $collectionId: "mentoringPrograms",
-    $databaseId: "alumni",
-    title: "Entrepreneurship Bootcamp",
-    description: "An intensive program connecting aspiring entrepreneurs with successful founders and business experts to develop business ideas and startup skills.",
-    category: "Entrepreneurship",
-    duration: "2 months",
-    commitment: "8-10 hours per month",
-    startDate: "2023-08-20",
-    applicationDeadline: "2023-08-05",
-    spots: 15,
-    spotsRemaining: 3,
-    featured: false,
-    image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3"
-  },
-];
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useSearchParams } from "next/navigation"
 
 export default function MentoringPage() {
-  const [activeTab, setActiveTab] = useState("find-mentor")
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get("tab")
+  const successParam = searchParams.get("success")
+  
+  const [activeTab, setActiveTab] = useState(tabParam || "find-mentor")
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null)
   const [mentors, setMentors] = useState<Mentor[]>([])
   const [mentoringPrograms, setMentoringPrograms] = useState<MentoringProgram[]>([])
   const [isLoadingMentors, setIsLoadingMentors] = useState(true)
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(true)
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string>("")
+  const [successTitle, setSuccessTitle] = useState<string>("")
 
   useEffect(() => {
     // Set document title
     document.title = "Alumni Mentoring | BISO";
     
+    // Check if there's a success message to show
+    if (successParam) {
+      setShowSuccessMessage(true)
+      
+      if (successParam === "true" && tabParam === "become-mentor") {
+        setSuccessTitle("Success!")
+        setSuccessMessage("Your application to become a mentor has been submitted successfully. Our team will review your application and get back to you soon.")
+      } else if (successParam === "application" && tabParam === "programs") {
+        setSuccessTitle("Application Received!")
+        setSuccessMessage("Your application to the mentoring program has been submitted successfully. We&apos;ll review it and notify you of the outcome soon.")
+      }
+      
+      // Auto-hide the success message after 5 seconds
+      const timer = setTimeout(() => {
+        setShowSuccessMessage(false)
+      }, 5000)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [successParam, tabParam])
+  
+  useEffect(() => {    
     const fetchData = async () => {
       try {
         // Fetch mentors
@@ -120,14 +90,14 @@ export default function MentoringPage() {
         // Fetch mentoring programs
         setIsLoadingPrograms(true);
         const fetchedPrograms = await getMentoringPrograms();
-        setMentoringPrograms(fetchedPrograms.length > 0 ? fetchedPrograms : programs);
+        setMentoringPrograms(fetchedPrograms);
         setIsLoadingPrograms(false);
       } catch (error) {
         console.error("Error fetching data:", error);
         setIsLoadingMentors(false);
         setIsLoadingPrograms(false);
-        // Fall back to mock data if API fails
-        setMentoringPrograms(programs);
+        // Don't fall back to mock data
+        setMentoringPrograms([]);
       }
     };
     
@@ -202,6 +172,16 @@ export default function MentoringPage() {
       </section>
       
       <section className="container p-8">
+        {showSuccessMessage && (
+          <Alert className="mb-6 border border-green-500/20 bg-green-500/10 text-green-500">
+            <Check className="h-4 w-4" />
+            <AlertTitle>{successTitle}</AlertTitle>
+            <AlertDescription>
+              {successMessage}
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <Tabs defaultValue="find-mentor" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-3 glass-dark backdrop-blur-md border border-secondary-100/20 p-1 h-12">
             <TabsTrigger 
