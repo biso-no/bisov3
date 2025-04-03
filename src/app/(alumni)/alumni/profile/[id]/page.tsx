@@ -109,7 +109,7 @@ export default function AlumniProfilePage() {
           <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
         </div>
         
-        <div className="container pt-8 pb-8">
+        <div className="container max-w-4xl pt-8 pb-8">
           <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
             <div className="relative mb-6">
               <div className="absolute inset-0 rounded-full blur-xl bg-blue-accent/20 animate-pulse"></div>
@@ -174,7 +174,7 @@ export default function AlumniProfilePage() {
         <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
       </div>
       
-      <div className="container pt-8 pb-8 space-y-6">
+      <div className="container max-w-4xl pt-8 pb-8 space-y-6">
         <div className="flex flex-col gap-8">
           <div className="flex justify-between items-center">
             <Button variant="glass" asChild className="gap-2 border border-secondary-100/10">

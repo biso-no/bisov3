@@ -659,7 +659,7 @@ export default function ProfileEditPage() {
           <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
         </div>
         
-        <div className="container flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="container max-w-4xl flex flex-col items-center justify-center min-h-[60vh]">
           <Loader2 className="h-10 w-10 animate-spin text-blue-accent mb-4" />
           <p className="text-gray-300 mt-2">Loading profile data...</p>
         </div>
@@ -676,7 +676,7 @@ export default function ProfileEditPage() {
         <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
-      <div className="container pt-8 pb-8">
+      <div className="container max-w-4xl pt-8 pb-8">
         <div className="space-y-6">
           {/* Page header with preview button */}
           <div className="flex justify-between items-center">

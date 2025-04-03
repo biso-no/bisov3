@@ -98,7 +98,7 @@ export function AlumniList({ alumni }: AlumniListProps) {
                   
                   <div className="flex gap-2">
                     <Button variant="glass" size="sm" asChild className="transition-all duration-300">
-                      <Link href={`/alumni/${profile.$id}`} className="flex items-center gap-1">
+                      <Link href={`/alumni/profile/${profile.$id}`} className="flex items-center gap-1">
                         View Profile
                         <ArrowRight className="h-3.5 w-3.5 opacity-70 group-hover:translate-x-0.5 transition-transform" />
                       </Link>

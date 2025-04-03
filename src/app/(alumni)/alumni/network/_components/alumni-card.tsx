@@ -119,7 +119,7 @@ export function AlumniCard({ profile }: AlumniCardProps) {
       
       <CardFooter className="flex justify-between p-4 pt-0 gap-2">
         <Button variant="glass" size="sm" asChild className="flex-1">
-          <Link href={`/alumni/${profile.$id}`}>View Profile</Link>
+          <Link href={`/alumni/profile/${profile.$id}`}>View Profile</Link>
         </Button>
         <Button variant="gradient" size="sm" className="flex-1 gap-1">
           <MessageCircle className="h-4 w-4" />

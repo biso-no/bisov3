@@ -126,7 +126,7 @@ export default function ProfilePage() {
           <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
         </div>
         
-        <div className="container pt-8 pb-8">
+        <div className="container max-w-4xl pt-8 pb-8">
           <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
             <div className="relative mb-6">
               <div className="absolute inset-0 rounded-full blur-xl bg-blue-accent/20 animate-pulse"></div>
@@ -154,7 +154,7 @@ export default function ProfilePage() {
         <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
-      <div className="container pt-8 pb-8 space-y-6">
+      <div className="container max-w-4xl pt-8 pb-8 space-y-6">
         {/* Profile Header */}
         <div className="relative">
           <div className="absolute inset-0 h-48 bg-gradient-to-r from-blue-accent/20 via-secondary-100/10 to-primary-90/5 rounded-xl"></div>

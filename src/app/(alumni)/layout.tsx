@@ -1,24 +1,36 @@
-"use client"
+export const dynamic = "force-dynamic"
+export const fetchCache = "force-no-store"
+export const revalidate = 0
 
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
 import { AlumniHeader } from "@/components/alumni/header"
 import { AlumniSidebar } from "@/components/alumni/sidebar"
-import { Metadata } from "next"
+import { getFeatureFlags } from "./alumni/actions"
+import "@/app/globals.css"
 
 
-export default function AlumniLayout({
+export default async function AlumniLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const pathname = usePathname()
+  // Fetch feature flags with cache busting to ensure freshness
+  const timestamp = Date.now() // Add a timestamp to bust cache
+  const flags = await getFeatureFlags()
+  const featureFlags = {
+    network: flags['alumni-network'] || false,
+    events: flags['alumni-events'] || false,
+    mentoring: flags['alumni-mentoring'] || false,
+    jobs: flags['alumni-jobs'] || false,
+    resources: flags['alumni-resources'] || false,
+    messages: flags['alumni-messages'] || false,
+    admin: flags['alumni-admin'] || false
+  }
   
   return (
     <div className="relative h-full flex flex-col min-h-screen bg-primary-100">
       <AlumniHeader />
       <div className="relative flex-1 flex overflow-hidden">
-        <AlumniSidebar />
+        <AlumniSidebar featureFlags={featureFlags} />
         <main className="flex-1 pt-16 overflow-y-auto bg-gradient-to-b from-primary-100 via-primary-90 to-primary-80">
           {/* Subtle background decorations */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -28,11 +40,7 @@ export default function AlumniLayout({
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(26,119,233,0.03),transparent_80%)]" />
           </div>
           
-          <div className={cn(
-            "container mx-auto py-6 px-4 md:px-6 relative z-10",
-            pathname.includes("/profile") && "max-w-4xl",
-            pathname.includes("/events/") && "max-w-5xl"
-          )}>
+          <div className="container mx-auto py-6 px-4 md:px-6 relative z-10">
             {children}
           </div>
         </main>

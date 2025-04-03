@@ -1,4 +1,3 @@
-import "./styles.css";
 import { museoSans } from './fonts';
 import Providers from "./providers"
 import '@/app/globals.css';

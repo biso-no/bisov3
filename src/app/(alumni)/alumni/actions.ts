@@ -25,6 +25,7 @@ import {
   ProgramApplication,
   MentoringProgram
 } from '@/lib/types/alumni';
+import { networksFeatureFlag, eventsFeatureFlag, mentoringFeatureFlag, jobsFeatureFlag, resourcesFeatureFlag, messagesFeatureFlag, adminFeatureFlag } from '@/lib/flags';
 
 const DATABASE_ID = 'alumni';
 
@@ -1598,5 +1599,55 @@ export async function getUserUpcomingEvents(userId: string, limit = 5): Promise<
   } catch (error) {
     console.error('Error fetching upcoming events:', error);
     return [];
+  }
+}
+
+// ============================================================
+// FEATURE FLAGS ACTION
+// ============================================================
+
+/**
+ * Gets all feature flags for the alumni portal
+ * @returns Object containing all feature flags
+ */
+export async function getFeatureFlags(): Promise<Record<string, boolean>> {
+  // Add the no-cache option to prevent caching
+  const { cache } = { cache: 'no-store' };
+  
+  try {
+    // Evaluate all feature flags
+    const [network, events, mentoring, jobs, resources, messages, admin] = await Promise.all([
+      networksFeatureFlag(),
+      eventsFeatureFlag(),
+      mentoringFeatureFlag(),
+      jobsFeatureFlag(),
+      resourcesFeatureFlag(),
+      messagesFeatureFlag(),
+      adminFeatureFlag()
+    ]);
+
+    // Return all feature flags
+    return {
+      'alumni-network': network,
+      'alumni-events': events,
+      'alumni-mentoring': mentoring,
+      'alumni-jobs': jobs,
+      'alumni-resources': resources,
+      'alumni-messages': messages,
+      'alumni-admin': admin
+    };
+  } catch (error) {
+    console.error('Error evaluating feature flags:', error);
+    
+    // In case of error, return a default set of feature flags (all enabled)
+    return {
+      'alumni-network': true,
+      'alumni-events': true,
+      'alumni-mentoring': true,
+      'alumni-jobs': true,
+      'alumni-resources': true,
+      'alumni-messages': true,
+      'alumni-admin': false // Default to false for admin flag
+    };
   }
 }
