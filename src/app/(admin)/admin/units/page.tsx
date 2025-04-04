@@ -11,26 +11,29 @@ import { FilterState } from '@/lib/hooks/use-departments-filter';
 export const revalidate = 0;
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     active?: string;
     campus_id?: string;
     type?: string;
     search?: string;
     sort?: string;
-  };
+  }>;
 }
 
 export default async function UnitsPage({ searchParams }: PageProps) {
+  // Await searchParams before using its properties
+  const params = await searchParams;
+  
   // Prepare filter values from search params
   const filters: FilterState = {
-    active: searchParams.active === 'false' 
+    active: params.active === 'false' 
       ? false
-      : searchParams.active === 'true'
+      : params.active === 'true'
         ? true
         : undefined,
-    campus_id: searchParams.campus_id,
-    type: searchParams.type,
-    searchTerm: searchParams.search
+    campus_id: params.campus_id,
+    type: params.type,
+    searchTerm: params.search
   };
 
   // Fetch data concurrently
@@ -42,7 +45,7 @@ export default async function UnitsPage({ searchParams }: PageProps) {
   
   // Sort departments if needed
   let sortedDepartments = [...departments];
-  const sortOrder = searchParams.sort || 'name-asc';
+  const sortOrder = params.sort || 'name-asc';
   const [sortField, sortDirection] = sortOrder.split('-');
   
   if (sortField && sortDirection) {
