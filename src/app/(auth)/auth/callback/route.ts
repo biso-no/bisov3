@@ -12,7 +12,9 @@ export async function GET(request: NextRequest) {
   const { account } = await createAdminClient();
   const session = await account.createSession(userId, secret);
 
-  cookies().set("x-biso-session", session.secret, {
+  const fetchedCookies = await cookies();
+
+  fetchedCookies.set("x-biso-session", session.secret, {
     path: "/",
     httpOnly: true,
     sameSite: "lax",

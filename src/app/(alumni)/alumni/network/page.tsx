@@ -28,7 +28,7 @@ import { AlumniCard } from "./_components/alumni-card"
 import { AlumniGrid } from "./_components/alumni-grid"
 import { AlumniList } from "./_components/alumni-list"
 import { AlumniMap } from "./_components/alumni-map"
-import { getAlumniProfiles, getAlumniFilterOptions, getAlumniCount } from "../actions"
+import { getAlumniProfiles, getAlumniFilterOptions, getAlumniCount, getFeatureFlags } from "../actions"
 import { UserProfile } from "@/lib/types/alumni"
 import { PageHeader } from "@/components/ui/page-header"
 import { cn } from "@/lib/utils"
@@ -68,11 +68,8 @@ export default function NetworkPage() {
   useEffect(() => {
     const checkFeatureFlag = async () => {
       try {
-        const response = await fetch('/api/feature-flags');
-        if (response.ok) {
-          const data = await response.json();
-          setFeatureEnabled(data['alumni-network'] ?? true);
-        }
+        const response = await getFeatureFlags();
+        setFeatureEnabled(response['alumni-network'] ?? true);
       } catch (error) {
         console.error("Error checking feature flag:", error);
         // Default to enabled if there's an error

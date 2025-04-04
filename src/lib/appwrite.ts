@@ -11,8 +11,7 @@ export async function createSessionClient() {
     .setEndpoint(APPWRITE_ENDPOINT)
     .setProject(APPWRITE_PROJECT)
 
-  const session = cookies().get("x-biso-session");
-
+  const session = (await cookies()).get("x-biso-session");
 
   client.setSession(session?.value);
 
