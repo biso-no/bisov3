@@ -67,7 +67,7 @@
     "framer-motion": "^11.18.0",
     "git": "^0.1.5",
     "jodit-react": "^5.0.10",
-    "leaflet": "^1.9.4",
+    "leaflet": "1.9.4",
     "leaflet-defaulticon-compatibility": "^0.1.2",
     "lowlight": "^3.3.0",
     "lucide-react": "^0.438.0",
