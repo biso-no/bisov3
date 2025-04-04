@@ -62,7 +62,7 @@ export async function signIn(email: string) {
 export async function signInWithOauth() {
 	const { account } = await createAdminClient();
 
-  const origin = headers().get("origin");
+  const origin = (await headers()).get("origin");
   
 	const redirectUrl = await account.createOAuth2Token(
 		OAuthProvider.Microsoft,
@@ -120,7 +120,7 @@ export async function signOut() {
   
     const { account } = await createSessionClient();
   
-    cookies().delete("x-biso-session");
+    (await cookies()).delete("x-biso-session");
     await account.deleteSession("current");
   
     redirect("/auth/login");

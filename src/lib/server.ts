@@ -27,10 +27,19 @@ export async function signInWithAzure() {
     const { account } = await createAdminClient();
 
     const origin = headers().get("origin");
+    
+    // Get the redirectTo parameter from the URL if it exists
+    const url = new URL(headers().get("referer") || `${origin}/auth/login`);
+    const redirectTo = url.searchParams.get("redirectTo");
+    
+    // Include the redirectTo parameter in the success URL
+    const successUrl = redirectTo ? 
+        `${origin}/auth/oauth?redirectTo=${redirectTo}` : 
+        `${origin}/auth/oauth`;
 
     const redirectUrl = await account.createOAuth2Token(
         OAuthProvider.Microsoft,
-        `${origin}/auth/oauth/`,
+        successUrl,
         `${origin}/auth/login`
         );
 

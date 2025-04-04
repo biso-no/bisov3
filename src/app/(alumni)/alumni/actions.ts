@@ -1039,7 +1039,7 @@ export async function login(email: string, password: string): Promise<Models.Ses
     const session = await account.createSession(email, password);
     
     // Set the session in cookies
-    cookies().set('x-biso-session', session.secret, {
+    (await cookies()).set('x-biso-session', session.secret, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
@@ -1072,7 +1072,7 @@ export async function register(email: string, password: string, name: string): P
     const session = await account.createSession(email, password);
     
     // Set the session in cookies
-    cookies().set('x-biso-session', session.secret, {
+    (await cookies()).set('x-biso-session', session.secret, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
@@ -1110,7 +1110,7 @@ export async function logout(): Promise<boolean> {
   try {
     const { account } = await createSessionClient();
     await account.deleteSession('current');
-    cookies().delete('x-biso-session');
+    (await cookies()).delete('x-biso-session');
     return true;
   } catch (error) {
     console.error('Error logging out:', error);
@@ -1532,7 +1532,6 @@ export async function getUserActivities(userId: string, limit = 10): Promise<Act
       DATABASE_ID,
       'events',
       [
-        Query.search('participantIds', userId),
         Query.orderDesc('date'),
         Query.limit(5)
       ]

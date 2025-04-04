@@ -57,7 +57,9 @@ export async function middleware(req: NextRequest) {
         protectedPaths.some(path => pathname.startsWith(path)) ||
         authenticatedPaths.some(path => pathname.startsWith(path)) ||
         pathname.startsWith('/edit')) {
-      return NextResponse.redirect(new URL("/auth/login", req.url));
+      // Encode the current URL to redirect back after authentication
+      const currentUrl = encodeURIComponent(pathname);
+      return NextResponse.redirect(new URL(`/auth/login?redirectTo=${currentUrl}`, req.url));
     }
     return res;
   }
@@ -66,6 +68,11 @@ export async function middleware(req: NextRequest) {
 
   // If the user is authenticated and attempts to access auth pages, redirect them to the homepage
   if (pathname.startsWith('/auth')) {
+    // Check if there's a redirectTo parameter
+    const redirectTo = req.nextUrl.searchParams.get('redirectTo');
+    if (redirectTo) {
+      return NextResponse.redirect(new URL(decodeURIComponent(redirectTo), req.url));
+    }
     return NextResponse.redirect(new URL("/", req.url));
   }
 
@@ -142,5 +149,10 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     '/alumni/:path*',
+    '/auth/:path*',
+    '/admin/:path*',
+    '/expenses/:path*',
+    '/edit/:path*',
+    '/',
   ],
 };
