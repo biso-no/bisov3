@@ -22,7 +22,6 @@ export async function getPageViews(): Promise<PageView[]> {
     { name: "Products", views: 4500 },
   ]
   
-  revalidatePath('/admin/dashboard')
   return data
 }
 
@@ -34,7 +33,6 @@ export async function getUserDistribution(): Promise<UserDistribution[]> {
     { name: "VIP", value: 50 },
   ]
   
-  revalidatePath('/admin/dashboard')
   return data
 }
 
@@ -48,7 +46,6 @@ export async function getUserGrowth(): Promise<UserGrowth[]> {
     { date: "2023-06", users: 2500 },
   ]
   
-  revalidatePath('/admin/dashboard')
   return data
 }
 
@@ -61,7 +58,6 @@ export async function getTrafficSources(): Promise<TrafficSource[]> {
     { name: "Referral", value: 100 },
   ]
   
-  revalidatePath('/admin/dashboard')
   return data
 }
 
@@ -74,7 +70,6 @@ export async function getRecentActivities(): Promise<RecentActivity[]> {
     { id: 5, user: "Chris Brown", action: "Responded to a support ticket", timestamp: "2023-06-15 16:10" },
   ]
   
-  revalidatePath('/admin/dashboard')
   return data
 }
 
@@ -86,7 +81,6 @@ export async function getSystemAlerts(): Promise<SystemAlert[]> {
     { id: 4, type: "success", message: "Backup completed successfully", timestamp: "2023-06-15 18:00" },
   ]
   
-  revalidatePath('/admin/dashboard')
   return data
 }
 
@@ -100,7 +94,6 @@ export async function getPostEngagement() {
     { name: "Post 5", likes: 600, comments: 120, shares: 80 },
   ]
   
-  revalidatePath('/admin/dashboard')
   return data
 }
 
@@ -114,7 +107,6 @@ export async function getAudienceGrowth() {
     { date: "2023-06", followers: 25000 },
   ]
   
-  revalidatePath('/admin/dashboard')
   return data
 }
 
@@ -128,7 +120,6 @@ export async function getRevenueByProduct() {
     { name: "Product E", revenue: 35000 },
   ]
   
-  revalidatePath('/admin/dashboard')
   return data
 }
 
@@ -141,7 +132,6 @@ export async function getExpenseCategories() {
     { category: "Office", amount: 5000 },
   ]
   
-  revalidatePath('/admin/dashboard')
   return data
 }
 
@@ -155,7 +145,6 @@ export async function getJobApplications() {
     { position: "Product Manager", applications: 35, openPositions: 2 },
   ]
   
-  revalidatePath('/admin/dashboard')
   return data
 }
 
@@ -168,6 +157,10 @@ export async function getEmployeeDistribution() {
     { name: "Management", value: 10 },
   ]
   
-  revalidatePath('/admin/dashboard')
   return data
+}
+
+// Utility function for data updates that need to trigger revalidation
+export async function revalidateDashboard() {
+  revalidatePath('/admin/dashboard')
 }
