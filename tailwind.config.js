@@ -147,6 +147,10 @@ module.exports = {
           '60%': { transform: 'rotate(0.0deg)' },
           '100%': { transform: 'rotate(0.0deg)' },
         },
+        "ping-slow": {
+          '0%': { transform: 'scale(1)', opacity: '0.8' },
+          '70%, 100%': { transform: 'scale(2)', opacity: '0' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -155,6 +159,7 @@ module.exports = {
         float: 'float 6s ease-in-out infinite',
         pulse: 'pulse 3s ease-in-out infinite',
         wave: 'wave 3s ease-in-out infinite',
+        "ping-slow": 'ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite',
       },
       boxShadow: {
         'glow': '0 0 20px rgba(var(--primary-rgb), 0.35)',

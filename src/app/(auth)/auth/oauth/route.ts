@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
   const secret = request.nextUrl.searchParams.get("secret");
+  const redirectTo = request.nextUrl.searchParams.get("redirectTo");
   const url = request.nextUrl.protocol + request.headers.get('host')
   
 
@@ -22,5 +23,11 @@ export async function GET(request: NextRequest) {
     secure: true,
   });
 
+  // Redirect to the original destination if available
+  if (redirectTo) {
+    return redirect(decodeURIComponent(redirectTo));
+  }
+
+  // Default redirect
   return redirect(`/admin`);
 }
