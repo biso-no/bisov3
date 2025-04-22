@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Eye, Plus, Send, TrendingUp, Clock, Search, Filter } from 'lucide-react';
+import { Eye, Plus, Send, TrendingUp, Clock, Search, Filter, User } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { updateExpenseStatus } from "@/app/actions/admin";
 import { Expense } from "@/lib/types/expense";
@@ -80,6 +80,10 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
     router.push("../expenses/new");
   };
 
+  const handleGoToProfile = () => {
+    router.push("../profile");
+  };
+
   const StatusIndicator = ({ status }: { status: string }) => (
     <motion.span
       initial={{ scale: 0.8 }}
@@ -111,13 +115,22 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
           <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
             Expenses Dashboard
           </h1>
-          <Button 
-            onClick={handleAddExpense}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 group"
-          >
-            <Plus className="h-4 mr-2 group-hover:rotate-90 transition-transform duration-200" />
-            Add New Expense
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleGoToProfile}
+              className="bg-white border border-blue-200 text-blue-600 shadow hover:shadow-md transition-all duration-200 group"
+            >
+              <User className="h-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
+              Your Profile
+            </Button>
+            <Button 
+              onClick={handleAddExpense}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 group"
+            >
+              <Plus className="h-4 mr-2 group-hover:rotate-90 transition-transform duration-200" />
+              Add New Expense
+            </Button>
+          </div>
         </motion.div>
 
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">

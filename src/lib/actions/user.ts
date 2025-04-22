@@ -13,14 +13,19 @@ export async function getLoggedInUser() {
         const { account, db } = await createSessionClient();
        
         const user = await account.get();
+        console.log("user authenticated:", user.$id);
+        
         if (user.$id) {
-            //console.log("print this here before the appwrite to users call user id is ")
-            //console.log(user.$id)
-            const profile = await db.getDocument('app', 'user', user.$id);
-            if (profile) {
+            try {
+                // Try to get the user profile document
+                const profile = await db.getDocument('app', 'user', user.$id);
+                console.log("Profile found:", profile?.$id);
                 return {user, profile};
-            } else {
-                return { user, profile: null }
+            } catch (profileError) {
+                // If profile doesn't exist, return user but null profile
+                console.log("No profile found for user:", user.$id);
+                console.error("Profile error:", profileError);
+                return { user, profile: null };
             }
         } else {
             return null;

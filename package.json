@@ -54,7 +54,6 @@
     "@types/react-resizable": "^3.0.8",
     "@types/react-simple-maps": "^3.0.6",
     "appwrite": "^16.1.0",
-    "bun": "^1.1.43",
     "canvas": "^3.1.0",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",

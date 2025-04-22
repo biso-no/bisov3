@@ -23,7 +23,7 @@ interface UserLayoutProps {
 
 const navigation = [
   { name: 'Expenses', href: '/expenses', icon: Receipt },
-  { name: 'Profile', href: '/profile', icon: User },
+  { name: 'Profile', href: '/expenses/profile', icon: User },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
