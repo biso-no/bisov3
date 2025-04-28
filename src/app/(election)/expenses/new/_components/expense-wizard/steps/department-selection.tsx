@@ -198,10 +198,10 @@ export function DepartmentSelection({
                     <div className="space-y-0.5">
                       <FormLabel className="flex items-center gap-2">
                         <CalendarDays className="w-4 h-4 text-blue-500" />
-                        Event Expense
+                        Related to an event
                       </FormLabel>
                       <FormDescription>
-                        Enable if this expense is related to a specific event
+                        Enable if this expense is related to a specific event. (Used by AI if activated to suggest proper description)
                       </FormDescription>
                     </div>
                     <FormControl>

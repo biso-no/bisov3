@@ -26,10 +26,10 @@ interface DashboardCard {
 export async function signInWithAzure() {
     const { account } = await createAdminClient();
 
-    const origin = headers().get("origin");
+    const origin = (await headers()).get("origin");
     
     // Get the redirectTo parameter from the URL if it exists
-    const url = new URL(headers().get("referer") || `${origin}/auth/login`);
+    const url = new URL((await headers()).get("referer") || `${origin}/auth/login`);
     const redirectTo = url.searchParams.get("redirectTo");
     
     // Include the redirectTo parameter in the success URL
@@ -49,7 +49,7 @@ export async function signInWithAzure() {
 export async function signInWithMagicLink(email: string) {
     const { account } = await createAdminClient();
 
-    const origin = headers().get("origin");
+    const origin = (await headers()).get("origin");
 
     const redirectUrl = await account.createMagicURLToken(
         ID.unique(),

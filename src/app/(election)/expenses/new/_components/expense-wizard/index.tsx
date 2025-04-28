@@ -23,8 +23,8 @@ const STEPS = [
   },
   {
     id: "department",
-    title: "Department & Budget",
-    description: "Select your department and provide budget information.",
+    title: "Campus & Department",
+    description: "Select your campus and department information",
   },
   {
     id: "documents",
