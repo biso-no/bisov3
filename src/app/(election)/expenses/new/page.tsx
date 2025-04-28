@@ -8,7 +8,7 @@ export default async function NewExpensePage() {
   const { profile } = await getLoggedInUser()
 
   if (!profile) {
-    redirect("/login")
+    redirect("/expenses/profile")
   }
 
   return (

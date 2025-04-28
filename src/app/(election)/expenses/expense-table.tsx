@@ -81,7 +81,7 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
   };
 
   const handleGoToProfile = () => {
-    router.push("../profile");
+    router.push("../expenses/profile");
   };
 
   const StatusIndicator = ({ status }: { status: string }) => (
@@ -116,13 +116,6 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
             Expenses Dashboard
           </h1>
           <div className="flex gap-3">
-            <Button 
-              onClick={handleGoToProfile}
-              className="bg-white border border-blue-200 text-blue-600 shadow hover:shadow-md transition-all duration-200 group"
-            >
-              <User className="h-4 mr-2 group-hover:scale-110 transition-transform duration-200" />
-              Your Profile
-            </Button>
             <Button 
               onClick={handleAddExpense}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 group"

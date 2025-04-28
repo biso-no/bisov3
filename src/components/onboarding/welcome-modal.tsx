@@ -2,22 +2,18 @@
 
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { updateUserPreferences } from "@/lib/actions/user";
 import { useRouter } from "next/navigation";
 
-interface OnboardingModalProps {
+interface WelcomeModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
 }
 
-export function OnboardingModal({ isOpen, onClose, userId }: OnboardingModalProps) {
+export function WelcomeModal({ isOpen, onClose, userId }: WelcomeModalProps) {
   const router = useRouter();
   
-  const goToProfilePage = () => {
-    onClose();
-    router.push("/expenses/profile");
-  };
-
   // Prevent scrolling when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -29,6 +25,23 @@ export function OnboardingModal({ isOpen, onClose, userId }: OnboardingModalProp
       document.body.style.overflow = "auto";
     };
   }, [isOpen]);
+
+  // Mark the user as having seen the welcome modal
+  const handleGotIt = async () => {
+    try {
+      await updateUserPreferences(userId, { hasExpenseProfile: true });
+      onClose();
+    } catch (error) {
+      console.error("Failed to update user preferences:", error);
+      onClose();
+    }
+  };
+  
+  // Go to profile page
+  const goToProfilePage = () => {
+    onClose();
+    router.push("/expenses/profile");
+  };
 
   if (!isOpen) return null;
 
@@ -59,30 +72,27 @@ export function OnboardingModal({ isOpen, onClose, userId }: OnboardingModalProp
             
             <div className="px-6 py-8">
               <div className="mb-6 text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">Complete Your Profile</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-3">Welcome to BISO Expenses</h2>
                 <p className="text-gray-600 mb-4">
-                  To get the most out of our platform, you&apos;ll need to set up your profile with your contact details and payment information.
-                </p>
-                <p className="text-gray-600">
-                  This will allow us to process expense reimbursements and keep you updated about important information.
+                  We see it is your first time here. Before submitting your expenses, please check your profile information to ensure everything is correct and up to date.
                 </p>
               </div>
               
               <div className="flex justify-between mt-8">
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={goToProfilePage}
                   className="px-4 py-2 text-gray-600 font-medium hover:text-gray-700 hover:bg-gray-50 rounded-lg transition duration-200"
                 >
-                  Later
+                  View Profile
                 </button>
                 
                 <button
                   type="button"
-                  onClick={goToProfilePage}
+                  onClick={handleGotIt}
                   className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium rounded-lg shadow-sm hover:shadow transition duration-200"
                 >
-                  Go to Profile
+                  Got It
                 </button>
               </div>
             </div>

@@ -4,6 +4,8 @@ import { getExpensesByLoggedInUser } from "@/app/actions/admin";
 export default async function Expenses() {
   const expenses = await getExpensesByLoggedInUser()
   return (
-    <ExpenseTable expenses={expenses} />
+    <div className="space-y-6">
+      <ExpenseTable expenses={expenses} />
+    </div>
   )
 }

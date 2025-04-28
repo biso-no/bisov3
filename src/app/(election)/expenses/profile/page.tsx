@@ -34,7 +34,7 @@ export default async function ProfilePage() {
           </p>
         </div>
         
-        <ProfileForm initialData={profileData} />
+        <ProfileForm initialData={profileData} email={userData.user.email} />
       </div>
     </div>
   );

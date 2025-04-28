@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { updateProfile } from "@/lib/actions/user";
 import { Models } from "node-appwrite";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 // Profile form schema
 const profileSchema = z.object({
@@ -25,13 +26,15 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 interface ProfileFormProps {
   initialData: Models.Document | null | any;
+  email: string;
 }
 
-export function ProfileForm({ initialData }: ProfileFormProps) {
+export function ProfileForm({ initialData, email }: ProfileFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
+  const { setProfile } = useAuth();
 
   // Log the initialData to understand its structure
   useEffect(() => {
@@ -42,7 +45,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: initialData?.name || "",
-      email: initialData?.email || "",
+      email: email || "",
       phone: initialData?.phone || "",
       address: initialData?.address || "",
       city: initialData?.city || "",
@@ -58,17 +61,26 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
     setErrorMessage(null);
 
     try {
-      await updateProfile(data);
-      setSuccessMessage("Profile updated successfully");
-      router.refresh();
+      console.log("Submitting profile data:", data);
+      const result = await updateProfile(data);
       
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
+      if (result) {
+        console.log("Profile update result:", result);
+        // Update the profile in the auth context
+        setProfile(result);
+        setSuccessMessage("Profile updated successfully");
+        
+        // Wait briefly before redirecting to ensure state updates
+        setTimeout(() => {
+          router.push("/expenses");
+        }, 1000);
+      } else {
+        setErrorMessage("Failed to update profile. Server returned null.");
+        console.error("Profile update failed - null result returned");
+      }
     } catch (error) {
       console.error("Error updating profile:", error);
-      setErrorMessage("Failed to update profile. Please try again.");
+      setErrorMessage(`Failed to update profile: ${error.message || "Unknown error"}`);
     } finally {
       setIsSubmitting(false);
     }
