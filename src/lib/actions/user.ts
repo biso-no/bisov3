@@ -115,6 +115,9 @@ export async function updateProfile(profile: Partial<Profile>) {
         try {
             const existingProfile = await db.getDocument('app', 'user', user.$id);
             console.log("Profile found, updating...", existingProfile.$id);
+            if (profile.name) {
+                await account.updateName(profile.name);
+            }
             return await db.updateDocument('app', 'user', user.$id, profile);
         } catch (profileError) {
             console.log("Profile not found, creating new profile for user:", user.$id);
@@ -199,3 +202,18 @@ export async function signOut() {
   
     redirect("/auth/login");
   }
+
+export async function deleteUserData() {
+    const { account } = await createSessionClient();
+    const { users, db } = await createAdminClient();
+    const user = await account.get();
+    const deletedUserDoc = await db.deleteDocument('app', 'user', user.$id);
+    if (deletedUserDoc) {
+        const deletedUser = await users.delete(user.$id);
+        if (deletedUser) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}

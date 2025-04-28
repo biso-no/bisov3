@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Mail, Send, Key, ArrowRight, ExternalLink } from "lucide-react"
+import { Mail, Send, Key, ArrowRight, ExternalLink, Shield } from "lucide-react"
 import Link from "next/link"
 import { signInWithAzure, signInWithMagicLink } from "@/lib/server"
 import Image from "next/image"
@@ -126,7 +126,17 @@ export function Login() {
           </div>
         )}
         
-        <div className="mt-8 text-center text-xs text-gray-500">
+        {/* Privacy Notice */}
+        <div className="mt-6 p-3 border border-blue-500/20 rounded-lg bg-blue-500/5">
+          <div className="flex items-start">
+            <Shield className="h-4 w-4 text-blue-400 mt-0.5 mr-2 flex-shrink-0" />
+            <p className="text-xs text-gray-400 leading-relaxed">
+              By signing in, you agree to our <a href="https://biso.no/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">Privacy Policy</a> and consent to the processing of your personal data as described therein. We comply with GDPR regulations and you can manage your data preferences and request data deletion from your profile settings.
+            </p>
+          </div>
+        </div>
+        
+        <div className="mt-6 text-center text-xs text-gray-500">
           <p>Don&apos;t have an account yet?</p>
           <Link href="/contact" className="text-blue-accent hover:underline inline-flex items-center">
             Contact us for access

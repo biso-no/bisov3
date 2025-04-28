@@ -88,14 +88,6 @@ export function ProfileForm({ initialData, email }: ProfileFormProps) {
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-      <div className="border-b border-gray-100 p-6">
-        <h2 className="text-xl font-semibold text-gray-800">
-          Personal Information
-        </h2>
-        <p className="text-gray-500 mt-1">
-          Update your personal details and preferences
-        </p>
-      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
         {/* Success/Error Messages */}

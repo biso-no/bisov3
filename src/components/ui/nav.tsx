@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { signOut } from '@/lib/actions/user';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { CookieConsent } from '@/components/cookie-consent';
 
 interface UserLayoutProps {
   children: React.ReactNode;
@@ -52,6 +53,9 @@ const UserLayout = ({ children }: UserLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Cookie Consent */}
+      <CookieConsent />
+      
       {/* Desktop Sidebar */}
       <div className={cn(
         "hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col z-30 transition-all duration-300 ease-in-out",
