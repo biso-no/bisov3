@@ -51,6 +51,12 @@ export async function signInWithMagicLink(email: string) {
 
     const origin = (await headers()).get("origin");
 
+    /*
+    if (email.includes("@biso.no")) {
+        return redirect(`${origin}/auth/login?restrictedDomain=true`);
+    }
+    */
+
     const redirectUrl = await account.createMagicURLToken(
         ID.unique(),
         email,

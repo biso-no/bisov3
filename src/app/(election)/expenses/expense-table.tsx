@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { updateExpenseStatus } from "@/app/actions/admin";
 import { Expense } from "@/lib/types/expense";
 import { Input } from "@/components/ui/input";
+import { reSubmitExpense } from '@/app/actions/expense';
 
 const tableVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -72,7 +73,7 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
   };
 
   const onSubmitExpense = async (id: string) => {
-    await updateExpenseStatus(id, "submitted");
+    await reSubmitExpense(id);
     // Add visual feedback here
   };
 

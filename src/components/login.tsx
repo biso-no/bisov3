@@ -1,15 +1,27 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Mail, Send, Key, ArrowRight, ExternalLink, Shield } from "lucide-react"
 import Link from "next/link"
 import { signInWithAzure, signInWithMagicLink } from "@/lib/server"
 import Image from "next/image"
+import { useSearchParams, useRouter } from "next/navigation"
 
 export function Login() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  
+  // Handle the restrictedDomain parameter but immediately clear it
+  useEffect(() => {
+    if (searchParams.get("restrictedDomain")) {
+      setMessage({ type: "error", text: "Please use your personal email address." })
+      // Remove the parameter from URL
+      router.replace("/auth/login", { scroll: false })
+    }
+  }, [searchParams, router])
 
   const handleUserLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -17,10 +29,23 @@ export function Login() {
       setMessage({ type: "error", text: "Please enter your email address." })
       return
     }
+    
+    /*
+    if (email.toLowerCase().includes("@biso.no")) {
+      setMessage({ type: "error", text: "Please use your personal email address." })
+      return
+    }
+    */
+    
     setIsLoading(true)
-    await signInWithMagicLink(email)
-    setIsLoading(false)
-    setMessage({ type: "success", text: "Login link sent! Please check your email." })
+    try {
+      await signInWithMagicLink(email)
+      setMessage({ type: "success", text: "Login link sent! Please check your email." })
+    } catch (error) {
+      setMessage({ type: "error", text: "Failed to send login link. Please try again." })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleAdminLogin = async () => {
@@ -88,7 +113,7 @@ export function Login() {
             )}
           </button>
         </form>
-        
+                {/*
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-white/10" />
@@ -100,6 +125,7 @@ export function Login() {
           </div>
         </div>
         
+
         <button
           onClick={handleAdminLogin}
           className="w-full glass border border-white/10 text-white py-3 rounded-lg flex items-center justify-center font-medium hover:brightness-110 transition-all duration-300 group"
@@ -108,7 +134,8 @@ export function Login() {
           Sign in with BISO account
           <ExternalLink className="ml-2 h-3.5 w-3.5 text-gray-400 transition-transform group-hover:translate-x-0.5" />
         </button>
-        
+        */}
+          
         {message && (
           <div className={`mt-6 p-4 rounded-lg ${message.type === "error" ? "bg-red-500/20 border border-red-500/30 text-red-200" : "bg-green-500/20 border border-green-500/30 text-green-200"}`}>
             <p className="text-sm font-medium flex items-start">
@@ -125,7 +152,7 @@ export function Login() {
             </p>
           </div>
         )}
-        
+        {/*We should not allow users to sign in with BISO email addresses, as they must use their personal ones*/}
         {/* Privacy Notice */}
         <div className="mt-6 p-3 border border-blue-500/20 rounded-lg bg-blue-500/5">
           <div className="flex items-start">
