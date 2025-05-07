@@ -16,7 +16,13 @@ jobs:
       # Step 1: Checkout Repository
       - uses: actions/checkout@v4
 
-      # Step 2: Cache Dependencies
+      # Step 2: Install Canvas Dependencies
+      - name: Install Canvas Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+
+      # Step 3: Cache Dependencies
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -25,7 +31,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-
 
-      # Step 3: Install Package Manager (Using the same approach as PR preview)
+      # Step 4: Install Bun
       - name: Install Bun
         run: |
           curl -fsSL https://bun.sh/install | bash
@@ -33,7 +39,7 @@ jobs:
           export PATH="$BUN_INSTALL/bin:$PATH"
           bun --version
 
-      # Step 4: Install and Build the Project
+      # Step 5: Install and Build the Project
       - name: Install and Build
         run: |
           export BUN_INSTALL="$HOME/.bun"
@@ -45,7 +51,7 @@ jobs:
           else echo "Lockfile not found." && exit 1; \
           fi
 
-      # Step 5: Verify Build Output
+      # Step 6: Verify Build Output
       - name: Verify Build Output
         run: |
           if [ ! -d ".next/standalone" ]; then
@@ -53,18 +59,18 @@ jobs:
             exit 1
           fi
 
-      # Step 6: Copy Build Artifacts to Server
+      # Step 7: Copy Build Artifacts to Server
       - name: Copy Build Artifacts to Server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: ".next,public"
-          target: "/path/to/your/production/app"
+          source: ".next/,public/"
+          target: "/root/apps/bisov3"
           strip_components: 0
 
-      # Step 7: Deploy Using Docker Compose
+      # Step 8: Deploy Using Docker Compose
       - name: Deploy with Docker Compose
         uses: appleboy/ssh-action@master
         with:
@@ -76,7 +82,37 @@ jobs:
             export APPWRITE_API_KEY='${{ secrets.APPWRITE_API_KEY }}'
             export NEXT_PUBLIC_APPWRITE_ENDPOINT='${{ secrets.NEXT_PUBLIC_APPWRITE_ENDPOINT }}'
             export NEXT_PUBLIC_APPWRITE_PROJECT='${{ secrets.NEXT_PUBLIC_APPWRITE_PROJECT }}'
-            cd /path/to/your/production/app
+            cd /root/apps/bisov3
+            
+            # Create docker-compose.yml if it doesn't exist
+            if [ ! -f "docker-compose.yml" ]; then
+              cat > docker-compose.yml << 'EOL'
+            version: '3'
+            services:
+              app:
+                image: node:18-alpine
+                working_dir: /app
+                command: node .next/standalone/server.js
+                environment:
+                  - NODE_ENV=production
+                  - PORT=3000
+                  - APPWRITE_API_KEY=${APPWRITE_API_KEY}
+                  - NEXT_PUBLIC_APPWRITE_ENDPOINT=${NEXT_PUBLIC_APPWRITE_ENDPOINT}
+                  - NEXT_PUBLIC_APPWRITE_PROJECT=${NEXT_PUBLIC_APPWRITE_PROJECT}
+                ports:
+                  - "3000:3000"
+                volumes:
+                  - ./.next/standalone:/app
+                  - ./.next/static:/app/.next/static
+                  - ./public:/app/public
+                restart: always
+                healthcheck:
+                  test: ["CMD", "wget", "--spider", "http://localhost:3000"]
+                  interval: 5s
+                  timeout: 5s
+                  retries: 3
+            EOL
+            fi
             
             # Gracefully stop the existing service
             docker compose down
@@ -84,7 +120,7 @@ jobs:
             # Start the new version
             docker compose up -d
 
-      # Step 8: Verify Deployment
+      # Step 9: Verify Deployment
       - name: Verify Deployment
         uses: appleboy/ssh-action@master
         with:
@@ -92,17 +128,5 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /path/to/your/production/app
+            cd /root/apps/bisov3
             timeout 60s bash -c 'until docker compose ps | grep healthy; do sleep 2; done'
-
-      # Step 9: Post-Deployment Notification (optional)
-      - name: Send Deployment Notification
-        if: success()
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: context.issue.number,
-              body: `🚀 Production deployment completed successfully!`
-            })
