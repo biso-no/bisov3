@@ -1,11 +1,20 @@
 import { createWorker } from 'tesseract.js';
 import { clientFunctions } from '../appwrite-client';
-import * as pdfjsLib from 'pdfjs-dist';
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 
-// Initialize PDF.js
+// Import PDF.js dynamically for client-side only
+let pdfjsLib: any = null;
+let getDocument: any = null;
+let GlobalWorkerOptions: any = null;
+
+// Only import PDF.js on the client side
 if (typeof window !== 'undefined') {
-  GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  // Dynamic imports
+  import('pdfjs-dist').then((pdfjs) => {
+    pdfjsLib = pdfjs;
+    getDocument = pdfjs.getDocument;
+    GlobalWorkerOptions = pdfjs.GlobalWorkerOptions;
+    GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+  });
 }
 
 interface ExtractedData {
@@ -57,6 +66,11 @@ async function processChatGPT(text: string): Promise<ExtractedData> {
 
 // Extract text from images using Tesseract (client-side)
 async function extractImageText(file: File): Promise<string> {
+  // Ensure we're on the client side
+  if (typeof window === 'undefined') {
+    return 'Image processing only available in browser';
+  }
+  
   const worker = await createWorker('eng+nor');
   
   try {
@@ -69,6 +83,11 @@ async function extractImageText(file: File): Promise<string> {
 
 // New function to extract text from PDF
 async function extractPDFText(file: File): Promise<string> {
+  // Ensure PDF.js is available (client-side only)
+  if (typeof window === 'undefined' || !pdfjsLib || !getDocument) {
+    return 'PDF processing only available in browser';
+  }
+  
   try {
     console.log('Starting PDF text extraction...');
     const arrayBuffer = await file.arrayBuffer();
@@ -100,6 +119,11 @@ async function extractPDFText(file: File): Promise<string> {
 
 // New function to check if PDF contains text or is image-based
 async function isPDFScanned(file: File): Promise<boolean> {
+  // Ensure we're on the client side
+  if (typeof window === 'undefined' || !pdfjsLib) {
+    return false;
+  }
+  
   const text = await extractPDFText(file);
   // If extracted text is very short, likely a scanned/image PDF
   return text.length < 50;
@@ -107,10 +131,35 @@ async function isPDFScanned(file: File): Promise<boolean> {
 
 // Main document processing function
 export async function processDocument(file: File): Promise<ExtractedData> {
+  // Ensure we're on the client side
+  if (typeof window === 'undefined') {
+    return {
+      date: null,
+      amount: null,
+      description: null,
+      currency: null,
+      exchangeRate: null
+    };
+  }
+  
   try {
     console.log('Starting document processing...', file.type);
     
     if (file.type === 'application/pdf') {
+      // Ensure PDF.js is loaded
+      if (!pdfjsLib || !getDocument) {
+        console.log('PDF.js not loaded yet, waiting...');
+        // Wait for PDF.js to load
+        await new Promise(resolve => {
+          const checkInterval = setInterval(() => {
+            if (pdfjsLib && getDocument) {
+              clearInterval(checkInterval);
+              resolve(true);
+            }
+          }, 100);
+        });
+      }
+      
       console.log('Processing PDF file...');
       try {
         const isScanned = await isPDFScanned(file);
@@ -179,4 +228,4 @@ export async function processDocument(file: File): Promise<ExtractedData> {
       exchangeRate: null
     };
   }
-} 
+}
