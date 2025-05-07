@@ -11,7 +11,7 @@ jobs:
       APPWRITE_API_KEY: ${{ secrets.APPWRITE_API_KEY }}
       NEXT_PUBLIC_APPWRITE_ENDPOINT: ${{ secrets.NEXT_PUBLIC_APPWRITE_ENDPOINT }}
       NEXT_PUBLIC_APPWRITE_PROJECT: ${{ secrets.NEXT_PUBLIC_APPWRITE_PROJECT }}
-      # Add any other environment variables needed
+      NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
     steps:
       # Step 1: Checkout Repository
       - uses: actions/checkout@v4
@@ -70,57 +70,28 @@ jobs:
           target: "/root/apps/bisov3"
           strip_components: 0
 
-      # Step 8: Deploy Using Docker Compose
-      - name: Deploy with Docker Compose
+      # Step 8: Rebuild and restart Docker container
+      - name: Deploy
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
-          envs: APPWRITE_API_KEY,NEXT_PUBLIC_APPWRITE_ENDPOINT,NEXT_PUBLIC_APPWRITE_PROJECT
+          envs: APPWRITE_API_KEY,NEXT_PUBLIC_APPWRITE_ENDPOINT,NEXT_PUBLIC_APPWRITE_PROJECT,NEXT_PUBLIC_BASE_URL
           script: |
             export APPWRITE_API_KEY='${{ secrets.APPWRITE_API_KEY }}'
             export NEXT_PUBLIC_APPWRITE_ENDPOINT='${{ secrets.NEXT_PUBLIC_APPWRITE_ENDPOINT }}'
             export NEXT_PUBLIC_APPWRITE_PROJECT='${{ secrets.NEXT_PUBLIC_APPWRITE_PROJECT }}'
+            export NEXT_PUBLIC_BASE_URL='${{ secrets.NEXT_PUBLIC_BASE_URL }}'
+            
             cd /root/apps/bisov3
             
-            # Create docker-compose.yml if it doesn't exist
-            if [ ! -f "docker-compose.yml" ]; then
-              cat > docker-compose.yml << 'EOL'
-            version: '3'
-            services:
-              app:
-                image: node:18-alpine
-                working_dir: /app
-                command: node .next/standalone/server.js
-                environment:
-                  - NODE_ENV=production
-                  - PORT=3000
-                  - APPWRITE_API_KEY=${APPWRITE_API_KEY}
-                  - NEXT_PUBLIC_APPWRITE_ENDPOINT=${NEXT_PUBLIC_APPWRITE_ENDPOINT}
-                  - NEXT_PUBLIC_APPWRITE_PROJECT=${NEXT_PUBLIC_APPWRITE_PROJECT}
-                ports:
-                  - "3000:3000"
-                volumes:
-                  - ./.next/standalone:/app
-                  - ./.next/static:/app/.next/static
-                  - ./public:/app/public
-                restart: always
-                healthcheck:
-                  test: ["CMD", "wget", "--spider", "http://localhost:3000"]
-                  interval: 5s
-                  timeout: 5s
-                  retries: 3
-            EOL
-            fi
-            
-            # Gracefully stop the existing service
+            # Rebuild and restart
+            docker compose build
             docker compose down
-            
-            # Start the new version
             docker compose up -d
 
-      # Step 9: Verify Deployment
+      # Step 9: Simple verification
       - name: Verify Deployment
         uses: appleboy/ssh-action@master
         with:
@@ -129,4 +100,13 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /root/apps/bisov3
-            timeout 60s bash -c 'until docker compose ps | grep healthy; do sleep 2; done'
+            
+            # Check if container is running
+            if docker compose ps | grep -q biso-appv3; then
+              echo "Container is running!"
+              exit 0
+            else
+              echo "Container failed to start!"
+              docker compose logs
+              exit 1
+            fi
