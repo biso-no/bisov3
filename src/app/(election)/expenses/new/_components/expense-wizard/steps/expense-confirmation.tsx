@@ -35,6 +35,7 @@ import { submitExpense } from '../../../actions'
 import { useAuth } from "@/lib/hooks/useAuth"
 import { FilePreview } from "../../file-preview"
 import { cn } from "@/lib/utils"
+import React from "react"
 
 interface ExpenseConfirmationProps {
   onPrevious: () => void
@@ -56,6 +57,13 @@ interface ExpenseConfirmationProps {
       amount: number;
       description: string;
       file?: File;
+      originalCurrency?: string;
+      bankStatement?: {
+        fileId: string;
+        fileName: string;
+        file: File;
+        date: string;
+      };
     }>;
     description?: {
       description: string;
@@ -64,6 +72,60 @@ interface ExpenseConfirmationProps {
       prepaymentAmount?: number;
     };
   }
+}
+
+// Utility functions for formatting
+const formatPhoneNumber = (phone: string): string => {
+  // Remove all non-digit characters
+  const digits = phone.replace(/\D/g, '')
+  
+  // Use narrow non-breaking space for tighter formatting
+  const narrowSpace = '\u202F'
+  
+  // Check if it's a Norwegian phone number (8 digits)
+  if (digits.length === 8 && (digits.startsWith('4') || digits.startsWith('9'))) {
+    // Format as xxx xx xxx with narrow spaces
+    return `${digits.slice(0, 3)}${narrowSpace}${digits.slice(3, 5)}${narrowSpace}${digits.slice(5)}`
+  }
+  
+  // For international numbers, try to format with country code
+  if (digits.length > 8) {
+    // If it starts with country code
+    if (digits.startsWith('47')) {
+      const nationalNumber = digits.slice(2)
+      if (nationalNumber.length === 8) {
+        return `+47${narrowSpace}${nationalNumber.slice(0, 3)}${narrowSpace}${nationalNumber.slice(3, 5)}${narrowSpace}${nationalNumber.slice(5)}`
+      }
+    }
+    
+    // Generic international format with + prefix if not already there
+    return phone.startsWith('+') ? phone : `+${digits}`
+  }
+  
+  // Return original if we can't format it
+  return phone
+}
+
+const formatBankAccount = (account: string, isInternational: boolean): string => {
+  // Remove all spaces and non-alphanumeric characters
+  const cleaned = account.replace(/\s/g, '')
+  
+  // Use narrow non-breaking space for tighter formatting
+  const narrowSpace = '\u202F'
+  
+  // If it's an IBAN (international)
+  if (isInternational || cleaned.length > 11) {
+    // Format IBAN with narrow spaces every 4 characters
+    return cleaned.replace(/(.{4})/g, `$1${narrowSpace}`).trim()
+  }
+  
+  // Norwegian account number (11 digits: xxxx xx xxxxx)
+  if (cleaned.length === 11) {
+    return `${cleaned.slice(0, 4)}${narrowSpace}${cleaned.slice(4, 6)}${narrowSpace}${cleaned.slice(6)}`
+  }
+  
+  // Return original if we can't format it
+  return account
 }
 
 export function ExpenseConfirmation({
@@ -145,11 +207,17 @@ export function ExpenseConfirmation({
               </div>
               <div>
                 <p className="text-sm text-gray-500">Phone</p>
-                <p className="font-medium">{data.contact?.phone}</p>
+                <p className="font-medium font-mono">
+                  {data.contact?.phone ? formatPhoneNumber(data.contact.phone) : ''}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Bank Account</p>
-                <p className="font-medium font-mono">{data.contact?.bank_account}</p>
+                <p className="font-medium font-mono">
+                  {data.contact?.bank_account 
+                    ? formatBankAccount(data.contact.bank_account, data.contact.isInternational) 
+                    : ''}
+                </p>
               </div>
               {data.contact?.isInternational && data.contact?.swift && (
                 <div>
@@ -181,31 +249,73 @@ export function ExpenseConfirmation({
               </TableHeader>
               <TableBody>
                 {data.documents?.map((doc) => (
-                  <TableRow key={doc.fileId}>
-                    <TableCell className="font-medium">
-                      <div 
-                        className={cn(
-                          "flex items-center gap-2 cursor-pointer hover:text-blue-500",
-                          previewFileId === doc.fileId && "text-blue-500"
-                        )}
-                        onClick={() => setPreviewFileId(doc.fileId)}
-                      >
-                        <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
-                          {doc.file && (
-                            <iframe
-                              src={URL.createObjectURL(doc.file)}
-                              className="w-full h-full"
-                              style={{ pointerEvents: 'none' }}
-                            />
+                  <React.Fragment key={doc.fileId}>
+                    <TableRow>
+                      <TableCell className="font-medium">
+                        <div 
+                          className={cn(
+                            "flex items-center gap-2 cursor-pointer hover:text-blue-500",
+                            previewFileId === doc.fileId && "text-blue-500"
                           )}
+                          onClick={() => setPreviewFileId(doc.fileId)}
+                        >
+                          <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
+                            {doc.file && (
+                              <iframe
+                                src={URL.createObjectURL(doc.file)}
+                                className="w-full h-full"
+                                style={{ pointerEvents: 'none' }}
+                              />
+                            )}
+                          </div>
+                          <div>
+                            {doc.fileName}
+                            {doc.originalCurrency && doc.originalCurrency !== 'NOK' && (
+                              <span className="text-xs ml-2 rounded-full bg-yellow-100 text-yellow-800 px-2 py-0.5">
+                                {doc.originalCurrency}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        {doc.fileName}
-                      </div>
-                    </TableCell>
-                    <TableCell>{format(new Date(doc.date), 'PP')}</TableCell>
-                    <TableCell>{formatAmount(doc.amount)} kr</TableCell>
-                    <TableCell>{doc.description}</TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell>{format(new Date(doc.date), 'PP')}</TableCell>
+                      <TableCell>{formatAmount(doc.amount)} kr</TableCell>
+                      <TableCell>{doc.description}</TableCell>
+                    </TableRow>
+                    
+                    {/* Bank Statement Row */}
+                    {doc.bankStatement && (
+                      <TableRow key={`${doc.fileId}-bank-statement`} className="bg-green-50/50">
+                        <TableCell className="pl-8 border-t-0">
+                          <div 
+                            className={cn(
+                              "flex items-center gap-2 cursor-pointer hover:text-blue-500",
+                              previewFileId === doc.bankStatement.fileId && "text-blue-500"
+                            )}
+                            onClick={() => setPreviewFileId(doc.bankStatement.fileId)}
+                          >
+                            <div className="w-6 h-6 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
+                              {doc.bankStatement.file && (
+                                <iframe
+                                  src={URL.createObjectURL(doc.bankStatement.file)}
+                                  className="w-full h-full"
+                                  style={{ pointerEvents: 'none' }}
+                                />
+                              )}
+                            </div>
+                            <div className="flex items-center">
+                              <CheckCircle2 className="h-3 w-3 text-green-600 mr-1" />
+                              <span className="text-sm text-green-700 mr-1">Bank Statement:</span>
+                              <span className="text-sm">{doc.bankStatement.fileName}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>{format(new Date(doc.bankStatement.date), 'PP')}</TableCell>
+                        <TableCell>-</TableCell>
+                        <TableCell><span className="text-xs text-gray-500">Supporting document</span></TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
                 ))}
                 <TableRow>
                   <TableCell colSpan={2} className="text-right font-semibold">
@@ -300,7 +410,19 @@ export function ExpenseConfirmation({
       <AnimatePresence>
         {previewFileId && (
           <FilePreview
-            files={data.documents || []}
+            files={[
+              ...(data.documents?.map(doc => ({
+                fileId: doc.fileId,
+                fileName: doc.fileName,
+                file: doc.file
+              })) || []),
+              ...(data.documents?.filter(doc => doc.bankStatement?.file)
+                .map(doc => ({
+                  fileId: doc.bankStatement!.fileId,
+                  fileName: `Bank Statement: ${doc.bankStatement!.fileName}`,
+                  file: doc.bankStatement!.file
+                })) || [])
+            ]}
             currentFileId={previewFileId}
             onClose={() => setPreviewFileId(undefined)}
             onFileChange={setPreviewFileId}

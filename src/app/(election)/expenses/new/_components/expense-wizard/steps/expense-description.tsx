@@ -48,6 +48,7 @@ interface ExpenseDescriptionProps {
       date: string;
     }>;
     generatedDescription?: string | null;
+    aiEnabled?: boolean;
     hasPrepayment?: boolean;
     prepaymentAmount?: number;
   }
@@ -61,6 +62,7 @@ export function ExpenseDescription({
   onUpdate,
 }: ExpenseDescriptionProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [prevDocumentsCount, setPrevDocumentsCount] = useState(data?.documents?.length || 0);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -73,23 +75,37 @@ export function ExpenseDescription({
   })
 
   useEffect(() => {
+    // Only update if the number of documents has changed or we're in the generating state
+    const docsChanged = prevDocumentsCount !== (data?.documents?.length || 0);
+    
     if (data?.documents?.length) {
-      if (data.generatedDescription === null) {
+      // If AI is generating a description (null state)
+      if (data.generatedDescription === null && data.aiEnabled) {
         setIsGenerating(true);
         form.setValue('description', 'Generating description...');
-      } else if (data.generatedDescription) {
+      } 
+      // If we have a generated description from AI
+      else if (data.generatedDescription && data.aiEnabled) {
         setIsGenerating(false);
         form.setValue('description', data.generatedDescription);
-      } else {
+      } 
+      // If AI is not enabled or we need to generate a default description
+      else if (!data.generatedDescription || docsChanged || !data.aiEnabled) {
         setIsGenerating(false);
-        const totalAmount = data.documents.reduce((sum, doc) => sum + doc.amount, 0);
-        const description = `Expense claim for ${data.documents.length} document${
-          data.documents.length > 1 ? 's' : ''
-        } totaling ${totalAmount.toFixed(2)} NOK`;
-        form.setValue('description', description);
+        // Only update the default description if we don't have one or if documents changed
+        if (docsChanged || !form.getValues('description')) {
+          const totalAmount = data.documents.reduce((sum, doc) => sum + doc.amount, 0);
+          const description = `Expense claim for ${data.documents.length} document${
+            data.documents.length > 1 ? 's' : ''
+          } totaling ${totalAmount.toFixed(2)} NOK`;
+          form.setValue('description', description);
+        }
       }
+      
+      // Update the document count tracker
+      setPrevDocumentsCount(data?.documents?.length || 0);
     }
-  }, [data, form]);
+  }, [data, form, prevDocumentsCount]);
 
   // Add debug logging to see what's happening
   useEffect(() => {
@@ -97,9 +113,12 @@ export function ExpenseDescription({
   }, [form]);
 
   const onSubmit = (values: FormValues) => {
-    console.log('Submitting values:', values);
-    onUpdate(values)
-    onNext()
+    // Preserve aiEnabled when updating
+    onUpdate({
+      ...values,
+      aiEnabled: data?.aiEnabled
+    });
+    onNext();
   }
 
   return (

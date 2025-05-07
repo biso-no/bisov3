@@ -95,6 +95,14 @@ interface ExpenseData {
     description: string
     file?: File
     url?: string
+    originalCurrency?: string
+    exchangeRate?: number
+    bankStatement?: {
+      fileId: string
+      fileName: string
+      date: string
+      file?: File
+    }
   }>
   description?: {
     description: string
@@ -123,31 +131,55 @@ export async function submitExpense(data: ExpenseData, userId: string) {
   try {
     const { storage, db } = await createSessionClient();
     
-    // Upload all files first
-    const uploadPromises = data.documents?.map(async (doc) => {
+    // Prepare all documents including bank statements for upload
+    const allDocuments = [];
+    
+    // Process main documents and their bank statements
+    data.documents?.forEach(doc => {
+      // Add the main document
+      allDocuments.push(doc);
+      
+      // If it has a bank statement, add it as a separate document
+      if (doc.bankStatement && doc.bankStatement.file) {
+        const bankStatementDoc = {
+          fileId: doc.bankStatement.fileId,
+          fileName: doc.bankStatement.fileName,
+          date: doc.bankStatement.date,
+          amount: 0, // Bank statements don't have an amount
+          description: `Bank statement for ${doc.fileName} (${doc.originalCurrency})`,
+          file: doc.bankStatement.file
+        };
+        allDocuments.push(bankStatementDoc);
+      }
+    });
+    
+    // Upload all files
+    const uploadPromises = allDocuments.map(async (doc) => {
       if (doc.file) {
         const fileId = await uploadExpenseFile(doc.file);
-        const url = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT + '/storage/buckets/expenses/files/' + fileId + '/view?project=' + process.env.APPWRITE_PROJECT_ID;
+        const url = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT + '/storage/buckets/expenses/files/' + fileId + '/view?project=' + process.env.NEXT_PUBLIC_APPWRITE_PROJECT;
         return { ...doc, fileId, file: undefined, url };
       }
       return doc;
-
-
-    }) || [];
+    });
 
     const documentsWithFileIds = await Promise.all(uploadPromises);
     
-    const totalAmount = documentsWithFileIds.reduce((sum, doc) => sum + doc.amount, 0) || 0
-    const prepaymentAmount = data.description?.prepaymentAmount || 0
+    // Filter out supporting documents before calculating total
+    const totalAmount = documentsWithFileIds
+      .filter(doc => !doc.description?.startsWith('Bank statement for'))
+      .reduce((sum, doc) => sum + doc.amount, 0) || 0;
+    
+    const prepaymentAmount = data.description?.prepaymentAmount || 0;
+    
 
     const expenseData = {
       campus: data.contact?.campus,
       department: data.contact?.department,
       bank_account: data.contact?.bank_account,
       description: data.description?.description,
-      total: totalAmount,
+      total: totalAmount - prepaymentAmount,
       prepayment_amount: prepaymentAmount,
-      remaining_balance: totalAmount - prepaymentAmount,
       status: 'pending',
       userId: userId,
       user: userId,
@@ -157,7 +189,6 @@ export async function submitExpense(data: ExpenseData, userId: string) {
         description: doc.description,
         type: doc.fileName.split('.').pop()?.toLowerCase() || 'unknown',
         url: doc.url
-
       }))
     }
 
