@@ -14,7 +14,8 @@ jobs:
       NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
     steps:
       # Step 1: Checkout Repository
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       # Step 2: Install Canvas Dependencies
       - name: Install Canvas Dependencies
@@ -22,34 +23,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
 
-      # Step 3: Cache Dependencies
+      # Step 3: Setup Bun
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      # Step 4: Cache Dependencies
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: .next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/yarn.lock', '**/package-lock.json', '**/pnpm-lock.yaml', '**/bun.lockb') }}
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/bun.lockb') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-
 
-      # Step 4: Install Bun
-      - name: Install Bun
-        run: |
-          curl -fsSL https://bun.sh/install | bash
-          export BUN_INSTALL="$HOME/.bun"
-          export PATH="$BUN_INSTALL/bin:$PATH"
-          bun --version
-
-      # Step 5: Install and Build the Project
+      # Step 5: Install and Build
       - name: Install and Build
         run: |
-          export BUN_INSTALL="$HOME/.bun"
-          export PATH="$BUN_INSTALL/bin:$PATH"
-          if [ -f bun.lockb ]; then bun install && bun run build; \
-          elif [ -f yarn.lock ]; then yarn install --frozen-lockfile && yarn build; \
-          elif [ -f package-lock.json ]; then npm ci && npm run build; \
-          elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm install --frozen-lockfile && pnpm build; \
-          else echo "Lockfile not found." && exit 1; \
-          fi
+          bun install
+          bun run build
 
       # Step 6: Verify Build Output
       - name: Verify Build Output
@@ -67,9 +60,16 @@ jobs:
       # Step 8: Save Docker Image
       - name: Save Docker Image
         run: |
-          # Get the service name from docker-compose.yml (assuming 'biso-appv3')
-          docker save biso-appv3:latest -o biso-appv3-image.tar
-          gzip biso-appv3-image.tar
+          # Get the image name dynamically from docker-compose
+          IMAGE_NAME=$(docker compose images -q app | awk '{print $1}')
+          echo "Using image: $IMAGE_NAME"
+          
+          # Save and compress the Docker image
+          docker save $IMAGE_NAME -o docker-image.tar
+          gzip -9 docker-image.tar
+          
+          # Export image name for use in later steps
+          echo "DOCKER_IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
 
       # Step 9: Transfer Docker Image to Server
       - name: Transfer Docker Image to Server
@@ -78,8 +78,9 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
-          source: "biso-appv3-image.tar.gz"
+          source: "docker-image.tar.gz"
           target: "/root/apps/bisov3"
+          strip_components: 0
 
       # Step 10: Deploy on Server
       - name: Deploy
@@ -88,8 +89,9 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
-          envs: APPWRITE_API_KEY,NEXT_PUBLIC_APPWRITE_ENDPOINT,NEXT_PUBLIC_APPWRITE_PROJECT,NEXT_PUBLIC_BASE_URL
+          envs: APPWRITE_API_KEY,NEXT_PUBLIC_APPWRITE_ENDPOINT,NEXT_PUBLIC_APPWRITE_PROJECT,NEXT_PUBLIC_BASE_URL,DOCKER_IMAGE_NAME
           script: |
+            # Set environment variables
             export APPWRITE_API_KEY='${{ secrets.APPWRITE_API_KEY }}'
             export NEXT_PUBLIC_APPWRITE_ENDPOINT='${{ secrets.NEXT_PUBLIC_APPWRITE_ENDPOINT }}'
             export NEXT_PUBLIC_APPWRITE_PROJECT='${{ secrets.NEXT_PUBLIC_APPWRITE_PROJECT }}'
@@ -97,16 +99,24 @@ jobs:
             
             cd /root/apps/bisov3
             
+            # Backup the current docker-compose.yml just in case
+            cp docker-compose.yml docker-compose.yml.backup
+            
             # Load the Docker image
-            gunzip -f biso-appv3-image.tar.gz
-            docker load -i biso-appv3-image.tar
+            echo "Loading Docker image..."
+            gunzip -f docker-image.tar.gz
+            docker load -i docker-image.tar
             
             # Deploy with Docker Compose
-            docker compose down
+            echo "Deploying with Docker Compose..."
+            docker compose pull || true
+            docker compose down --remove-orphans
             docker compose up -d
             
             # Clean up
-            rm biso-appv3-image.tar
+            echo "Cleaning up..."
+            rm docker-image.tar
+            docker image prune -f
 
       # Step 11: Verify Deployment
       - name: Verify Deployment
@@ -118,12 +128,25 @@ jobs:
           script: |
             cd /root/apps/bisov3
             
+            # Wait for container to start
+            echo "Waiting for container to start..."
+            sleep 10
+            
             # Check if container is running
             if docker compose ps | grep -q biso-appv3; then
-              echo "Container is running!"
-              exit 0
+              echo "✅ Container is running!"
+              
+              # Check if the app is responding to health checks
+              if curl -s -f http://localhost:3000/api/health; then
+                echo "✅ Application is healthy!"
+                exit 0
+              else
+                echo "❌ Container is running but health check failed!"
+                docker compose logs
+                exit 1
+              fi
             else
-              echo "Container failed to start!"
+              echo "❌ Container failed to start!"
               docker compose logs
               exit 1
             fi
