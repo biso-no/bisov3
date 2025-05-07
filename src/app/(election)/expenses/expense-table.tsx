@@ -68,7 +68,6 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
   const pendingExpenses = expenses.filter(expense => expense.status === "pending");
   const router = useRouter();
 
-  
   const handleViewExpense = (id: string) => {
     router.push(`expenses/view/${id}`);
   };
