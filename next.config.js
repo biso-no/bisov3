@@ -22,4 +22,16 @@ module.exports = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    // This is to handle the canvas dependency
+    if (!isServer) {
+      // Don't resolve 'canvas' package on the client
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'canvas': false,
+        'pdfjs-dist/node_modules/canvas': false
+      };
+    }
+    return config;
+  },
 };
