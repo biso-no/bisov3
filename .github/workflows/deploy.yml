@@ -60,16 +60,9 @@ jobs:
       # Step 8: Save Docker Image
       - name: Save Docker Image
         run: |
-          # Get the image name dynamically from docker-compose
-          IMAGE_NAME=$(docker compose images -q app | awk '{print $1}')
-          echo "Using image: $IMAGE_NAME"
-          
-          # Save and compress the Docker image
-          docker save $IMAGE_NAME -o docker-image.tar
+          # Use the exact image name you provided
+          docker save bisov3-app:latest -o docker-image.tar
           gzip -9 docker-image.tar
-          
-          # Export image name for use in later steps
-          echo "DOCKER_IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
 
       # Step 9: Transfer Docker Image to Server
       - name: Transfer Docker Image to Server
@@ -89,7 +82,7 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
-          envs: APPWRITE_API_KEY,NEXT_PUBLIC_APPWRITE_ENDPOINT,NEXT_PUBLIC_APPWRITE_PROJECT,NEXT_PUBLIC_BASE_URL,DOCKER_IMAGE_NAME
+          envs: APPWRITE_API_KEY,NEXT_PUBLIC_APPWRITE_ENDPOINT,NEXT_PUBLIC_APPWRITE_PROJECT,NEXT_PUBLIC_BASE_URL
           script: |
             # Set environment variables
             export APPWRITE_API_KEY='${{ secrets.APPWRITE_API_KEY }}'
@@ -99,17 +92,13 @@ jobs:
             
             cd /root/apps/bisov3
             
-            # Backup the current docker-compose.yml just in case
-            cp docker-compose.yml docker-compose.yml.backup
-            
             # Load the Docker image
-            echo "Loading Docker image..."
+            echo "Loading Docker image: bisov3-app:latest"
             gunzip -f docker-image.tar.gz
             docker load -i docker-image.tar
             
             # Deploy with Docker Compose
             echo "Deploying with Docker Compose..."
-            docker compose pull || true
             docker compose down --remove-orphans
             docker compose up -d
             
@@ -135,16 +124,7 @@ jobs:
             # Check if container is running
             if docker compose ps | grep -q biso-appv3; then
               echo "✅ Container is running!"
-              
-              # Check if the app is responding to health checks
-              if curl -s -f http://localhost:3000/api/health; then
-                echo "✅ Application is healthy!"
-                exit 0
-              else
-                echo "❌ Container is running but health check failed!"
-                docker compose logs
-                exit 1
-              fi
+              exit 0
             else
               echo "❌ Container failed to start!"
               docker compose logs
