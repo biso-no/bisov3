@@ -84,8 +84,8 @@ export function ExpenseWizard() {
     return {
       contact: {
         ...formData.contact,
-        campus: selectedCampus?.name,
-        department: selectedDepartment?.Name
+        campus: selectedCampus?.$id,
+        department: selectedDepartment?.$id
       },
       documents: formData.documents?.documents || [],
       description: formData.description,
