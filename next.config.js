@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
-  output: "standalone",
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -28,7 +27,6 @@ module.exports = {
       // Don't resolve 'canvas' package on the client
       config.resolve.alias = {
         ...config.resolve.alias,
-        'canvas': false,
         'pdfjs-dist/node_modules/canvas': false
       };
     }

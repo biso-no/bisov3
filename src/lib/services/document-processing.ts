@@ -1,7 +1,6 @@
-import { readFile } from 'fs/promises';
 import * as pdfParse from 'pdf-parse';
 import { createWorker } from 'tesseract.js';
-import sharp from 'sharp';
+import { Jimp } from 'jimp';
 
 export interface ExtractedDocumentData {
   date: string | null;
@@ -108,21 +107,25 @@ async function processPDF(buffer: Buffer): Promise<ExtractedDocumentData> {
   }
 }
 
-// Process images using Tesseract OCR
+
+
+
 async function processImage(buffer: Buffer): Promise<ExtractedDocumentData> {
   try {
-    // Initialize Tesseract worker
     const worker = await createWorker('eng+nor');
 
-    // Convert image to PNG if needed and optimize
-    const optimizedBuffer = await sharp(buffer)
-      .png()
-      .resize(2000, 2000, { fit: 'inside' }) // Resize if too large
-      .toBuffer();
+    // Use Jimp to read the image with new v1.x API
+    const image = await Jimp.read(buffer);
+    
+    // Resize the image (new API uses object with width/height)
+    image.resize({ w: 2000 }); // This will auto-calculate height to maintain aspect ratio
+
+    // Get buffer from the image using new API
+    const optimizedBuffer = await image.getBuffer('image/png');
 
     // Perform OCR
     const { data: { text, confidence } } = await worker.recognize(optimizedBuffer);
-    
+
     // Terminate worker
     await worker.terminate();
 
@@ -130,14 +133,12 @@ async function processImage(buffer: Buffer): Promise<ExtractedDocumentData> {
     const amount = extractAmount(text);
     const description = extractDescription(text);
 
-    // Calculate confidence based on extracted data
     let dataConfidence = 0;
     if (date) dataConfidence += 0.3;
     if (amount) dataConfidence += 0.4;
     if (description) dataConfidence += 0.3;
 
-    // Combine Tesseract confidence with our data confidence
-    const normalizedConfidence = confidence / 100; // Tesseract confidence is 0-100
+    const normalizedConfidence = confidence / 100;
     const finalConfidence = (dataConfidence + normalizedConfidence) / 2;
 
     return {
@@ -152,6 +153,7 @@ async function processImage(buffer: Buffer): Promise<ExtractedDocumentData> {
     throw error;
   }
 }
+
 
 export async function processDocument(
   buffer: Buffer,
