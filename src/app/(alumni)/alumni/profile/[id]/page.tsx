@@ -145,9 +145,9 @@ export default function AlumniProfilePage() {
       <div className="relative min-h-screen pb-12">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden -z-10">
-          <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-          <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-gold-default/5 blur-3xl" />
-          <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
+          <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+          <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-gold-default/5 blur-3xl" />
+          <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-secondary-100/5 blur-3xl" />
         </div>
         
         <div className="container max-w-4xl pt-8 pb-8">
@@ -210,9 +210,9 @@ export default function AlumniProfilePage() {
     <div className="relative min-h-screen pb-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-gold-default/5 blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-gold-default/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-secondary-100/5 blur-3xl" />
       </div>
       
       <div className="container max-w-4xl pt-8 pb-8 space-y-6">
@@ -234,13 +234,13 @@ export default function AlumniProfilePage() {
           
           {/* Profile Header */}
           <div className="relative">
-            <div className="absolute inset-0 h-48 bg-gradient-to-r from-blue-accent/20 via-secondary-100/10 to-primary-90/5 rounded-xl"></div>
+            <div className="absolute inset-0 h-48 bg-linear-to-r from-blue-accent/20 via-secondary-100/10 to-primary-90/5 rounded-xl"></div>
             
             <div className="relative pt-12 px-6 pb-6 md:pt-16 md:px-12 md:pb-8 flex flex-col md:flex-row md:items-end gap-6">
               <div className="relative">
                 <Avatar className="h-24 w-24 border-4 border-primary-90 shadow-lg">
                   <AvatarImage src={profile.avatarUrl} alt={profile.name} />
-                  <AvatarFallback className="text-xl bg-gradient-to-br from-blue-accent to-secondary-100 text-white">{initials}</AvatarFallback>
+                  <AvatarFallback className="text-xl bg-linear-to-br from-blue-accent to-secondary-100 text-white">{initials}</AvatarFallback>
                 </Avatar>
                 
                 {profile.privacySettings?.profileVisibility === 'limited' && (
@@ -296,19 +296,19 @@ export default function AlumniProfilePage() {
           <TabsList className="w-full max-w-md grid grid-cols-3 glass-dark backdrop-blur-md border border-secondary-100/20 p-1">
             <TabsTrigger 
               value="about" 
-              className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+              className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
             >
               About
             </TabsTrigger>
             <TabsTrigger 
               value="experience"
-              className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+              className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
             >
               Experience
             </TabsTrigger>
             <TabsTrigger 
               value="activity"
-              className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+              className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
             >
               Activity
             </TabsTrigger>
@@ -316,7 +316,7 @@ export default function AlumniProfilePage() {
           
           <TabsContent value="about" className="space-y-6 pt-4 animate-in fade-in-50 duration-300">
             <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
               <CardHeader className="relative z-10">
                 <CardTitle className="text-lg text-white">Bio</CardTitle>
               </CardHeader>
@@ -340,7 +340,7 @@ export default function AlumniProfilePage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="relative z-10">
                   <CardTitle className="text-lg text-white flex items-center gap-2">
                     <Award className="h-5 w-5 text-blue-accent" />
@@ -360,7 +360,7 @@ export default function AlumniProfilePage() {
               </Card>
               
               <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="relative z-10">
                   <CardTitle className="text-lg text-white flex items-center gap-2">
                     <Users className="h-5 w-5 text-secondary-100" />
@@ -387,7 +387,7 @@ export default function AlumniProfilePage() {
             {/* Work Experience */}
             {(!profile.privacySettings?.showWork || experiences.length === 0) ? (
               <Card variant="glass-dark" className="border-0 overflow-hidden mb-6">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="pb-3 relative z-10">
                   <CardTitle className="text-lg text-white">Work Experience</CardTitle>
                 </CardHeader>
@@ -409,14 +409,14 @@ export default function AlumniProfilePage() {
               </Card>
             ) : (
               <Card variant="glass-dark" className="border-0 overflow-hidden mb-6">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="pb-3 relative z-10">
                   <CardTitle className="text-lg text-white">Work Experience</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6 relative z-10">
                   {experiences.map((exp) => (
                     <div key={exp.$id} className="relative pl-7 pb-1">
-                      <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-blue-accent/80 to-secondary-100/50 z-0" />
+                      <div className="absolute left-0 top-0 bottom-0 w-px bg-linear-to-b from-blue-accent/80 to-secondary-100/50 z-0" />
                       <div className="absolute left-0 top-1 h-4 w-4 rounded-full bg-blue-accent/30 border-2 border-blue-accent z-10" />
                       
                       <div className="flex flex-wrap justify-between gap-2 mb-1">
@@ -452,7 +452,7 @@ export default function AlumniProfilePage() {
             {/* Education */}
             {(!profile.privacySettings?.showEducation || education.length === 0) ? (
               <Card variant="glass-dark" className="border-0 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="pb-3 relative z-10">
                   <CardTitle className="text-lg text-white">Education</CardTitle>
                 </CardHeader>
@@ -474,14 +474,14 @@ export default function AlumniProfilePage() {
               </Card>
             ) : (
               <Card variant="glass-dark" className="border-0 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="pb-3 relative z-10">
                   <CardTitle className="text-lg text-white">Education</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6 relative z-10">
                   {education.map((edu) => (
                     <div key={edu.$id} className="relative pl-7 pb-1">
-                      <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-gold-default/80 to-gold-strong/50 z-0" />
+                      <div className="absolute left-0 top-0 bottom-0 w-px bg-linear-to-b from-gold-default/80 to-gold-strong/50 z-0" />
                       <div className="absolute left-0 top-1 h-4 w-4 rounded-full bg-gold-default/30 border-2 border-gold-default z-10" />
                       
                       <div className="flex flex-wrap justify-between gap-2 mb-1">
@@ -511,7 +511,7 @@ export default function AlumniProfilePage() {
           
           <TabsContent value="activity" className="space-y-6 pt-4 animate-in fade-in-50 duration-300">
             <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
               <CardHeader className="relative z-10">
                 <CardTitle className="text-lg text-white">Recent Activity</CardTitle>
                 <CardDescription>Recent contributions and interactions with the alumni community</CardDescription>
@@ -552,7 +552,7 @@ export default function AlumniProfilePage() {
             </Card>
             
             <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
               <CardHeader className="relative z-10">
                 <CardTitle className="text-lg text-white">Upcoming Events</CardTitle>
                 <CardDescription>Events where {profile.name.split(' ')[0]} will be participating</CardDescription>

@@ -257,7 +257,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
       <motion.nav
         initial={false}
         animate={{ width: isSidebarExpanded ? 256 : 80 }}
-        className="bg-gray-900 flex-shrink-0 flex flex-col justify-between shadow-xl"
+        className="bg-gray-900 shrink-0 flex flex-col justify-between shadow-xl"
       >
         <div>
           <motion.div
@@ -265,7 +265,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
             initial={false}
             animate={{ justifyContent: isSidebarExpanded ? 'flex-start' : 'center' }}
           >
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 text-transparent bg-clip-text">
+            <span className="text-xl font-bold bg-linear-to-r from-blue-400 to-blue-600 text-transparent bg-clip-text">
               {isSidebarExpanded ? 'BISO Admin' : 'BA'}
             </span>
           </motion.div>
@@ -353,7 +353,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
           <div className="container mx-auto px-6 py-8">
             <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b 
-                           bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                           bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
               <Breadcrumb />
               <motion.div 
                 className="relative ml-auto flex-1 md:grow-0"

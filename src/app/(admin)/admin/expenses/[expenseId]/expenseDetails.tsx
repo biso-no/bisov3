@@ -129,7 +129,7 @@ export function AdminExpenseDetails({
 
             {/* Financial Details */}
             <motion.div 
-              className="grid gap-6 md:grid-cols-2 p-6 bg-gradient-to-br from-muted/30 to-muted/10 rounded-xl shadow-sm"
+              className="grid gap-6 md:grid-cols-2 p-6 bg-linear-to-br from-muted/30 to-muted/10 rounded-xl shadow-sm"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.4 }}

@@ -62,7 +62,7 @@ export function AlumniCard({ profile }: AlumniCardProps) {
       className="overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover group"
     >
       <div className={cn(
-        "h-24 bg-gradient-to-r transition-opacity duration-300 group-hover:opacity-80",
+        "h-24 bg-linear-to-r transition-opacity duration-300 group-hover:opacity-80",
         getGradient(profile.name)
       )}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent_70%)] opacity-70" />
@@ -73,7 +73,7 @@ export function AlumniCard({ profile }: AlumniCardProps) {
           <div className="relative">
             <Avatar className="h-24 w-24 border-4 border-primary-90 shadow-glow-blue transition-all duration-300 group-hover:scale-105">
               <AvatarImage src={profile.avatarUrl || ""} alt={profile.name} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-accent to-secondary-100 text-white font-bold">
+              <AvatarFallback className="bg-linear-to-br from-blue-accent to-secondary-100 text-white font-bold">
                 {getInitials(profile.name)}
               </AvatarFallback>
             </Avatar>

@@ -22,7 +22,7 @@ export function StepIndicator({
 
       {/* Animated progress */}
       <motion.div
-        className="absolute top-[22px] left-0 h-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"
+        className="absolute top-[22px] left-0 h-1 rounded-full bg-linear-to-r from-blue-500 to-indigo-500"
         initial={false}
         animate={{
           width: `${(currentStepIndex / (steps.length - 1)) * 100}%`,
@@ -51,7 +51,7 @@ export function StepIndicator({
                   w-11 h-11 rounded-full flex items-center justify-center
                   ${
                     isCurrent
-                      ? "bg-gradient-to-r from-blue-500 to-indigo-500 shadow-lg shadow-blue-500/30"
+                      ? "bg-linear-to-r from-blue-500 to-indigo-500 shadow-lg shadow-blue-500/30"
                       : isCompleted
                       ? "bg-green-500"
                       : "bg-white border-2 border-gray-200"

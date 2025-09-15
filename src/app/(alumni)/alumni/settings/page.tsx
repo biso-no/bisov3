@@ -351,9 +351,9 @@ export default function SettingsPage() {
     <div className="relative min-h-screen pb-12 bg-primary-100">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-gold-default/5 blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-gold-default/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-secondary-100/5 blur-3xl" />
       </div>
       
       <div className="container p-8 space-y-6">
@@ -369,7 +369,7 @@ export default function SettingsPage() {
               value="notifications" 
               className={cn(
                 "flex items-center gap-2 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
-                activeTab === "notifications" ? "bg-gradient-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
+                activeTab === "notifications" ? "bg-linear-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
               )}
             >
               <Bell className="h-4 w-4" />
@@ -379,7 +379,7 @@ export default function SettingsPage() {
               value="privacy" 
               className={cn(
                 "flex items-center gap-2 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
-                activeTab === "privacy" ? "bg-gradient-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
+                activeTab === "privacy" ? "bg-linear-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
               )}
             >
               <Lock className="h-4 w-4" />
@@ -389,7 +389,7 @@ export default function SettingsPage() {
               value="appearance" 
               className={cn(
                 "flex items-center gap-2 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
-                activeTab === "appearance" ? "bg-gradient-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
+                activeTab === "appearance" ? "bg-linear-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
               )}
             >
               <Sun className="h-4 w-4" />
@@ -1040,15 +1040,15 @@ export default function SettingsPage() {
                 
                 <div className="space-y-4">
                   <h3 className="text-sm font-medium text-gold-default flex items-center">
-                    <span className="h-4 w-4 mr-2 rounded-full bg-gradient-to-r from-blue-accent to-gold-default"></span>
+                    <span className="h-4 w-4 mr-2 rounded-full bg-linear-to-r from-blue-accent to-gold-default"></span>
                     <span>Color Accent</span>
                   </h3>
                   <RadioGroup defaultValue="blue" className="grid grid-cols-4 gap-4">
                     {[
-                      { value: "blue", gradient: "bg-gradient-to-r from-blue-500 to-blue-600" },
-                      { value: "green", gradient: "bg-gradient-to-r from-green-500 to-green-600" },
-                      { value: "violet", gradient: "bg-gradient-to-r from-violet-500 to-violet-600" },
-                      { value: "gold", gradient: "bg-gradient-to-r from-gold-default to-gold-strong" },
+                      { value: "blue", gradient: "bg-linear-to-r from-blue-500 to-blue-600" },
+                      { value: "green", gradient: "bg-linear-to-r from-green-500 to-green-600" },
+                      { value: "violet", gradient: "bg-linear-to-r from-violet-500 to-violet-600" },
+                      { value: "gold", gradient: "bg-linear-to-r from-gold-default to-gold-strong" },
                     ].map((item) => (
                       <div key={item.value}>
                         <RadioGroupItem

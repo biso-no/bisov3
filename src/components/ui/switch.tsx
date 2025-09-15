@@ -14,8 +14,8 @@ const Switch = React.forwardRef<
       "transition-all duration-300 ease-in-out",
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
       "disabled:cursor-not-allowed disabled:opacity-50",
-      "data-[state=checked]:bg-gradient-to-r data-[state=checked]:from-primary data-[state=checked]:to-primary/80",
-      "data-[state=unchecked]:bg-gradient-to-r data-[state=unchecked]:from-gray-200 data-[state=unchecked]:to-gray-300",
+      "data-[state=checked]:bg-linear-to-r data-[state=checked]:from-primary data-[state=checked]:to-primary/80",
+      "data-[state=unchecked]:bg-linear-to-r data-[state=unchecked]:from-gray-200 data-[state=unchecked]:to-gray-300",
       "hover:data-[state=checked]:from-primary/90 hover:data-[state=checked]:to-primary/70",
       "hover:data-[state=unchecked]:from-gray-300 hover:data-[state=unchecked]:to-gray-200",
       className
@@ -26,7 +26,7 @@ const Switch = React.forwardRef<
     <SwitchPrimitives.Thumb
       className={cn(
         "pointer-events-none block h-5 w-5 rounded-full shadow-lg ring-0 transition-all duration-300",
-        "bg-gradient-to-b from-white to-gray-50",
+        "bg-linear-to-b from-white to-gray-50",
         "group-data-[state=checked]:translate-x-5 group-data-[state=unchecked]:translate-x-0",
         "group-hover:scale-[0.95]",
         "group-active:scale-[0.9]",

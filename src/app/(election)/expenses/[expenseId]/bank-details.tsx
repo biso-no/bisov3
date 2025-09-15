@@ -179,7 +179,7 @@ export function BankDetailsStep() {
           >
             <Button
               type="submit"
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8"
+              className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8"
             >
               Next Step
             </Button>

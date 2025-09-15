@@ -236,9 +236,9 @@ export default function MessagesPage() {
     <div className="relative min-h-screen pb-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
       <div className="container pt-8 pb-8">
@@ -264,13 +264,13 @@ export default function MessagesPage() {
                   <TabsList className="grid w-full grid-cols-2 glass-dark border border-secondary-100/20 p-1">
                     <TabsTrigger 
                       value="all"
-                      className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+                      className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
                     >
                       All
                     </TabsTrigger>
                     <TabsTrigger 
                       value="unread" 
-                      className="relative data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+                      className="relative data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
                     >
                       Unread
                       {conversations.reduce((count, conv) => count + conv.unreadCount, 0) > 0 && (
@@ -310,7 +310,7 @@ export default function MessagesPage() {
                             onClick={() => setActiveConversationId(conversation.$id)}
                           >
                             <div className="relative group">
-                              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-blue-accent/40 to-secondary-100/20 blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                              <div className="absolute -inset-0.5 rounded-full bg-linear-to-br from-blue-accent/40 to-secondary-100/20 blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                               <Avatar className="h-10 w-10 border border-secondary-100/20 relative shadow-sm group-hover:shadow-glow-sm transition-all duration-300">
                                 <AvatarImage src={otherParticipant.avatarUrl} alt={otherParticipant.name} />
                                 <AvatarFallback className="bg-primary-80 text-white">{otherParticipant.name?.slice(0, 2) || "?"}</AvatarFallback>
@@ -378,7 +378,7 @@ export default function MessagesPage() {
                   <div className="flex items-center gap-3">
                     {activeConversation.participants.length > 0 && (
                       <div className="relative group">
-                        <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-blue-accent/40 to-secondary-100/20 blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                        <div className="absolute -inset-0.5 rounded-full bg-linear-to-br from-blue-accent/40 to-secondary-100/20 blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                         <Avatar className="h-10 w-10 border border-secondary-100/20 relative shadow-sm group-hover:shadow-glow-sm transition-all duration-300">
                           <AvatarImage 
                             src={activeConversation.participants.find(p => 
@@ -455,7 +455,7 @@ export default function MessagesPage() {
                               <div className={cn(
                                 "rounded-2xl p-3",
                                 isCurrentUser 
-                                  ? "bg-gradient-to-br from-blue-accent/80 to-blue-accent/60 text-white shadow-glow-sm" 
+                                  ? "bg-linear-to-br from-blue-accent/80 to-blue-accent/60 text-white shadow-glow-sm" 
                                   : "glass border border-secondary-100/20"
                               )}>
                                 <p className="text-sm">{message.content}</p>

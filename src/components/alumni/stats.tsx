@@ -227,7 +227,7 @@ export function AlumniStats() {
             index === 3 && "from-gold-strong to-gold-default",
           )}
         >
-          <div className="absolute inset-0 bg-gradient-to-br opacity-20 group-hover:opacity-30 transition-opacity duration-300"
+          <div className="absolute inset-0 bg-linear-to-br opacity-20 group-hover:opacity-30 transition-opacity duration-300"
             style={{
               background: index === 0 ? 'linear-gradient(135deg, #001731 0%, #002753 100%)' :
                         index === 1 ? 'linear-gradient(135deg, #01417B 0%, #1A77E9 100%)' :

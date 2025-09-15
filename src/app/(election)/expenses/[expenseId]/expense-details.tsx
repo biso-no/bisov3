@@ -89,7 +89,7 @@ const StepIndicator = ({ currentStep, totalSteps, onStepClick }) => {
       
       {/* Animated progress */}
       <motion.div 
-        className="absolute top-1/2 left-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 -translate-y-1/2 rounded-full"
+        className="absolute top-1/2 left-0 h-1 bg-linear-to-r from-blue-600 to-indigo-600 -translate-y-1/2 rounded-full"
         initial={false}
         animate={{
           width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%`
@@ -117,7 +117,7 @@ const StepIndicator = ({ currentStep, totalSteps, onStepClick }) => {
               <motion.div
                 className={`w-10 h-10 rounded-full flex items-center justify-center ${
                   isCurrent
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg'
+                    ? 'bg-linear-to-r from-blue-600 to-indigo-600 shadow-lg'
                     : isCompleted
                     ? 'bg-green-500'
                     : 'bg-gray-200'
@@ -212,7 +212,7 @@ export function ExpenseDetails({ expenseId }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-8 px-4">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white pt-8 px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -243,7 +243,7 @@ export function ExpenseDetails({ expenseId }) {
         <Card className="border border-gray-200 shadow-xl bg-white/50 backdrop-blur-sm">
           <CardHeader className="border-b border-gray-100 pb-6">
             <div className="flex flex-col space-y-2">
-              <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+              <CardTitle className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-indigo-600">
                 {stepTitles[step - 1]?.title || "Reimbursement Form"}
               </CardTitle>
               <p className="text-gray-500">

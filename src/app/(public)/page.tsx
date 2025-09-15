@@ -24,7 +24,7 @@ export default async function HomePage() {
   return (
     <div className="space-y-12">
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 text-white">
+      <section className="relative overflow-hidden rounded-2xl bg-linear-to-br from-blue-600 via-blue-500 to-indigo-600 text-white">
         <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.4),transparent_40%),radial-gradient(circle_at_80%_0,rgba(255,255,255,0.25),transparent_35%)]" />
         <div className="relative px-6 py-16 md:px-10 md:py-24">
           <div className="grid items-center gap-10 md:grid-cols-2">

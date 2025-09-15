@@ -81,7 +81,7 @@ export function AlumniMap({ alumni }: AlumniMapProps) {
   
   return (
     <Card variant="glass-dark" className="overflow-hidden border-0 relative">
-      <CardContent className="p-0 aspect-[16/9] relative">
+      <CardContent className="p-0 aspect-video relative">
         {/* Loading overlay */}
         {isLoading && (
           <div className="absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm bg-primary-100/50">
@@ -98,7 +98,7 @@ export function AlumniMap({ alumni }: AlumniMapProps) {
         
         {/* Map container */}
         {!alumni.some(profile => profile.location) ? (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-80 to-primary-60 flex items-center justify-center">
+          <div className="absolute inset-0 bg-linear-to-br from-primary-80 to-primary-60 flex items-center justify-center">
             <div className="glass p-8 rounded-2xl backdrop-blur-lg text-center max-w-md">
               <div className="bg-blue-accent/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <MapPin className="h-8 w-8 text-blue-accent" />

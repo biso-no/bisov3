@@ -106,20 +106,20 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
       <div className="container mx-auto p-6 space-y-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
         >
-          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-600 to-indigo-600">
             Expenses Dashboard
           </h1>
           <div className="flex gap-3">
             <Button 
               onClick={handleAddExpense}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 group"
+              className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 group"
             >
               <Plus className="h-4 mr-2 group-hover:rotate-90 transition-transform duration-200" />
               Add New Expense
@@ -134,7 +134,7 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
               onClick={() => setActiveTab('pending')}
               className={`flex-1 md:flex-none ${
                 activeTab === 'pending' 
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
+                  ? 'bg-linear-to-r from-blue-600 to-indigo-600 text-white' 
                   : ''
               }`}
             >
@@ -146,7 +146,7 @@ export function ExpenseTable({ expenses }: { expenses: Expense[] }) {
               onClick={() => setActiveTab('submitted')}
               className={`flex-1 md:flex-none ${
                 activeTab === 'submitted' 
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
+                  ? 'bg-linear-to-r from-blue-600 to-indigo-600 text-white' 
                   : ''
               }`}
             >

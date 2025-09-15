@@ -58,7 +58,7 @@ export function UserDetailsStep() {
       >
         {/* Bank Account Card */}
         <Card className="overflow-hidden">
-          <CardHeader className="border-b bg-gradient-to-r from-blue-50 to-blue-100/50">
+          <CardHeader className="border-b bg-linear-to-r from-blue-50 to-blue-100/50">
             <CardTitle className="flex items-center gap-2">
               <Banknote className="h-5 w-5" />
               Payment Details
@@ -80,7 +80,7 @@ export function UserDetailsStep() {
               <div className="space-y-6">
                 <div className="relative group">
                   <motion.div
-                    className="w-full h-48 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-6 text-white shadow-lg"
+                    className="w-full h-48 bg-linear-to-br from-blue-600 to-blue-800 rounded-xl p-6 text-white shadow-lg"
                     whileHover={{ scale: 1.02 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >

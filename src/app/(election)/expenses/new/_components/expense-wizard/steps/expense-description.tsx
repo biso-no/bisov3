@@ -269,7 +269,7 @@ export function ExpenseDescription({
           </Button>
           <Button
             type="submit"
-            className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8"
+            className="bg-linear-to-r from-blue-500 to-indigo-500 text-white px-8"
           >
             Continue
           </Button>

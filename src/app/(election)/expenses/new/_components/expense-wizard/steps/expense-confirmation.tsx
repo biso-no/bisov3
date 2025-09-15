@@ -394,7 +394,7 @@ export function ExpenseConfirmation({
         <Button
           onClick={handleSubmit}
           disabled={isSubmitting || !hasAgreed}
-          className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8"
+          className="bg-linear-to-r from-blue-500 to-indigo-500 text-white px-8"
         >
           {isSubmitting ? (
             <>

@@ -12,7 +12,7 @@ export default async function NewExpensePage() {
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen p-6 bg-linear-to-br from-gray-50 to-gray-100">
       <ExpenseWizard />
       <Toaster />
     </div>

@@ -180,9 +180,9 @@ export default function NetworkPage() {
       <div className="relative min-h-screen pb-12 bg-primary-100">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden -z-10">
-          <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-          <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-gold-default/5 blur-3xl" />
-          <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
+          <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+          <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-gold-default/5 blur-3xl" />
+          <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-secondary-100/5 blur-3xl" />
         </div>
         
         <section className="container p-8">
@@ -201,7 +201,7 @@ export default function NetworkPage() {
           <div className="flex flex-col md:flex-row gap-4 mt-8">
             <div className="flex-1 relative group">
               {/* Refined glow effects */}
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-accent/20 via-secondary-100/20 to-blue-accent/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-500"></div>
+              <div className="absolute -inset-0.5 bg-linear-to-r from-blue-accent/20 via-secondary-100/20 to-blue-accent/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-500"></div>
               <div className="absolute inset-0 rounded-md backdrop-blur-sm border border-secondary-100/20 group-hover:border-secondary-100/30 group-focus-within:border-secondary-100/50 transition-all duration-300"></div>
               
               {/* Input content with updated styles */}
@@ -354,7 +354,7 @@ export default function NetworkPage() {
                   value="grid" 
                   className={cn(
                     "data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
-                    view === "grid" ? "bg-gradient-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded" : "text-gray-400"
+                    view === "grid" ? "bg-linear-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded" : "text-gray-400"
                   )}
                 >
                   Grid
@@ -363,7 +363,7 @@ export default function NetworkPage() {
                   value="list" 
                   className={cn(
                     "data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
-                    view === "list" ? "bg-gradient-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded" : "text-gray-400"
+                    view === "list" ? "bg-linear-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded" : "text-gray-400"
                   )}
                 >
                   List
@@ -372,7 +372,7 @@ export default function NetworkPage() {
                   value="map" 
                   className={cn(
                     "data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
-                    view === "map" ? "bg-gradient-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded" : "text-gray-400"
+                    view === "map" ? "bg-linear-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded" : "text-gray-400"
                   )}
                 >
                   Map
@@ -444,7 +444,7 @@ export default function NetworkPage() {
           )}
           
           <Card variant="glass-dark" className="mb-6 border-0 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-accent/10 to-secondary-100/10 opacity-30" />
+            <div className="absolute inset-0 bg-linear-to-r from-blue-accent/10 to-secondary-100/10 opacity-30" />
             <CardContent className="p-4 z-10 relative">
               <div className="text-sm text-gray-300">
                 {isLoading ? (

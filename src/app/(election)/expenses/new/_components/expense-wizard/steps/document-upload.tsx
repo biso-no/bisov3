@@ -124,7 +124,7 @@ const AIToggle = ({ enabled, onToggle }: AIToggleProps) => (
       id="ai-toggle"
       checked={enabled}
       onCheckedChange={onToggle}
-      className="data-[state=checked]:bg-gradient-to-r from-blue-500 to-indigo-500"
+      className="data-[state=checked]:bg-linear-to-r from-blue-500 to-indigo-500"
     />
   </div>
 );
@@ -158,7 +158,7 @@ const DocumentAlerts = ({
                   <CheckCircle className="h-3 w-3 text-green-600" />
                   <p className="text-xs font-medium text-green-700">Bank Statement Attached</p>
                 </div>
-                <p className="text-xs text-gray-600 truncate max-w-[12rem]">
+                <p className="text-xs text-gray-600 truncate max-w-48">
                   {doc.bankStatement.fileName} ({formatDate(doc.bankStatement.date)})
                 </p>
               </div>
@@ -196,7 +196,7 @@ const DocumentAlerts = ({
         <Alert key="foreign" className="p-2 bg-yellow-50 border-yellow-200">
           <div className="flex items-center justify-between w-full min-h-[24px]">
             <div className="flex items-center">
-              <AlertCircle className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+              <AlertCircle className="h-4 w-4 text-yellow-600 shrink-0" />
               <AlertDescription className="ml-2 my-0 text-yellow-700">
                 Foreign currency detected. Bank statements may be required.
               </AlertDescription>
@@ -244,7 +244,7 @@ const DocumentThumbnail = ({ file }: { file: File }) => {
   }, [file]);
 
   return (
-    <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0 relative">
+    <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0 relative">
       {isPdf ? (
         <div className="flex flex-col items-center justify-center">
           <FileText className="w-6 h-6 text-red-400" />
@@ -723,12 +723,12 @@ export function DocumentUpload({ onNext, onPrevious, onUpdate, data }: DocumentU
                   
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 mt-2 md:mt-0 border-t md:border-t-0 pt-3 md:pt-0">
                     <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-md h-full hover:bg-gray-100 transition-colors">
-                      <DollarSign className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                      <DollarSign className="w-4 h-4 text-blue-400 shrink-0" />
                       <CurrencyDisplay doc={doc} />
                     </div>
                     
                     <div className="flex items-start gap-2 bg-gray-50 px-3 py-2 rounded-md h-full hover:bg-gray-100 transition-colors">
-                      <FileText className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                      <FileText className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
                       <div className="w-full">
                         <p className="text-sm line-clamp-2">{doc.description}</p>
                         <p className="text-xs text-gray-500">Description</p>
@@ -901,7 +901,7 @@ export function DocumentUpload({ onNext, onPrevious, onUpdate, data }: DocumentU
                   <Button
                     type="button"
                     onClick={() => handleEditSave(editingDoc)}
-                    className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8"
+                    className="bg-linear-to-r from-blue-500 to-indigo-500 text-white px-8"
                   >
                     Save Changes
                   </Button>
@@ -987,7 +987,7 @@ export function DocumentUpload({ onNext, onPrevious, onUpdate, data }: DocumentU
         </Button>
         <Button
           onClick={onSubmit}
-          className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8"
+          className="bg-linear-to-r from-blue-500 to-indigo-500 text-white px-8"
           disabled={documents.length === 0}
         >
           Continue

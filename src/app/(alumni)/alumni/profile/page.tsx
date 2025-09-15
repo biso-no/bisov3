@@ -121,9 +121,9 @@ export default function ProfilePage() {
       <div className="relative min-h-screen pb-12">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden -z-10">
-          <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-          <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
-          <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
+          <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+          <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-secondary-100/5 blur-3xl" />
+          <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-blue-accent/5 blur-3xl" />
         </div>
         
         <div className="container max-w-4xl pt-8 pb-8">
@@ -149,19 +149,19 @@ export default function ProfilePage() {
     <div className="relative min-h-screen pb-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
       <div className="container max-w-4xl pt-8 pb-8 space-y-6">
         {/* Profile Header */}
         <div className="relative">
-          <div className="absolute inset-0 h-48 bg-gradient-to-r from-blue-accent/20 via-secondary-100/10 to-primary-90/5 rounded-xl"></div>
+          <div className="absolute inset-0 h-48 bg-linear-to-r from-blue-accent/20 via-secondary-100/10 to-primary-90/5 rounded-xl"></div>
           
           <div className="relative pt-16 px-6 pb-6 flex flex-col md:flex-row md:items-end gap-6">
             <div className="relative group">
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-blue-accent/50 to-secondary-100/30 blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+              <div className="absolute -inset-1 rounded-full bg-linear-to-br from-blue-accent/50 to-secondary-100/30 blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
               <Avatar className="h-24 w-24 border-4 border-primary-90 relative shadow-lg group-hover:shadow-glow-blue transition-all duration-300">
                 <AvatarImage src={userProfile.avatarUrl} alt={userProfile.name} />
                 <AvatarFallback className="text-xl bg-primary-80 text-white">{initials}</AvatarFallback>
@@ -212,7 +212,7 @@ export default function ProfilePage() {
           <div className="space-y-6">
             {/* Profile Completion Card */}
             <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
               <CardHeader className="pb-3 relative z-10">
                 <CardTitle className="text-lg text-white">Profile Completion</CardTitle>
               </CardHeader>
@@ -268,7 +268,7 @@ export default function ProfilePage() {
             
             {/* Contact Card */}
             <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
               <CardHeader className="pb-3 relative z-10">
                 <CardTitle className="text-lg text-white">Contact Information</CardTitle>
               </CardHeader>
@@ -353,7 +353,7 @@ export default function ProfilePage() {
             {/* Skills Card */}
             {userProfile.skills && userProfile.skills.length > 0 && (
               <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="pb-3 relative z-10">
                   <CardTitle className="text-lg text-white">Skills</CardTitle>
                 </CardHeader>
@@ -372,7 +372,7 @@ export default function ProfilePage() {
             {/* Languages Card */}
             {userProfile.languages && userProfile.languages.length > 0 && (
               <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="pb-3 relative z-10">
                   <CardTitle className="text-lg text-white">Languages</CardTitle>
                 </CardHeader>
@@ -398,19 +398,19 @@ export default function ProfilePage() {
               <TabsList className="grid w-full grid-cols-3 glass-dark backdrop-blur-md border border-secondary-100/20 p-1 h-12">
                 <TabsTrigger 
                   value="about"
-                  className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+                  className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
                 >
                   About
                 </TabsTrigger>
                 <TabsTrigger 
                   value="experience"
-                  className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+                  className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
                 >
                   Experience
                 </TabsTrigger>
                 <TabsTrigger 
                   value="education"
-                  className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+                  className="data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
                 >
                   Education
                 </TabsTrigger>
@@ -419,7 +419,7 @@ export default function ProfilePage() {
               {/* About Tab */}
               <TabsContent value="about" className="space-y-6">
                 <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                   <CardHeader className="pb-3 relative z-10">
                     <CardTitle className="text-lg text-white">About Me</CardTitle>
                   </CardHeader>
@@ -434,7 +434,7 @@ export default function ProfilePage() {
                 
                 {userProfile.interests && userProfile.interests.length > 0 && (
                   <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                    <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                     <CardHeader className="pb-3 relative z-10">
                       <CardTitle className="text-lg text-white">Interests</CardTitle>
                     </CardHeader>
@@ -451,7 +451,7 @@ export default function ProfilePage() {
                 )}
                 
                 <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                   <CardHeader className="pb-3 relative z-10">
                     <CardTitle className="text-lg text-white">Privacy Settings</CardTitle>
                   </CardHeader>
@@ -532,7 +532,7 @@ export default function ProfilePage() {
               {/* Experience Tab */}
               <TabsContent value="experience" className="space-y-6">
                 <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                   <CardHeader className="pb-3 relative z-10">
                     <CardTitle className="text-lg text-white">Work Experience</CardTitle>
                   </CardHeader>
@@ -590,7 +590,7 @@ export default function ProfilePage() {
                 </Card>
                 
                 <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                   <CardHeader className="pb-3 relative z-10">
                     <CardTitle className="text-lg text-white">Certifications</CardTitle>
                   </CardHeader>
@@ -628,7 +628,7 @@ export default function ProfilePage() {
               {/* Education Tab */}
               <TabsContent value="education" className="space-y-6">
                 <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                   <CardHeader className="pb-3 relative z-10">
                     <CardTitle className="text-lg text-white">Education</CardTitle>
                   </CardHeader>
@@ -694,15 +694,15 @@ function ProfileSkeleton() {
     <div className="relative min-h-screen pb-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
       <div className="container pt-8 pb-8 space-y-6">
         {/* Header Skeleton */}
         <div className="relative">
-          <div className="absolute inset-0 h-40 bg-gradient-to-r from-blue-accent/20 via-secondary-100/10 to-primary-90/10 rounded-t-xl"></div>
+          <div className="absolute inset-0 h-40 bg-linear-to-r from-blue-accent/20 via-secondary-100/10 to-primary-90/10 rounded-t-xl"></div>
           <div className="relative pt-16 px-6 pb-6 flex flex-col md:flex-row md:items-end gap-6">
             <Skeleton className="h-24 w-24 rounded-full border-4 border-primary-90" />
             <div className="flex-1">
@@ -720,7 +720,7 @@ function ProfileSkeleton() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-6">
             <Card variant="glass-dark" className="border-0 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
               <CardHeader className="relative z-10">
                 <Skeleton className="h-6 w-32" />
               </CardHeader>
@@ -732,7 +732,7 @@ function ProfileSkeleton() {
             </Card>
             
             <Card variant="glass-dark" className="border-0 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
               <CardHeader className="relative z-10">
                 <Skeleton className="h-6 w-40" />
               </CardHeader>
@@ -746,7 +746,7 @@ function ProfileSkeleton() {
           
           <div className="md:col-span-2">
             <Card variant="glass-dark" className="border-0 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
               <CardHeader className="relative z-10">
                 <Skeleton className="h-10 w-full" />
               </CardHeader>

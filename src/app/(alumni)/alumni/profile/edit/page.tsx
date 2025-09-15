@@ -654,9 +654,9 @@ export default function ProfileEditPage() {
       <div className="relative min-h-screen pb-12">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden -z-10">
-          <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-          <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
-          <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
+          <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+          <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-secondary-100/5 blur-3xl" />
+          <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-blue-accent/5 blur-3xl" />
         </div>
         
         <div className="container max-w-4xl flex flex-col items-center justify-center min-h-[60vh]">
@@ -671,9 +671,9 @@ export default function ProfileEditPage() {
     <div className="relative min-h-screen pb-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
       <div className="container max-w-4xl pt-8 pb-8">
@@ -704,31 +704,31 @@ export default function ProfileEditPage() {
             <TabsList className="grid w-full grid-cols-4 lg:grid-cols-5 h-auto glass-dark backdrop-blur-md border border-secondary-100/20 p-1">
               <TabsTrigger 
                 value="personal" 
-                className="py-2.5 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+                className="py-2.5 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
               >
                 Personal
               </TabsTrigger>
               <TabsTrigger 
                 value="experience" 
-                className="py-2.5 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+                className="py-2.5 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
               >
                 Experience
               </TabsTrigger>
               <TabsTrigger 
                 value="education" 
-                className="py-2.5 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+                className="py-2.5 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
               >
                 Education
               </TabsTrigger>
               <TabsTrigger 
                 value="extras" 
-                className="py-2.5 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+                className="py-2.5 data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
               >
                 Additional
               </TabsTrigger>
               <TabsTrigger 
                 value="privacy" 
-                className="py-2.5 hidden lg:block data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
+                className="py-2.5 hidden lg:block data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full data-[state=active]:bg-linear-to-r data-[state=active]:from-blue-accent/70 data-[state=active]:to-secondary-100/70 data-[state=active]:text-white data-[state=active]:rounded data-[state=active]:font-medium text-gray-400"
               >
                 Privacy
               </TabsTrigger>
@@ -739,14 +739,14 @@ export default function ProfileEditPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Avatar and basic info */}
                 <Card variant="glass-dark" className="md:col-span-1 border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                   <CardHeader className="relative z-10">
                     <CardTitle className="text-white">Profile Photo</CardTitle>
                     <CardDescription className="text-gray-300">Your profile picture helps people recognize you</CardDescription>
                   </CardHeader>
                   <CardContent className="flex flex-col items-center relative z-10">
                     <div className="mb-4 relative group/avatar">
-                      <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-blue-accent/50 to-secondary-100/30 blur-sm opacity-0 group-hover/avatar:opacity-100 transition-all duration-300"></div>
+                      <div className="absolute -inset-1 rounded-full bg-linear-to-br from-blue-accent/50 to-secondary-100/30 blur-sm opacity-0 group-hover/avatar:opacity-100 transition-all duration-300"></div>
                       <Avatar className="h-24 w-24 border-4 border-primary-90 relative shadow-lg group-hover/avatar:shadow-glow-blue transition-all duration-300">
                         <AvatarImage src={userProfile?.avatarUrl} alt={profileForm.watch("name")} />
                         <AvatarFallback className="text-xl bg-primary-80 text-white">{initials}</AvatarFallback>
@@ -763,7 +763,7 @@ export default function ProfileEditPage() {
 
                 {/* Basic information form */}
                 <Card variant="glass-dark" className="md:col-span-2 border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                   <CardHeader className="relative z-10">
                     <CardTitle className="text-white">Basic Information</CardTitle>
                     <CardDescription className="text-gray-300">Update your personal details</CardDescription>
@@ -886,7 +886,7 @@ export default function ProfileEditPage() {
 
                 {/* Bio and education details */}
                 <Card variant="glass-dark" className="md:col-span-3 border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                   <CardHeader className="relative z-10">
                     <CardTitle className="text-white">About You</CardTitle>
                     <CardDescription className="text-gray-300">Tell us about yourself and your education background</CardDescription>
@@ -968,7 +968,7 @@ export default function ProfileEditPage() {
             {/* Experience Tab */}
             <TabsContent value="experience" className="space-y-4">
               <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                   <div>
                     <CardTitle className="text-white">Work Experience</CardTitle>
@@ -1290,7 +1290,7 @@ export default function ProfileEditPage() {
             {/* Education Tab */}
             <TabsContent value="education" className="space-y-4">
               <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                   <div>
                     <CardTitle className="text-white">Education</CardTitle>
@@ -1511,7 +1511,7 @@ export default function ProfileEditPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Skills */}
                 <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                   <CardHeader className="relative z-10">
                     <CardTitle className="text-white">Skills</CardTitle>
                     <CardDescription className="text-gray-300">List your professional skills and competencies</CardDescription>
@@ -1545,7 +1545,7 @@ export default function ProfileEditPage() {
 
                 {/* Interests */}
                 <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                   <CardHeader className="relative z-10">
                     <CardTitle className="text-white">Interests</CardTitle>
                     <CardDescription className="text-gray-300">Share your professional interests and hobbies</CardDescription>
@@ -1579,7 +1579,7 @@ export default function ProfileEditPage() {
 
                 {/* Languages */}
                 <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                     <div>
                       <CardTitle className="text-white">Languages</CardTitle>
@@ -1727,7 +1727,7 @@ export default function ProfileEditPage() {
 
                 {/* Social Links */}
                 <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                  <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                     <div>
                       <CardTitle className="text-white">Social Links</CardTitle>
@@ -1879,7 +1879,7 @@ export default function ProfileEditPage() {
             {/* Privacy Tab */}
             <TabsContent value="privacy" className="space-y-4">
               <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="relative z-10">
                   <CardTitle className="text-white">Privacy Settings</CardTitle>
                   <CardDescription className="text-gray-300">Control who can see your information</CardDescription>

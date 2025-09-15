@@ -64,13 +64,13 @@ export function AlumniList({ alumni }: AlumniListProps) {
           variant="glass-dark" 
           className="overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover group border-0"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-accent/10 to-secondary-100/10 opacity-30" />
+          <div className="absolute inset-0 bg-linear-to-r from-blue-accent/10 to-secondary-100/10 opacity-30" />
           <CardContent className="p-4 z-10 relative">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative">
                 <Avatar className="h-16 w-16 border-2 border-secondary-100/20 shadow-glow-blue transition-all duration-300 group-hover:scale-105">
                   <AvatarImage src={profile.avatarUrl || ""} alt={profile.name} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-accent to-secondary-100 text-white font-bold">
+                  <AvatarFallback className="bg-linear-to-br from-blue-accent to-secondary-100 text-white font-bold">
                     {getInitials(profile.name)}
                   </AvatarFallback>
                 </Avatar>

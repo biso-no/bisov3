@@ -51,9 +51,9 @@ export default function EventDetailPage() {
       <div className="relative min-h-screen pb-12">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden -z-10">
-          <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-          <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-gold-default/5 blur-3xl" />
-          <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
+          <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+          <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-gold-default/5 blur-3xl" />
+          <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-secondary-100/5 blur-3xl" />
         </div>
         
         <div className="container max-w-5xl pt-8 pb-8">
@@ -93,9 +93,9 @@ export default function EventDetailPage() {
     <div className="relative min-h-screen pb-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-gold-default/5 blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-gold-default/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-secondary-100/5 blur-3xl" />
       </div>
       
       <div className="container max-w-5xl pt-8 pb-8 space-y-6">
@@ -115,7 +115,7 @@ export default function EventDetailPage() {
         
         <div className="relative h-64 md:h-96 w-full rounded-xl overflow-hidden">
           <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${event.image})` }} />
-          <div className="absolute inset-0 bg-gradient-to-t from-primary-100 via-primary-100/80 to-transparent"></div>
+          <div className="absolute inset-0 bg-linear-to-t from-primary-100 via-primary-100/80 to-transparent"></div>
           <div className="absolute bottom-6 left-6 right-6">
             <Badge 
               variant={
@@ -136,7 +136,7 @@ export default function EventDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
             <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
               <CardHeader className="relative z-10">
                 <CardTitle className="text-lg text-white">About This Event</CardTitle>
               </CardHeader>
@@ -151,7 +151,7 @@ export default function EventDetailPage() {
             
             {event.schedule.length > 0 && (
               <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-gold-default/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-gold-default/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="relative z-10">
                   <CardTitle className="text-lg text-white flex items-center">
                     <Clock className="h-5 w-5 mr-2 text-gold-default" />
@@ -173,7 +173,7 @@ export default function EventDetailPage() {
             
             {event.speakers.length > 0 && (
               <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-secondary-100/10 to-blue-accent/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-secondary-100/10 to-blue-accent/5 opacity-20" />
                 <CardHeader className="relative z-10">
                   <CardTitle className="text-lg text-white flex items-center">
                     <Users className="h-5 w-5 mr-2 text-secondary-100" />
@@ -185,7 +185,7 @@ export default function EventDetailPage() {
                     {event.speakers.map((speaker, index) => (
                       <div key={index} className="flex gap-4 p-3 rounded-md hover:bg-white/5 transition-colors">
                         <div className="relative group">
-                          <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-blue-accent/50 to-secondary-100/30 blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+                          <div className="absolute -inset-1 rounded-full bg-linear-to-br from-blue-accent/50 to-secondary-100/30 blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
                           <Avatar className="h-12 w-12 border-2 border-primary-90 relative shadow-sm group-hover:shadow-glow-blue transition-all duration-300">
                             <AvatarImage src={speaker.image} />
                             <AvatarFallback className="bg-primary-80 text-white">{speaker.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
@@ -206,7 +206,7 @@ export default function EventDetailPage() {
           
           <div className="space-y-6">
             <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
               <CardHeader className="relative z-10">
                 <CardTitle className="text-lg text-white">Event Details</CardTitle>
               </CardHeader>
@@ -274,7 +274,7 @@ export default function EventDetailPage() {
                       </div>
                       <div className="w-full h-2 bg-primary-80/50 mt-2 rounded-full overflow-hidden">
                         <div 
-                          className="h-full bg-gradient-to-r from-gold-default to-gold-strong" 
+                          className="h-full bg-linear-to-r from-gold-default to-gold-strong" 
                           style={{ width: `${(event.attendees / event.maxAttendees) * 100}%` }}
                         />
                       </div>
@@ -338,7 +338,7 @@ export default function EventDetailPage() {
             
             {event.online && (
               <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="relative z-10">
                   <CardTitle className="text-lg text-white flex items-center">
                     <Globe className="h-5 w-5 mr-2 text-blue-accent" />

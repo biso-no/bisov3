@@ -42,7 +42,7 @@ function AnalyticsCard({
 }) {
   return (
     <Card variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-secondary-100/5 opacity-20" />
+      <div className="absolute inset-0 bg-linear-to-br from-purple-500/10 to-secondary-100/5 opacity-20" />
       <CardHeader className="pb-2 relative z-10">
         <div className="flex justify-between items-start">
           <CardTitle className="text-sm font-medium text-gray-300">{title}</CardTitle>
@@ -194,7 +194,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Quick Actions */}
         <Card variant="glass-dark" className="border-0 overflow-hidden md:col-span-1 group hover:shadow-card-hover transition-all duration-300">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-secondary-100/5 opacity-20" />
+          <div className="absolute inset-0 bg-linear-to-br from-purple-500/10 to-secondary-100/5 opacity-20" />
           <CardHeader className="relative z-10">
             <CardTitle className="text-white">Quick Actions</CardTitle>
             <CardDescription className="text-gray-300">Common administrative tasks</CardDescription>
@@ -214,7 +214,7 @@ export default function AdminDashboard() {
         
         {/* Recent activity */}
         <Card variant="glass-dark" className="border-0 overflow-hidden md:col-span-2 group hover:shadow-card-hover transition-all duration-300">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-secondary-100/5 opacity-20" />
+          <div className="absolute inset-0 bg-linear-to-br from-purple-500/10 to-secondary-100/5 opacity-20" />
           <CardHeader className="relative z-10">
             <CardTitle className="text-white">Recent Activity</CardTitle>
             <CardDescription className="text-gray-300">Latest actions in the alumni portal</CardDescription>

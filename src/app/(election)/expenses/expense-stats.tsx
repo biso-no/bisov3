@@ -80,7 +80,7 @@ function StatCard({
       transition={{ duration: 0.5 }}
       className="group"
     >
-      <Card className={`bg-gradient-to-br ${color} text-white overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-xl`}>
+      <Card className={`bg-linear-to-br ${color} text-white overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-xl`}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-medium opacity-80">{title}</CardTitle>

@@ -23,7 +23,7 @@ export function AlumniCard({ profile }: AlumniCardProps) {
 
   return (
     <Card className="overflow-hidden">
-      <div className="h-24 bg-gradient-to-r from-primary/20 to-secondary/20" />
+      <div className="h-24 bg-linear-to-r from-primary/20 to-secondary/20" />
       <CardContent className="p-6 pt-0 -mt-12">
         <div className="flex flex-col items-center text-center">
           <Avatar className="h-24 w-24 border-4 border-background">

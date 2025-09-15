@@ -163,7 +163,7 @@ export function AlumniSidebar({ featureFlags }: { featureFlags: FeatureFlags }) 
                   <route.icon className={cn("mr-2 h-4 w-4", route.active ? route.color : "text-gray-300")} />
                   <span>{route.label}</span>
                   {route.active && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-accent to-secondary-100" />
+                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-linear-to-r from-blue-accent to-secondary-100" />
                   )}
                 </Link>
               </Button>
@@ -193,7 +193,7 @@ export function AlumniSidebar({ featureFlags }: { featureFlags: FeatureFlags }) 
                   <route.icon className={cn("mr-2 h-4 w-4", route.active ? route.color : "text-gray-300")} />
                   <span>{route.label}</span>
                   {route.active && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-accent to-secondary-100" />
+                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-linear-to-r from-blue-accent to-secondary-100" />
                   )}
                 </Link>
               </Button>

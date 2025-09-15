@@ -86,7 +86,7 @@ export default async function FeatureFlagsPage() {
       <div className="space-y-6">
         {Object.entries(groupedFlags).map(([category, categoryFlags]) => (
           <Card key={category} variant="glass-dark" className="border-0 overflow-hidden group hover:shadow-card-hover transition-all duration-300">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-secondary-100/5 opacity-20" />
+            <div className="absolute inset-0 bg-linear-to-br from-purple-500/10 to-secondary-100/5 opacity-20" />
             <CardHeader className="relative z-10">
               <CardTitle className="text-white capitalize">{category === "core" ? "Core" : category} Features</CardTitle>
               <CardDescription className="text-gray-300">

@@ -12,7 +12,7 @@ export function ExpenseGuidelines() {
 
   return (
     <Card className="shadow-md border-blue-100 overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 pb-3">
+      <CardHeader className="bg-linear-to-r from-blue-50 to-indigo-50 pb-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Info className="h-5 w-5 text-blue-600" />

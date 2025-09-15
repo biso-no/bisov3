@@ -1,4 +1,7 @@
 const { fontFamily } = require("tailwindcss/defaultTheme")
+// Support ESM-only plugins when loading via CommonJS
+const _animate = require("tailwindcss-animate")
+const tailwindcssAnimate = _animate && _animate.default ? _animate.default : _animate
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -175,7 +178,7 @@ module.exports = {
     },
   },
   plugins: [
-    require("tailwindcss-animate"),
+    tailwindcssAnimate,
     function ({ addUtilities }) {
       const newUtilities = {
         '.text-shadow': {
@@ -252,7 +255,7 @@ module.exports = {
         },
       })
     },
-    require("@assistant-ui/react-ui/tailwindcss")({ shadcn: true })
+    // assistant UI tailwind plugin temporarily disabled for v4 upgrade
   ],
 }
 

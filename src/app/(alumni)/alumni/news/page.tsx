@@ -115,9 +115,9 @@ export default function NewsPage() {
     <div className="relative min-h-screen pb-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
       <section className="container p-8">
@@ -128,11 +128,11 @@ export default function NewsPage() {
         />
       
         <Card variant="glass-dark" className="border-0 overflow-hidden mt-8 group hover:shadow-card-hover transition-all duration-300">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-accent/10 via-secondary-100/10 to-blue-accent/10 opacity-20"></div>
+          <div className="absolute inset-0 bg-linear-to-r from-blue-accent/10 via-secondary-100/10 to-blue-accent/10 opacity-20"></div>
           <CardContent className="p-6 md:p-8 relative z-10">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-accent/20 via-secondary-100/20 to-blue-accent/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-500"></div>
+                <div className="absolute -inset-0.5 bg-linear-to-r from-blue-accent/20 via-secondary-100/20 to-blue-accent/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-500"></div>
                 <div className="absolute inset-0 rounded-md backdrop-blur-sm border border-secondary-100/20 group-hover:border-secondary-100/30 group-focus-within:border-secondary-100/50 transition-all duration-300"></div>
                 
                 <div className="relative flex items-center backdrop-blur-0">
@@ -275,7 +275,7 @@ export default function NewsPage() {
           </>
         ) : (
           <Card variant="glass-dark" className="border-0 overflow-hidden mt-8">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/10 opacity-20" />
+            <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/10 opacity-20" />
             <CardContent className="flex flex-col items-center justify-center py-12 relative z-10">
               <div className="relative mb-6">
                 <div className="absolute inset-0 rounded-full blur-xl bg-blue-accent/20 animate-pulse"></div>
@@ -314,7 +314,7 @@ function NewsCard({ news }: NewsCardProps) {
           className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
           style={{ backgroundImage: `url(${news.image})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-primary-90 via-primary-90/70 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-primary-90 via-primary-90/70 to-transparent"></div>
         {news.category && (
           <div className="absolute top-4 right-4">
             <Badge 
@@ -328,7 +328,7 @@ function NewsCard({ news }: NewsCardProps) {
       </div>
       
       <CardContent className="p-5 relative z-10">
-        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-accent/20 to-transparent opacity-30 blur-3xl"></div>
+        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-linear-to-br from-blue-accent/20 to-transparent opacity-30 blur-3xl"></div>
         
         <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-gray-400">
           <div className="flex items-center gap-1.5">

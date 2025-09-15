@@ -285,7 +285,7 @@ export function ProfileForm({ initialData, email }: ProfileFormProps) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium rounded-lg shadow-sm hover:shadow transition duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center"
+            className="px-6 py-3 bg-linear-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium rounded-lg shadow-sm hover:shadow transition duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center"
           >
             {isSubmitting ? (
               <>

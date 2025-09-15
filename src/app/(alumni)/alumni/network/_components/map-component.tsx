@@ -50,7 +50,7 @@ const createCustomIcon = (profile: UserProfile) => {
   return L.divIcon({
     className: 'custom-marker-icon',
     html: `
-      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-accent to-secondary-100 flex items-center justify-center text-white shadow-lg transform transition-transform hover:scale-110 relative">
+      <div class="w-8 h-8 rounded-full bg-linear-to-br from-blue-accent to-secondary-100 flex items-center justify-center text-white shadow-lg transform transition-transform hover:scale-110 relative">
         <div class="absolute inset-0 rounded-full bg-blue-accent opacity-30 animate-ping"></div>
         <span class="text-xs font-semibold">${profile.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}</span>
       </div>
@@ -167,7 +167,7 @@ export default function MapComponent({ alumni, totalCount }: MapComponentProps) 
         
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-primary-100/10 mix-blend-multiply"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/5 to-secondary-100/5"></div>
+          <div className="absolute inset-0 bg-linear-to-br from-blue-accent/5 to-secondary-100/5"></div>
         </div>
         
         {/* Add custom attribution with styled position */}
@@ -191,7 +191,7 @@ export default function MapComponent({ alumni, totalCount }: MapComponentProps) 
                     {profile.avatarUrl ? (
                       <AvatarImage src={profile.avatarUrl} alt={profile.name} />
                     ) : (
-                      <AvatarFallback className="bg-gradient-to-br from-blue-accent to-secondary-100 text-white">
+                      <AvatarFallback className="bg-linear-to-br from-blue-accent to-secondary-100 text-white">
                         {profile.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     )}

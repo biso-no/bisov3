@@ -64,7 +64,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
               className="flex items-center"
               onClick={() => onOpenChange(false)}
             >
-              <span className="font-heading text-xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              <span className="font-heading text-xl font-bold bg-linear-to-r from-white to-gray-400 bg-clip-text text-transparent">
                 BISO Alumni
               </span>
             </Link>

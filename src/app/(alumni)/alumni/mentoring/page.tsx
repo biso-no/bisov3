@@ -129,9 +129,9 @@ export default function MentoringPage() {
     <div className="relative min-h-screen pb-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
       <section className="container p-8">
@@ -142,7 +142,7 @@ export default function MentoringPage() {
         />
       
         <Card variant="glass-dark" className="border-0 overflow-hidden mt-8 group hover:shadow-card-hover transition-all duration-300">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-accent/10 via-secondary-100/10 to-blue-accent/10 opacity-20"></div>
+          <div className="absolute inset-0 bg-linear-to-r from-blue-accent/10 via-secondary-100/10 to-blue-accent/10 opacity-20"></div>
           <CardContent className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
             <div className="flex flex-col justify-center space-y-4">
               <div className="bg-blue-accent/10 p-3 rounded-full w-12 h-12 flex items-center justify-center group-hover:scale-105 transition-all duration-300">
@@ -188,7 +188,7 @@ export default function MentoringPage() {
               value="find-mentor" 
               className={cn(
                 "data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
-                activeTab === "find-mentor" ? "bg-gradient-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
+                activeTab === "find-mentor" ? "bg-linear-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
               )}
             >
               Find a Mentor
@@ -197,7 +197,7 @@ export default function MentoringPage() {
               value="programs" 
               className={cn(
                 "data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
-                activeTab === "programs" ? "bg-gradient-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
+                activeTab === "programs" ? "bg-linear-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
               )}
             >
               Programs
@@ -206,7 +206,7 @@ export default function MentoringPage() {
               value="become-mentor" 
               className={cn(
                 "data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
-                activeTab === "become-mentor" ? "bg-gradient-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
+                activeTab === "become-mentor" ? "bg-linear-to-r from-blue-accent/70 to-secondary-100/70 text-white rounded font-medium" : "text-gray-400"
               )}
             >
               Become a Mentor
@@ -216,7 +216,7 @@ export default function MentoringPage() {
           <TabsContent value="find-mentor" className="space-y-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-accent/20 via-secondary-100/20 to-blue-accent/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-500"></div>
+                <div className="absolute -inset-0.5 bg-linear-to-r from-blue-accent/20 via-secondary-100/20 to-blue-accent/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-500"></div>
                 <div className="absolute inset-0 rounded-md backdrop-blur-sm border border-secondary-100/20 group-hover:border-secondary-100/30 group-focus-within:border-secondary-100/50 transition-all duration-300"></div>
                 
                 <div className="relative flex items-center backdrop-blur-0">
@@ -281,7 +281,7 @@ export default function MentoringPage() {
               </div>
             ) : (
               <Card variant="glass-dark" className="border-0 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/10 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/10 opacity-20" />
                 <CardContent className="flex flex-col items-center justify-center py-12 relative z-10">
                   <div className="relative mb-6">
                     <div className="absolute inset-0 rounded-full blur-xl bg-blue-accent/20 animate-pulse"></div>
@@ -307,7 +307,7 @@ export default function MentoringPage() {
           
           <TabsContent value="programs" className="space-y-6">
             <Card variant="glass-dark" className="border-0 overflow-hidden mb-6">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-accent/10 via-secondary-100/10 to-blue-accent/10 opacity-20"></div>
+              <div className="absolute inset-0 bg-linear-to-r from-blue-accent/10 via-secondary-100/10 to-blue-accent/10 opacity-20"></div>
               <CardContent className="p-6 md:flex items-center justify-between relative z-10">
                 <div className="mb-4 md:mb-0">
                   <h3 className="text-xl font-medium text-white">Mentoring Programs</h3>
@@ -340,7 +340,7 @@ export default function MentoringPage() {
               </div>
             ) : (
               <Card variant="glass-dark" className="border-0 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/10 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/10 opacity-20" />
                 <CardContent className="flex flex-col items-center justify-center py-12 relative z-10">
                   <div className="relative mb-6">
                     <div className="absolute inset-0 rounded-full blur-xl bg-blue-accent/20 animate-pulse"></div>
@@ -365,7 +365,7 @@ export default function MentoringPage() {
           
           <TabsContent value="become-mentor" className="space-y-6">
             <Card variant="glass-dark" className="border-0 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-gold-default/10 to-blue-accent/10 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-gold-default/10 to-blue-accent/10 opacity-20" />
               <CardHeader className="relative z-10">
                 <CardTitle className="text-white text-2xl">Share Your Expertise</CardTitle>
                 <CardDescription className="text-gray-300">
@@ -465,11 +465,11 @@ function MentorCard({ mentor }: MentorCardProps) {
     
   return (
     <Card variant="glass-dark" className="overflow-hidden border-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover group h-full flex flex-col">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+      <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
       <CardHeader className="pb-0 relative z-10">
         <div className="flex items-center gap-4">
           <div className="relative">
-            <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-blue-accent/50 to-secondary-100/30 blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+            <div className="absolute -inset-0.5 rounded-full bg-linear-to-br from-blue-accent/50 to-secondary-100/30 blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
             <Avatar className="h-16 w-16 border-2 border-primary-90/50 relative">
               <AvatarImage src={mentor.avatarUrl} alt={mentor.name} />
               <AvatarFallback className="text-lg bg-primary-80">{initials}</AvatarFallback>
@@ -559,7 +559,7 @@ function ProgramCard({ program }: ProgramCardProps) {
           className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
           style={{ backgroundImage: `url(${program.image || defaultImage})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-primary-90 via-primary-90/70 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-primary-90 via-primary-90/70 to-transparent"></div>
         <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
           {program.category && (
             <Badge 
@@ -584,7 +584,7 @@ function ProgramCard({ program }: ProgramCardProps) {
       </div>
       
       <CardContent className="p-5 relative">
-        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-gradient-to-br from-blue-accent/20 to-transparent opacity-30 blur-3xl"></div>
+        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-linear-to-br from-blue-accent/20 to-transparent opacity-30 blur-3xl"></div>
         
         <h3 className="font-medium text-xl truncate text-white group-hover:text-blue-accent transition-colors">{program.title}</h3>
         <p className="text-sm text-gray-300 line-clamp-2 mt-2 h-10">{program.description}</p>

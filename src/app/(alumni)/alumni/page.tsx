@@ -86,9 +86,9 @@ export default async function AlumniPage() {
     <div className="relative min-h-screen pb-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-        <div className="absolute top-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-gold-default/5 blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute top-1/3 -left-20 w-120 h-120 rounded-full bg-gold-default/5 blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-140 h-140 rounded-full bg-secondary-100/5 blur-3xl" />
       </div>
       
       {/* Header */}
@@ -217,7 +217,7 @@ export default async function AlumniPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((testimonial) => (
               <Card key={testimonial.$id} variant="glass-dark" className="group overflow-hidden hover:shadow-card-hover transition-all duration-300">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-accent to-secondary-100 opacity-70" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-blue-accent to-secondary-100 opacity-70" />
                 <CardContent className="pt-6 relative">
                   <div className="absolute top-4 right-4 text-blue-accent opacity-30 group-hover:opacity-50 transition-opacity">
                     <Quote className="h-12 w-12 rotate-180" />
@@ -226,7 +226,7 @@ export default async function AlumniPage() {
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12 border-2 border-blue-accent/20">
                       <AvatarImage src={testimonial.avatarUrl || ""} alt={testimonial.name} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-accent to-secondary-100 text-white">
+                      <AvatarFallback className="bg-linear-to-br from-blue-accent to-secondary-100 text-white">
                         {getInitials(testimonial.name)}
                       </AvatarFallback>
                     </Avatar>
@@ -263,7 +263,7 @@ export default async function AlumniPage() {
                 variant="glass-dark" 
                 className="overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover group"
               >
-                <div className="h-24 bg-gradient-to-r from-blue-accent/30 to-secondary-100/30 transition-opacity duration-300 group-hover:opacity-80">
+                <div className="h-24 bg-linear-to-r from-blue-accent/30 to-secondary-100/30 transition-opacity duration-300 group-hover:opacity-80">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.1),transparent_70%)] opacity-70" />
                 </div>
                 
@@ -271,7 +271,7 @@ export default async function AlumniPage() {
                   <div className="flex flex-col items-center text-center">
                     <Avatar className="h-20 w-20 border-4 border-primary-90 shadow-glow-blue transition-all duration-300 group-hover:scale-105">
                       <AvatarImage src={profile.avatarUrl || ""} alt={profile.name} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-accent to-secondary-100 text-white font-bold">
+                      <AvatarFallback className="bg-linear-to-br from-blue-accent to-secondary-100 text-white font-bold">
                         {getInitials(profile.name)}
                       </AvatarFallback>
                     </Avatar>
@@ -356,7 +356,7 @@ export default async function AlumniPage() {
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
                     sizes="(max-width: 768px) 100vw, 33vw"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-primary-100 to-transparent opacity-70" />
+                  <div className="absolute inset-0 bg-linear-to-t from-primary-100 to-transparent opacity-70" />
                   <Badge 
                     variant={event.category === "Networking" ? "gradient" : 
                              event.category === "Education" ? "secondary" : "gold"} 
@@ -418,7 +418,7 @@ export default async function AlumniPage() {
             </div>
             <div className="relative w-full md:w-1/3 aspect-video bg-primary-80/30 rounded-xl backdrop-blur-sm border border-white/10 flex items-center justify-center">
               <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] bg-[radial-gradient(circle,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:16px_16px] animate-pulse opacity-60" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] bg-[radial-gradient(circle,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-size-[16px_16px] animate-pulse opacity-60" />
               </div>
               <div className="text-6xl font-bold animate-float">
                 <GraduationCap className="h-16 w-16 text-white" />

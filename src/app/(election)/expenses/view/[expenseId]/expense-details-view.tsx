@@ -46,7 +46,7 @@ export function ExpenseDetailsView({ expense }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white p-6">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white p-6">
       <motion.div 
         className="max-w-4xl mx-auto space-y-6"
         initial="initial"

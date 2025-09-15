@@ -85,9 +85,9 @@ export default function EventsPage() {
     <div className="relative min-h-screen pb-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-gold-default/5 blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-gold-default/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-secondary-100/5 blur-3xl" />
       </div>
       
       <section className="container max-w-5xl p-8">
@@ -98,7 +98,7 @@ export default function EventsPage() {
         />
       
         <Card variant="glass-dark" className="border-0 overflow-hidden mt-8 group hover:shadow-card-hover transition-all duration-300">
-          <div className="absolute inset-0 bg-gradient-to-r from-gold-default/10 via-secondary-100/10 to-gold-default/10 opacity-20"></div>
+          <div className="absolute inset-0 bg-linear-to-r from-gold-default/10 via-secondary-100/10 to-gold-default/10 opacity-20"></div>
           <CardContent className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
             <div className="flex flex-col justify-center space-y-4">
               <div className="bg-gold-default/10 p-3 rounded-full w-12 h-12 flex items-center justify-center group-hover:scale-105 transition-all duration-300">
@@ -130,7 +130,7 @@ export default function EventsPage() {
           {/* Enhanced search field */}
           <div className="flex-1 relative group">
             {/* Refined glow effects */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-gold-default/20 via-secondary-100/20 to-gold-default/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-500"></div>
+            <div className="absolute -inset-0.5 bg-linear-to-r from-gold-default/20 via-secondary-100/20 to-gold-default/20 rounded-lg blur-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-500"></div>
             <div className="absolute inset-0 rounded-md backdrop-blur-sm border border-secondary-100/20 group-hover:border-secondary-100/30 group-focus-within:border-secondary-100/50 transition-all duration-300"></div>
             
             {/* Input content with updated styles */}
@@ -187,7 +187,7 @@ export default function EventsPage() {
                 value="list" 
                 className={cn(
                   "data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
-                  view === "list" ? "bg-gradient-to-r from-gold-default/70 to-gold-strong/70 text-primary-100 rounded font-medium" : "text-gray-400"
+                  view === "list" ? "bg-linear-to-r from-gold-default/70 to-gold-strong/70 text-primary-100 rounded font-medium" : "text-gray-400"
                 )}
               >
                 List
@@ -196,7 +196,7 @@ export default function EventsPage() {
                 value="calendar" 
                 className={cn(
                   "data-[state=active]:shadow-none transition-all duration-300 hover:text-white h-full",
-                  view === "calendar" ? "bg-gradient-to-r from-gold-default/70 to-gold-strong/70 text-primary-100 rounded font-medium" : "text-gray-400"
+                  view === "calendar" ? "bg-linear-to-r from-gold-default/70 to-gold-strong/70 text-primary-100 rounded font-medium" : "text-gray-400"
                 )}
               >
                 Calendar
@@ -209,7 +209,7 @@ export default function EventsPage() {
       <section className="container max-w-5xl p-8">
         {/* Enhanced count card */}
         <Card variant="glass-dark" className="mb-6 border-0 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-gold-default/10 to-secondary-100/10 opacity-30" />
+          <div className="absolute inset-0 bg-linear-to-r from-gold-default/10 to-secondary-100/10 opacity-30" />
           <CardContent className="p-4 z-10 relative">
             <div className="text-sm text-gray-300">
               Displaying <span className="font-medium text-white mx-1">{filteredEvents.length}</span> events
@@ -269,7 +269,7 @@ export default function EventsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
             <Card variant="glass-dark" className="md:col-span-5 border-0 overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
               <CardHeader className="relative z-10">
                 <CardTitle className="text-white">Events Calendar</CardTitle>
                 <CardDescription className="text-gray-300">
@@ -284,7 +284,7 @@ export default function EventsPage() {
                   className="rounded-lg border border-secondary-100/20 mx-auto"
                   classNames={{
                     day_today: "bg-blue-accent/20 text-white font-semibold",
-                    day_selected: "bg-gradient-to-br from-gold-default to-gold-strong !text-primary-100 font-bold",
+                    day_selected: "bg-linear-to-br from-gold-default to-gold-strong text-primary-100! font-bold",
                     day_outside: "text-gray-500 opacity-50",
                     day: "text-gray-200 hover:bg-primary-80 hover:text-white transition-colors",
                     head_cell: "text-gray-400",
@@ -316,7 +316,7 @@ export default function EventsPage() {
             </Card>
             
             <Card variant="glass-dark" className="md:col-span-2 border-0">
-              <div className="absolute inset-0 bg-gradient-to-br from-secondary-100/10 to-gold-default/5 opacity-20" />
+              <div className="absolute inset-0 bg-linear-to-br from-secondary-100/10 to-gold-default/5 opacity-20" />
               <CardHeader className="relative z-10">
                 <CardTitle className="text-white">
                   {date ? format(date, "MMMM d, yyyy") : "Select a date"}
@@ -395,7 +395,7 @@ interface EventCardProps {
 function EventCard({ event }: EventCardProps) {
   return (
     <Card variant="glass-dark" className="overflow-hidden border-0 transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover group">
-      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b opacity-80"
+      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-linear-to-b opacity-80"
         style={{
           background: event.category === "Networking" ? "linear-gradient(to bottom, #1A77E9, #01417B)" :
                      event.category === "Education" ? "linear-gradient(to bottom, #a855f7, #7e22ce)" :
@@ -501,7 +501,7 @@ function FeaturedEventCard({ event }: EventCardProps) {
           className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
           style={{ backgroundImage: `url(${event.image})` }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-primary-90 via-primary-90/70 to-transparent"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-primary-90 via-primary-90/70 to-transparent"></div>
         <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
           <Badge 
             variant={
@@ -524,7 +524,7 @@ function FeaturedEventCard({ event }: EventCardProps) {
       </div>
       
       <CardContent className="p-5 relative">
-        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-gradient-to-br from-gold-default/20 to-transparent opacity-30 blur-3xl"></div>
+        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-linear-to-br from-gold-default/20 to-transparent opacity-30 blur-3xl"></div>
         
         <h3 className="font-medium text-xl truncate text-white group-hover:text-secondary-100 transition-colors">{event.title}</h3>
         <p className="text-sm text-gray-300 line-clamp-2 mt-2 h-10">{event.description}</p>
@@ -566,7 +566,7 @@ function FeaturedEventCard({ event }: EventCardProps) {
 function EventCardSkeleton() {
   return (
     <Card variant="glass-dark" className="overflow-hidden border-0 transition-all duration-300 group">
-      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b opacity-80"
+      <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-linear-to-b opacity-80"
         style={{
           background: "linear-gradient(to bottom, #1A77E9, #01417B)"
         }}
@@ -643,7 +643,7 @@ interface EmptyEventsStateProps {
 function EmptyEventsState({ onClearFilters }: EmptyEventsStateProps) {
   return (
     <Card variant="glass-dark" className="border-0 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-gold-default/10 to-secondary-100/10 opacity-20" />
+      <div className="absolute inset-0 bg-linear-to-br from-gold-default/10 to-secondary-100/10 opacity-20" />
       <CardContent className="flex flex-col items-center justify-center py-12 relative z-10">
         <div className="relative mb-6">
           <div className="absolute inset-0 rounded-full blur-xl bg-gold-default/20 animate-pulse"></div>

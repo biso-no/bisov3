@@ -108,7 +108,7 @@ export function DepartmentFilters({
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4">
         {/* Search Bar */}
-        <div className="relative flex-grow">
+        <div className="relative grow">
           <Input
             value={searchInputValue}
             onChange={handleSearchInput}

@@ -88,9 +88,9 @@ export default function MentorDetailPage() {
     <div className="relative min-h-screen pb-12">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-20 -right-20 w-[40rem] h-[40rem] rounded-full bg-blue-accent/5 blur-3xl" />
-        <div className="absolute bottom-1/3 -left-20 w-[30rem] h-[30rem] rounded-full bg-secondary-100/5 blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-[35rem] h-[35rem] rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute -top-20 -right-20 w-160 h-160 rounded-full bg-blue-accent/5 blur-3xl" />
+        <div className="absolute bottom-1/3 -left-20 w-120 h-120 rounded-full bg-secondary-100/5 blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-140 h-140 rounded-full bg-blue-accent/5 blur-3xl" />
       </div>
       
       <div className="container px-4 py-8">
@@ -125,11 +125,11 @@ export default function MentorDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <Card variant="glass-dark" className="border-0 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="relative z-10 pt-8 pb-6">
                   <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                     <div className="relative group">
-                      <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-blue-accent/50 to-secondary-100/30 blur-md opacity-70"></div>
+                      <div className="absolute -inset-1 rounded-full bg-linear-to-br from-blue-accent/50 to-secondary-100/30 blur-md opacity-70"></div>
                       <Avatar className="h-24 w-24 border-2 border-primary-90/50 relative">
                         <AvatarImage src={mentor.avatarUrl} alt={mentor.name} />
                         <AvatarFallback className="text-2xl bg-primary-80">{getInitials(mentor.name)}</AvatarFallback>
@@ -343,7 +343,7 @@ export default function MentorDetailPage() {
             
             <div>
               <Card variant="glass-dark" className="border-0 overflow-hidden sticky top-8">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-accent/10 to-secondary-100/5 opacity-20" />
                 <CardHeader className="relative z-10">
                   <CardTitle className="text-white">Connect with {mentor.name.split(' ')[0]}</CardTitle>
                   <CardDescription className="text-gray-300">

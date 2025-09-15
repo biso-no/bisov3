@@ -173,7 +173,7 @@ export default function AdminUsers() {
       </div>
       
       <Card variant="glass-dark" className="border-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-secondary-100/5 opacity-20" />
+        <div className="absolute inset-0 bg-linear-to-br from-purple-500/10 to-secondary-100/5 opacity-20" />
         <CardContent className="p-0 relative z-10">
           <Table>
             <TableHeader>
