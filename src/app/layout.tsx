@@ -1,6 +1,8 @@
 import { museoSans } from './fonts';
 import Providers from "./providers"
 import '@/app/globals.css';
+import "@assistant-ui/styles/index.css";
+import "@assistant-ui/styles/markdown.css";
 
 export const metadata = {
   title: 'BI Student Organisation',

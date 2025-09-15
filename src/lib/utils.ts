@@ -21,3 +21,10 @@ export function getInitials(name: string): string {
     .toUpperCase()
     .slice(0, 2)
 }
+
+export function formatDateReadable(value?: string | null) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (isNaN(date.getTime())) return value
+  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+}

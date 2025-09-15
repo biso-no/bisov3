@@ -24,6 +24,7 @@ const ROUTES: RouteAccess[] = [
   // Public routes
   { path: '/_next', requiresAuth: false },
   { path: '/auth', requiresAuth: false },
+  { path: '/', requiresAuth: false },
   
   // Admin routes
   { path: '/admin', roles: ['Admin'] },
@@ -35,6 +36,8 @@ const ROUTES: RouteAccess[] = [
   { path: '/admin/expenses', roles: ['Admin', 'finance'] },
   { path: '/admin/alumni', roles: ['Admin'] },
   { path: '/admin/units', roles: ['Admin', 'hr', 'finance', 'pr'] },
+  { path: '/admin/jobs', roles: ['Admin', 'hr', 'pr'] },
+  { path: '/admin/events', roles: ['Admin', 'pr'] },
   
   // Authenticated routes (any logged-in user)
   { path: '/expenses', requiresAuth: true },

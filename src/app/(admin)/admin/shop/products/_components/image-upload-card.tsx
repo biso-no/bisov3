@@ -15,9 +15,12 @@ interface ProductImagesProps {
   images: string[]
 }
 
-export default function ImageUploadCard({ images = ["/placeholder.svg"] }: ProductImagesProps) {
-  const mainImage = images[0]
-  const thumbnails = images.slice(1)
+export default function ImageUploadCard({ images = [] }: ProductImagesProps) {
+  const validImages = (images || [])
+    .map((s) => (typeof s === 'string' ? s.trim() : ''))
+    .filter((s) => s.length > 0)
+  const mainImage = validImages[0] || '/images/placeholder.jpg'
+  const thumbnails = validImages.slice(1)
 
   return (
     <Card className="overflow-hidden">
@@ -29,23 +32,27 @@ export default function ImageUploadCard({ images = ["/placeholder.svg"] }: Produ
       </CardHeader>
       <CardContent>
         <div className="grid gap-2">
-          <Image
-            alt="Main product image"
-            className="aspect-square w-full rounded-md object-cover"
-            height="300"
-            src={mainImage}
-            width="300"
-          />
+          {mainImage ? (
+            <Image
+              alt="Main product image"
+              className="aspect-square w-full rounded-md object-cover"
+              height="300"
+              src={mainImage}
+              width="300"
+            />
+          ) : null}
           <div className="grid grid-cols-3 gap-2">
             {thumbnails.map((img, index) => (
               <button key={index}>
-                <Image
-                  alt={`Product image ${index + 2}`}
-                  className="aspect-square w-full rounded-md object-cover"
-                  height="84"
-                  src={img}
-                  width="84"
-                />
+                {img ? (
+                  <Image
+                    alt={`Product image ${index + 2}`}
+                    className="aspect-square w-full rounded-md object-cover"
+                    height="84"
+                    src={img}
+                    width="84"
+                  />
+                ) : null}
               </button>
             ))}
             {Array(Math.max(0, 2 - thumbnails.length)).fill(null).map((_, index) => (

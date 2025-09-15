@@ -1,8 +1,7 @@
 "use server"
 import { createSessionClient } from "@/lib/appwrite";
-import { ID, Models, Query } from "node-appwrite";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import { Query } from "node-appwrite";
+
 
 export async function getOrders({
     limit = 100,
@@ -32,7 +31,6 @@ export async function getOrders({
             'orders',
             query
         );
-        revalidatePath(path);
         return orders.documents;
     } catch (error) {
         console.error('Error fetching orders:', error);

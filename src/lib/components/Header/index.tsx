@@ -46,7 +46,7 @@ export const Header = ({ editMode }: { editMode: boolean }) => {
     <div className={getClassName("logo")}>LOGO</div>
     <nav className={getClassName("items")}>
       {navItems.map(item => (
-        <NavItem label={item.title} href={editMode ? "" : item.path} />
+        <NavItem key={item.$id} label={item.title} href={editMode ? "" : item.path} />
       ))}
     </nav>
   </header>

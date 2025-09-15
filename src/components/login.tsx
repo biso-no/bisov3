@@ -6,6 +6,7 @@ import Link from "next/link"
 import { signInWithAzure, signInWithMagicLink } from "@/lib/server"
 import Image from "next/image"
 import { useSearchParams, useRouter } from "next/navigation"
+import { Button } from "./ui/button"
 
 export function Login() {
   const [email, setEmail] = useState("")
@@ -113,7 +114,7 @@ export function Login() {
             )}
           </button>
         </form>
-                {/*
+                
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-white/10" />
@@ -126,15 +127,15 @@ export function Login() {
         </div>
         
 
-        <button
+        <Button
           onClick={handleAdminLogin}
           className="w-full glass border border-white/10 text-white py-3 rounded-lg flex items-center justify-center font-medium hover:brightness-110 transition-all duration-300 group"
         >
           <Key className="mr-2 h-4 w-4 text-gold-default" />
           Sign in with BISO account
           <ExternalLink className="ml-2 h-3.5 w-3.5 text-gray-400 transition-transform group-hover:translate-x-0.5" />
-        </button>
-        */}
+        </Button>
+        
           
         {message && (
           <div className={`mt-6 p-4 rounded-lg ${message.type === "error" ? "bg-red-500/20 border border-red-500/30 text-red-200" : "bg-green-500/20 border border-green-500/30 text-green-200"}`}>

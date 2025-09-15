@@ -7,7 +7,7 @@ import { ProductStatus } from "../(admin)/admin/shop/products/_components/edit-p
 import { Department } from "@/lib/types/post";
 
 const databaseId = 'app';
-const collectionId = 'products';
+const collectionId = 'webshop_products';
 
 
 
@@ -26,11 +26,25 @@ export async function getProducts(status: string = 'all') {
             collectionId,
             queries
         );
-        revalidatePath('/admin/shop/products');
         return response.documents;
     } catch (error) {
         console.error('Error fetching products:', error);
         return [];
+    }
+}
+
+export async function getProductBySlug(slug: string) {
+    const { db } = await createSessionClient();
+    try {
+        const response = await db.listDocuments(
+            databaseId,
+            collectionId,
+            [Query.equal('slug', slug), Query.limit(1)]
+        );
+        return response.documents[0] || null;
+    } catch (error) {
+        console.error('Error fetching product by slug:', error);
+        return null;
     }
 }
 
@@ -95,7 +109,7 @@ export async function createProduct(formData: FormData) {
     // Create the product in the database
     const product = await db.createDocument(
         'app',              // Your database ID
-        'products',         // Your collection ID
+        'webshop_products',         // Your collection ID
         ID.unique(),        // Unique ID for the document
         transformedData     // The transformed data object
     );
@@ -134,7 +148,7 @@ export async function updateProduct(productId: string, formData: FormData) {
     // Update the product in the database
     const product = await db.updateDocument(
         'app',              // Your database ID
-        'products',         // Your collection ID
+        'webshop_products',         // Your collection ID
         productId,          // The unique ID of the document
         transformedData     // The transformed data object
     );

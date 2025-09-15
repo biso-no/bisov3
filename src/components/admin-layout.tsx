@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { signOut } from '@/lib/actions/user';
 import { Skeleton } from "@/components/ui/skeleton";
+import { AssistantFAB } from "@/components/assistant-ui/AssistantFAB";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -169,7 +170,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
         /*
     { href: '/admin/pages', icon: FileText, label: 'Pages', roles: ['Admin', 'pr'] },
     { href: '/admin/posts', icon: FileText, label: 'Posts', roles: ['Admin', 'pr'] },
-
+*/
     {
       href: '/admin/shop',
       icon: Store,
@@ -182,13 +183,34 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
         { href: '/admin/shop/settings', label: 'Settings', roles: ['Admin'] },
       ],
     },
-    */
+    
     {
       href: '/admin/expenses',
       icon: CalendarIcon,
       label: 'Expenses',
       roles: ['Admin', 'finance'],
     },
+    {
+      href: '/admin/jobs',
+      icon: Users,
+      label: 'Jobs',
+      roles: ['Admin', 'hr', 'pr'],
+      subItems: [
+        { href: '/admin/jobs', label: 'All jobs', roles: ['Admin', 'hr', 'pr'] },
+        { href: '/admin/jobs/applications', label: 'Applications', roles: ['Admin', 'hr', 'pr'] },
+      ],
+    },
+    {
+      href: '/admin/events',
+      icon: CalendarIcon,
+      label: 'Events',
+      roles: ['Admin', 'pr'],
+      subItems: [
+        { href: '/admin/events', label: 'All events', roles: ['Admin', 'pr'] },
+        { href: '/admin/events/new', label: 'Create event', roles: ['Admin', 'pr'] },
+      ],
+    },
+    /*
     {
       href: '/admin/alumni',
       icon: Users,
@@ -198,6 +220,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
         { href: '/admin/alumni/mentors', label: 'Mentor Approvals', roles: ['Admin'] },
       ],
     },
+    */
     {
       href: '/admin/units',
       icon: Building2,
@@ -348,6 +371,9 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
               </motion.div>
             </header>
             {children}
+            <div className="fixed bottom-6 right-6 z-50">
+              <AssistantFAB api="/api/admin-assistant" tooltip="Admin Assistant" />
+            </div>
           </div>
         </main>
       </div>
