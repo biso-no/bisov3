@@ -255,3 +255,5 @@ module.exports = {
     require("@assistant-ui/react-ui/tailwindcss")({ shadcn: true })
   ],
 }
+
+
