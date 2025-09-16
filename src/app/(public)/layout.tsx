@@ -1,17 +1,20 @@
 import '@/app/globals.css'
 import { Header } from '@/lib/components/Header'
 import { Footer } from '@/lib/components/Footer'
-import { AssistantFAB } from '@/components/assistant-ui/AssistantFAB'
+import { PublicProviders } from '@/components/layout/public-providers'
+import { AssistantModal } from '@/components/ai/public'
+
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
+    <PublicProviders>
     <div className="min-h-screen flex flex-col bg-background">
       <Header editMode={false} />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
           {children}
           <div className="fixed bottom-6 right-6 z-50">
-            <AssistantFAB api="/api/public-assistant" tooltip="Ask BISO" />
+            <AssistantModal />
           </div>
         </div>
       </main>
@@ -37,6 +40,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         </Footer.List>
       </Footer>
     </div>
+    </PublicProviders>
   )
 }
 

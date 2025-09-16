@@ -4,11 +4,11 @@ import { cookies } from "next/headers";
 
 const APPWRITE_API_KEY = process.env.APPWRITE_API_KEY;
 const APPWRITE_PROJECT = process.env.NEXT_PUBLIC_APPWRITE_PROJECT || "biso"
-const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://appwrite.biso.no/v1";
+const NEXT_PUBLIC_APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://appwrite.biso.no/v1";
 
 export async function createSessionClient() {
   const client = new Client()
-    .setEndpoint(APPWRITE_ENDPOINT)
+    .setEndpoint(NEXT_PUBLIC_APPWRITE_ENDPOINT)
     .setProject(APPWRITE_PROJECT)
 
   const session = (await cookies()).get("x-biso-session");
@@ -39,7 +39,7 @@ export async function createSessionClient() {
 
 export async function createAdminClient() {
   const client = new Client()
-    .setEndpoint(APPWRITE_ENDPOINT)
+    .setEndpoint(NEXT_PUBLIC_APPWRITE_ENDPOINT)
     .setProject(APPWRITE_PROJECT)
     .setKey(APPWRITE_API_KEY);
 

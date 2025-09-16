@@ -1,11 +1,6 @@
 import { openai } from "@ai-sdk/openai"
-import {
-  streamText,
-  convertToModelMessages,
-  tool,
-  stepCountIs,
-  type UIMessage,
-} from "ai"
+import { streamText, convertToModelMessages, tool, stepCountIs, type UIMessage } from "ai"
+import { frontendTools } from "@assistant-ui/react-ai-sdk"
 import { z } from "zod"
 import { createProduct, updateProductStatus } from "@/app/actions/products"
 import { createEvent, updateEvent } from "@/app/actions/events"
@@ -14,13 +9,14 @@ import { createJob, updateJob } from "@/app/actions/jobs"
 export const maxDuration = 50
 
 export async function POST(req: Request) {
-  const { messages }: { messages: UIMessage[] } = await req.json()
+  const { messages, tools: clientTools }: { messages: UIMessage[]; tools?: any } = await req.json()
 
   const result = streamText({
     model: openai("gpt-4o"),
     messages: convertToModelMessages(messages),
     stopWhen: stepCountIs(12),
     tools: {
+      ...(clientTools ? frontendTools(clientTools) : {}),
       create_product_from_fields: tool({
         description: "Create a webshop product directly from structured fields.",
         inputSchema: z.object({

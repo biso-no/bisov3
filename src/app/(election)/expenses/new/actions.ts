@@ -157,7 +157,7 @@ export async function submitExpense(data: ExpenseData, userId: string) {
     const uploadPromises = allDocuments.map(async (doc) => {
       if (doc.file) {
         const fileId = await uploadExpenseFile(doc.file);
-        const url = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT + '/storage/buckets/expenses/files/' + fileId + '/view?project=' + process.env.NEXT_PUBLIC_APPWRITE_PROJECT;
+        const url = process.env.NEXT_PUBLIC_NEXT_PUBLIC_APPWRITE_ENDPOINT + '/storage/buckets/expenses/files/' + fileId + '/view?project=' + process.env.NEXT_PUBLIC_APPWRITE_PROJECT;
         return { ...doc, fileId, file: undefined, url };
       }
       return doc;

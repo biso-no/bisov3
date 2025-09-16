@@ -27,7 +27,10 @@ import {
 } from 'lucide-react';
 import { signOut } from '@/lib/actions/user';
 import { Skeleton } from "@/components/ui/skeleton";
-import { AssistantFAB } from "@/components/assistant-ui/AssistantFAB";
+import { AssistantModal } from './ai/admin';
+import { AssistantSidebar } from './ai/admin-sidebar';
+import { useAssistantUIStore } from './ai/assistant-ui-store';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from './ui/resizable';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -157,6 +160,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
   const pathname = usePathname();
   const [selectedRole, setSelectedRole] = useState(roles.includes('Admin') ? 'Admin' : roles[0]);
   const [isLoading, setIsLoading] = useState(true);
+  const { mode: assistantMode, isSidebarOpen: assistantSidebarOpen, setSidebarOpen } = useAssistantUIStore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1000);
@@ -307,8 +311,8 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
       </motion.nav>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700 shadow-sm">
-          <div className="flex items-center space-x-4">
+        <header className="flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-800 border-b dark:border-gray-700 shadow-sm">
+          <div className="flex items-center gap-4">
             <span className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
               {isLoading ? <Skeleton className="h-8 w-32" /> : `Welcome, ${firstName}`}
             </span>
@@ -319,9 +323,22 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
                 setSelectedRole={setSelectedRole}
               />
             )}
+            <div className="ml-4">
+              <Breadcrumb />
+            </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search..."
+                className="w-[280px] pl-8"
+                onFocus={() => setIsSearchOpen(true)}
+                onBlur={() => setIsSearchOpen(false)}
+              />
+            </div>
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
               <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full" />
@@ -350,31 +367,37 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
-          <div className="container mx-auto px-6 py-8">
-            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b 
-                           bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-              <Breadcrumb />
-              <motion.div 
-                className="relative ml-auto flex-1 md:grow-0"
-                animate={{ width: isSearchOpen ? '100%' : 'auto' }}
-              >
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search..."
-                  className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]
-                           focus:w-full transition-all duration-300 ease-in-out"
-                  onFocus={() => setIsSearchOpen(true)}
-                  onBlur={() => setIsSearchOpen(false)}
-                />
-              </motion.div>
-            </header>
-            {children}
-            <div className="fixed bottom-6 right-6 z-50">
-              <AssistantFAB api="/api/admin-assistant" tooltip="Admin Assistant" />
+        <main className="flex-1 min-h-0 bg-gray-100 dark:bg-gray-900">
+          {assistantMode === "sidebar" && assistantSidebarOpen ? (
+            <ResizablePanelGroup direction="horizontal" className="h-full">
+              <ResizablePanel defaultSize={72} minSize={40} className="min-w-0">
+                <div className="h-full overflow-y-auto px-6 py-6">
+                  {children}
+                </div>
+              </ResizablePanel>
+              <ResizableHandle />
+              <ResizablePanel defaultSize={28} minSize={20} maxSize={60} className="min-w-[280px]">
+                <div className="flex h-full flex-col border-l bg-popover">
+                  <div className="flex items-center justify-between border-b px-3 py-2">
+                    <span className="text-sm font-medium">Admin Assistant</span>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setSidebarOpen(false)}>Close</Button>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    <AssistantSidebar open={assistantSidebarOpen} onOpenChange={setSidebarOpen} docked />
+                  </div>
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          ) : (
+            <div className="h-full overflow-y-auto px-6 py-6">
+              {children}
+              <div className="fixed bottom-6 right-6 z-50">
+                <AssistantModal />
+              </div>
             </div>
-          </div>
+          )}
         </main>
       </div>
     </div>
