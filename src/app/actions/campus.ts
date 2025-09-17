@@ -48,3 +48,13 @@ export async function getCampus(id: string, withUnits?: boolean) {
     );
     return campus;
 }
+export async function getCampusData() {
+    const { db } = await createSessionClient();
+
+    const res = await db.listDocuments(
+        databaseId,
+        'campus_data'
+    );
+
+    return res.documents;
+}

@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PrivacyControls } from "@/components/privacy-controls";
-import { ProfileForm } from "@/app/(election)/expenses/profile/profile-form";
+import { ProfileForm } from "@/app/expenses/profile/profile-form";
 
 export function ProfileTabs({userData}: {userData: any}) {
   const [activeTab, setActiveTab] = useState("account");
