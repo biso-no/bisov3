@@ -1,0 +1,70 @@
+{
+  "events": {
+    "cta": "Se hele kalenderen",
+    "descriptionActive": "Planlegg uka ved {campusName}.",
+    "descriptionDefault": "Se hva som skjer på dine campuser.",
+    "empty": "Ingen kommende arrangementer for denne campusen.",
+    "title": "Eventkalender"
+  },
+  "hero": {
+    "imageAlt": "BISO-studenter",
+    "primaryCtaSecondary": "Utforsk arrangementer",
+    "promo": {
+      "headline": "Skap opplevelser, påvirk politikk og bygg nettverk for fremtiden.",
+      "tagline": "Mer enn studentliv"
+    },
+    "stats": {
+      "campuses": "Campuser",
+      "events": "Kommende events",
+      "jobs": "Ledige verv"
+    },
+    "subtitleActive": "Opplev alt som skjer ved {campusName}. Finn arrangementer, fordeler og verv som gjør studietiden uforglemmelig.",
+    "subtitleDefault": "BI Student Organisation samler studenter på tvers av campus. Utforsk mulighetene og finn din vei inn i fellesskapet.",
+    "titleActive": "Bli med i pulsen ved {campusName}",
+    "titleDefault": "En sterk studentstemme på alle BI-campuser"
+  },
+  "jobs": {
+    "cta": "Se alle stillinger",
+    "deadline": "Frist: {date}",
+    "description": "Bli med i organisasjonen og form fremtidens studentliv.",
+    "empty": "Ingen ledige verv akkurat nå.",
+    "rolling": "Løpende opptak",
+    "title": "Ledige verv og jobber"
+  },
+  "news": {
+    "cta": "Alle nyheter",
+    "description": "Nyheter, kunngjøringer og historier fra hele organisasjonen.",
+    "empty": "Ingen nyheter publisert ennå.",
+    "titleActive": "Aktuelt fra {campusName}",
+    "titleDefault": "Aktuelt i BISO"
+  },
+  "quickLinks": {
+    "benefits": {
+      "cta": "Til fordeler",
+      "description": "Shop, rabatter og ressurser eksklusivt for BISO-medlemmer.",
+      "title": "Studentfordeler"
+    },
+    "highlights": {
+      "cta": "Se kalender",
+      "description": "Få oversikt over fester, faglige møteplasser og karrieredager.",
+      "title": "Kommende høydepunkter"
+    },
+    "roles": {
+      "cta": "Åpne verv",
+      "description": "Utvikle deg i studentpolitikk, ledelse eller koordinering.",
+      "title": "Søk verv"
+    },
+    "units": {
+      "cta": "Utforsk enheter",
+      "description": "Markedsføring, HR, økonomi eller event – se hvor du kan bidra.",
+      "title": "Finn din enhet"
+    }
+  },
+  "shop": {
+    "cta": "Gå til butikk",
+    "description": "Profiler din campus med eksklusiv BISO-merch.",
+    "empty": "Ingen produkter tilgjengelig akkurat nå.",
+    "price": "{value} kr",
+    "title": "Shop: nye favoritter"
+  }
+}
