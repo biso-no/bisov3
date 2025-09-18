@@ -16,6 +16,7 @@ import type { Event } from "@/lib/types/event";
 import type { Job } from "@/lib/types/job";
 import type { NewsItem } from "@/lib/types/alumni";
 import { Models } from "node-appwrite";
+import { useTranslations } from "next-intl";
 
 type Product = Models.Document & {
   name: string;
@@ -68,6 +69,7 @@ const StatPill = ({ label, value }: { label: string; value: string | number }) =
 
 export const HomePageClient = ({ events, news, jobs, products }: HomePageClientProps) => {
   const { campuses, activeCampus, activeCampusId, loading } = useCampus();
+  const t = useTranslations('HomePage');
 
   const campusLookup = useMemo(() => {
     return campuses.reduce<Record<string, string>>((acc, campus) => {
@@ -115,7 +117,7 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
             <p className="max-w-2xl text-base text-white/80 md:text-lg">{heroSubtitle}</p>
             <div className="flex flex-wrap gap-3">
               <Button asChild size="lg" className="bg-white text-primary-100 hover:bg-white/90">
-                <Link href="/membership">Bli medlem</Link>
+                <Link href="/membership">{t('become-member')}</Link>
               </Button>
               <Button asChild size="lg" variant="secondary" className="border-white/60 bg-transparent text-white hover:bg-white/10">
                 <Link href="/events">Utforsk arrangementer</Link>
