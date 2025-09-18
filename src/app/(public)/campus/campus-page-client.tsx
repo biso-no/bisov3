@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { CalendarDays, BriefcaseBusiness, Newspaper, ArrowUpRight, Sparkles, GraduationCap, Handshake, Users, ShieldCheck, MapPin, Mail, Phone, Building2, Loader2 } from "lucide-react"
@@ -17,6 +17,8 @@ import type { Job } from "@/lib/types/job"
 import type { NewsItem } from "@/lib/types/alumni"
 import type { Department as DepartmentRecord } from "@/lib/admin/departments"
 import type { CampusData } from "@/lib/types/campus-data"
+import type { Locale } from "@/i18n/config"
+import type { CampusMetadata } from "@/app/actions/campus"
 
 type CampusLeader = {
   name: string
@@ -247,6 +249,7 @@ const normalizeCampusName = (name?: string | null) =>
     .replace(/[^a-z]+/g, "-")
     .replace(/(^-|-$)/g, "")
 
+
 const StatPill = ({ label, value }: { label: string; value: string | number }) => (
   <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left shadow-glow">
     <div className="text-xl font-semibold text-white">{value}</div>
@@ -305,9 +308,11 @@ type CampusPageClientProps = {
   news: NewsItem[]
   departments: DepartmentRecord[]
   campusData: CampusData[]
+  campusMetadata: Record<string, CampusMetadata>
+  locale?: Locale
 }
 
-export const CampusPageClient = ({ events, jobs, news, departments, campusData }: CampusPageClientProps) => {
+export const CampusPageClient = ({ events, jobs, news, departments, campusData, campusMetadata, locale = "no" }: CampusPageClientProps) => {
   const { campuses, activeCampus, activeCampusId, selectCampus, loading } = useCampus()
 
   const [leadership, setLeadership] = useState<CampusLeader[]>([])
@@ -376,6 +381,12 @@ export const CampusPageClient = ({ events, jobs, news, departments, campusData }
       .filter((member) => member.name)
   }, [activeCampusData])
 
+  // Function to get localized content from metadata
+  const getLocalizedContent = useCallback((nbContent?: string | string[], enContent?: string | string[]) => {
+    if (locale === "en" && enContent) return enContent
+    return nbContent || enContent || ""
+  }, [locale])
+
   useEffect(() => {
     if (!campusIdentifier) {
       setLeadership(fallbackLeadership)
@@ -441,13 +452,43 @@ export const CampusPageClient = ({ events, jobs, news, departments, campusData }
 
   const heroMeta = useMemo(() => {
     if (!activeCampus) return defaultMeta
+    
+    // Try to find metadata by campus ID or name
+    const metadata = campusMetadata[activeCampusId || ""] || 
+                    Object.values(campusMetadata).find(m => 
+                      m.campus_name.toLowerCase() === normalizeCampusName(activeCampus.name)
+                    )
+    
+    if (metadata) {
+      const services = metadata.services_nb || metadata.services_en
+      let parsedServices: { title: string; description: string }[] = []
+      
+      try {
+        if (services) {
+          const servicesData = JSON.parse(locale === "en" && metadata.services_en ? metadata.services_en : services)
+          parsedServices = Array.isArray(servicesData) ? servicesData : []
+        }
+      } catch (error) {
+        console.error('Failed to parse services:', error)
+      }
+      
+      return {
+        tagline: getLocalizedContent(metadata.tagline_nb, metadata.tagline_en) as string || `Alt om ${activeCampus.name}`,
+        description: getLocalizedContent(metadata.description_nb, metadata.description_en) as string || defaultMeta.description,
+        highlights: getLocalizedContent(metadata.highlights_nb, metadata.highlights_en) as string[] || [],
+        focusAreas: getLocalizedContent(metadata.focusAreas_nb, metadata.focusAreas_en) as string[] || [],
+        services: parsedServices
+      }
+    }
+    
+    // Fallback to hardcoded data if no metadata
     const slug = normalizeCampusName(activeCampus.name)
     return campusMetaMap[slug] || {
       ...defaultMeta,
       tagline: `Alt om ${activeCampus.name}`,
       description: defaultMeta.description
     }
-  }, [activeCampus])
+  }, [activeCampus, activeCampusId, campusMetadata, locale, getLocalizedContent])
 
   const campusSpecificDepartments = useMemo(() => {
     if (!activeCampusId) return departments
@@ -571,7 +612,7 @@ export const CampusPageClient = ({ events, jobs, news, departments, campusData }
               {activeCampus ? `${activeCampus.name} campus` : "Alle campuser"}
             </div>
             <h1 className="text-3xl font-semibold leading-tight text-white md:text-5xl">
-              {activeCampus ? `Opplev ${activeCampus.name}` : "Opplev BISO på tvers av campuser"}
+              {activeCampus ? `${activeCampus.name}` : "Opplev BISO på tvers av campuser"}
             </h1>
             <p className="max-w-2xl text-base text-white/80 md:text-lg">{heroMeta.description}</p>
             <div className="flex flex-wrap gap-3">

@@ -1,4 +1,4 @@
-import type {Locale} from '@/lib/i18n/config';
+import type {Locale} from '@/i18n/config';
 
 export async function loadMessages(locale: Locale) {
   switch (locale) {

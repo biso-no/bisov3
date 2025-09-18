@@ -1,7 +1,7 @@
 import {getRequestConfig} from 'next-intl/server';
 import { getLocale } from '@/app/actions/locale';
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/lib/i18n/config';
-import { loadMessages } from '../../../messages';
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '@/i18n/config';
+import { loadMessages } from '../../messages';
 
 export default getRequestConfig(async () => {
   // Static for now, we'll change this later

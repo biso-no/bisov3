@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Models } from "node-appwrite";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 
 type NavDocument = Models.Document & {
   title: string;
@@ -93,12 +94,11 @@ export const Header = ({ editMode }: { editMode: boolean }) => {
               placeholder="Velg campus"
               className="h-9 w-48 border-white/30 bg-white/10 text-left text-white"
             />
-            <Link
-              href="#"
-              className="text-xs font-medium text-white/80 transition hover:text-white"
-            >
-              NO / EN
-            </Link>
+            <LocaleSwitcher
+              variant="ghost"
+              size="sm"
+              className="h-9 w-48 border-white/30 bg-white/10 text-left text-white"
+            />
           </div>
         </div>
       </div>

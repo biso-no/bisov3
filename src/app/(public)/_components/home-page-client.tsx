@@ -94,7 +94,7 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
       { label: t("hero.stats.events"), value: eventsForCampus.length || "—" },
       { label: t("hero.stats.jobs"), value: jobsForCampus.length || "—" },
     ];
-  }, [campuses.length, eventsForCampus.length, jobsForCampus.length]);
+  }, [campuses.length, eventsForCampus.length, jobsForCampus.length, t]);
 
   const spotlightProducts = useMemo(() => products.slice(0, 3), [products]);
   const spotlightNews = useMemo(() => news.slice(0, 3), [news]);

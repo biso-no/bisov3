@@ -1,5 +1,6 @@
+"use server";
 import { createSessionClient } from "@/lib/appwrite";
-import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
+import { DEFAULT_LOCALE, isLocale } from "@/i18n/config";
 
 export async function getLocale() {
     try {
