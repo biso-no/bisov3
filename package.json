@@ -7,6 +7,7 @@
     "build": "NODE_OPTIONS='--max-old-space-size=2048' next build",
     "start": "next start",
     "lint": "next lint",
+    "i18n:sync": "node scripts/sync-translations.mjs",
     "docker:build": "docker build -t biso-app .",
     "docker:save": "docker save biso-app -o biso-app.tar"
   },

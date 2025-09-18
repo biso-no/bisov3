@@ -26,7 +26,7 @@ export default async function RootLayout({
       <Providers>
       <AppContextProvider>
       <body>
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
         {children}
         </NextIntlClientProvider>
       </body>
