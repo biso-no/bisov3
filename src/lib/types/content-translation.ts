@@ -1,7 +1,7 @@
 import { Models } from 'node-appwrite'
 
 export interface ContentTranslation extends Models.Document {
-  content_type: 'job' | 'event' | 'news'
+  content_type: 'job' | 'event' | 'news' | 'product'
   content_id: string
   locale: 'en' | 'no'
   title: string

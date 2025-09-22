@@ -14,23 +14,14 @@ import { formatDateReadable } from "@/lib/utils";
 import type { EventWithTranslations } from "@/lib/types/event";
 import type { JobWithTranslations } from "@/lib/types/job";
 import type { NewsItemWithTranslations } from "@/lib/types/news";
-import { Models } from "node-appwrite";
+import type { ProductWithTranslations } from "@/lib/types/product";
 import { useTranslations } from "next-intl";
-
-type Product = Models.Document & {
-  name: string;
-  images?: string[];
-  price?: number;
-  description?: string;
-  slug?: string;
-  url?: string;
-};
 
 type HomePageClientProps = {
   events: EventWithTranslations[];
   news: NewsItemWithTranslations[];
   jobs: JobWithTranslations[];
-  products: Product[];
+  products: ProductWithTranslations[];
 };
 
 const SectionHeader = ({
@@ -93,6 +84,11 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
     return news.filter((newsItem) => newsItem.campus_id === activeCampusId);
   }, [news, activeCampusId]);
 
+  const productsForCampus = useMemo(() => {
+    if (!activeCampusId) return products;
+    return products.filter((product) => product.campus_id === activeCampusId);
+  }, [products, activeCampusId]);
+
   const heroStats = useMemo(() => {
     return [
       { label: t("hero.stats.campuses"), value: campuses.length || "—" },
@@ -101,7 +97,7 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
     ];
   }, [campuses.length, eventsForCampus.length, jobsForCampus.length, t]);
 
-  const spotlightProducts = useMemo(() => products.slice(0, 3), [products]);
+  const spotlightProducts = useMemo(() => productsForCampus.slice(0, 3), [productsForCampus]);
   const spotlightNews = useMemo(() => newsForCampus.slice(0, 3), [newsForCampus]);
   const spotlightEvents = useMemo(() => eventsForCampus.slice(0, 6), [eventsForCampus]);
   const spotlightJobs = useMemo(() => jobsForCampus.slice(0, 6), [jobsForCampus]);
@@ -345,11 +341,11 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
           {spotlightProducts.length ? (
             spotlightProducts.map((product) => (
               <Card key={product.$id} className="group overflow-hidden border border-primary/10 bg-white/90 shadow-md transition hover:-translate-y-1 hover:shadow-card-hover">
-                {product.images?.[0] ? (
+                {product.image || product.images?.[0] ? (
                   <div className="relative h-60 w-full overflow-hidden">
                     <Image
-                      src={product.images[0]}
-                      alt={product.name}
+                      src={product.image || product.images![0]}
+                      alt={product.title || product.slug}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                     />
@@ -359,10 +355,10 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
                   <CardTitle className="text-lg font-semibold text-primary-100">
                     {product.slug ? (
                       <Link href={`/shop/${product.slug}`} className="hover:underline">
-                        {product.name}
+                        {product.title || product.slug}
                       </Link>
                     ) : (
-                      product.name
+                      product.title || 'Untitled Product'
                     )}
                   </CardTitle>
                   {product.description ? (

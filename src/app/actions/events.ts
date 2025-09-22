@@ -5,6 +5,7 @@ import { Query } from 'node-appwrite'
 import { Event, EventWithTranslations } from '@/lib/types/event'
 import { ContentTranslation } from '@/lib/types/content-translation'
 import { revalidatePath } from 'next/cache'
+import { Campus } from '@/lib/types/campus'
 
 export interface ListEventsParams {
   limit?: number
@@ -357,7 +358,7 @@ export async function listCampuses() {
   try {
     const { db } = await createAdminClient()
     const response = await db.listDocuments('app', 'campus')
-    return response.documents
+    return response.documents as Campus[]
   } catch (error) {
     console.error('Error fetching campuses:', error)
     return []

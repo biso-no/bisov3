@@ -31,13 +31,13 @@ import {
 } from "@/components/ui/table"
 import { TabsContent } from "@/components/ui/tabs"
 
-import { updateProductStatus, deleteProduct } from '@/app/actions/products'
-import { Models } from "node-appwrite"
-import { ProductStatus } from "./edit-product"
+import { updateProduct, deleteProduct } from '@/app/actions/products'
+import { ProductWithTranslations } from '@/lib/types/product'
+import Link from 'next/link'
 
-export function ProductsTable({ products }: { products: Models.Document[] }) {
-  const handleUpdateStatus = async (productId: string, newStatus: ProductStatus) => {
-    await updateProductStatus(productId, newStatus)
+export function ProductsTable({ products }: { products: ProductWithTranslations[] }) {
+  const handleUpdateStatus = async (productId: string, newStatus: 'draft' | 'published' | 'archived') => {
+    await updateProduct(productId, { status: newStatus })
     // You might want to add some state management or refetching logic here
   }
 
@@ -64,11 +64,12 @@ export function ProductsTable({ products }: { products: Models.Document[] }) {
                 </TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Translations</TableHead>
                 <TableHead className="hidden md:table-cell">
                   Price
                 </TableHead>
                 <TableHead className="hidden md:table-cell">
-                  Total Sales
+                  Campus
                 </TableHead>
                 <TableHead className="hidden md:table-cell">
                   Created at
@@ -79,33 +80,60 @@ export function ProductsTable({ products }: { products: Models.Document[] }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
-                <TableRow key={product.$id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt="Product image"
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={product.image || "/placeholder.svg"}
-                      width="64"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {product.name}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{product.status}</Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {product.price.toFixed(2)} kr
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {product.totalSales}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {new Date(product.$createdAt).toLocaleString()}
-                  </TableCell>
-                  <TableCell>
+              {products.map((product) => {
+                const hasEnglish = product.translation_refs?.some((t: any) => t.locale === 'en')
+                const hasNorwegian = product.translation_refs?.some((t: any) => t.locale === 'no')
+                const primaryTitle = product.translation_refs?.[0]?.title || product.slug
+                const metadata = product.metadata ? JSON.parse(product.metadata) : {}
+                
+                return (
+                  <TableRow key={product.$id}>
+                    <TableCell className="hidden sm:table-cell">
+                      <Image
+                        alt="Product image"
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={product.image || metadata.image || "/placeholder.svg"}
+                        width="64"
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      <Link href={`/admin/shop/products/${product.$id}`} className="hover:underline">
+                        {primaryTitle}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{product.status}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        {hasEnglish && (
+                          <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                            🇬🇧 EN
+                          </span>
+                        )}
+                        {hasNorwegian && (
+                          <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                            🇳🇴 NO
+                          </span>
+                        )}
+                        {!hasEnglish && !hasNorwegian && (
+                          <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                            No translations
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {metadata.price ? `${metadata.price.toFixed(2)} NOK` : '-'}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {product.campus?.name || product.campus_id}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {new Date(product.$createdAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -119,13 +147,13 @@ export function ProductsTable({ products }: { products: Models.Document[] }) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleUpdateStatus(product.$id, ProductStatus.inStock)}>
+                        <DropdownMenuItem onClick={() => handleUpdateStatus(product.$id, 'published')}>
                           Set Published
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleUpdateStatus(product.$id, ProductStatus.draft)}>
+                        <DropdownMenuItem onClick={() => handleUpdateStatus(product.$id, 'draft')}>
                           Set Draft
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleUpdateStatus(product.$id, ProductStatus.archived)}>
+                        <DropdownMenuItem onClick={() => handleUpdateStatus(product.$id, 'archived')}>
                           Archive
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -134,9 +162,10 @@ export function ProductsTable({ products }: { products: Models.Document[] }) {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </CardContent>
