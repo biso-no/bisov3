@@ -1,20 +1,33 @@
-import { listJobs } from '@/app/actions/jobs'
+import { listJobs, listDepartments, listCampuses } from '@/app/actions/jobs'
+import { getLocale } from '@/app/actions/locale'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { listDepartments } from '@/app/actions/events'
 import Link from 'next/link'
 
-export default async function AlumniJobsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+export default async function JobsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams
   const status = params.status || 'open'
   const campus = params.campus || 'all'
   const interest = params.interest || 'all'
   const q = params.q
+  
+  // Get user's preferred locale from their account preferences
+  const locale = await getLocale()
+  
   const campusFilter = campus !== 'all' ? campus : undefined
   const interestFilter = interest !== 'all' ? [interest] : undefined
-  const jobs = await listJobs({ limit: 50, status, campus: campusFilter, query: q, interests: interestFilter })
+  
+  const jobs = await listJobs({ 
+    limit: 50, 
+    status, 
+    campus: campusFilter, 
+    search: q, 
+    locale 
+  })
+  
   const departments = await listDepartments(campusFilter)
+  const campuses = await listCampuses()
   return (
     <div className="space-y-6">
       <header className="flex items-center justify-between">
@@ -43,6 +56,9 @@ export default async function AlumniJobsPage({ searchParams }: { searchParams: P
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All campuses</SelectItem>
+                {campuses.map(c => (
+                  <SelectItem key={c.$id} value={c.$id}>{c.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select name="interest" defaultValue={interest}>
@@ -73,7 +89,7 @@ export default async function AlumniJobsPage({ searchParams }: { searchParams: P
                   <span className="text-xs uppercase px-2 py-1 rounded bg-green-600/10 text-green-600">{job.status}</span>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {job.campus} • Deadline: {job.application_deadline || '—'}
+                  {job.campus?.name || job.campus_id} • {job.department?.Name} • Deadline: {job.application_deadline ? new Date(job.application_deadline).toLocaleDateString() : '—'}
                 </div>
               </div>
             </CardContent>

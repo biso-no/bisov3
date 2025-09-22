@@ -1,41 +1,66 @@
-import { getJobBySlug, createJobApplication } from '@/app/actions/jobs'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { getJobBySlug } from '@/app/actions/jobs'
+import { getLocale } from '@/app/actions/locale'
 import { Button } from '@/components/ui/button'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { JobApplicationForm } from '@/components/jobs/job-application-form'
 
-export default async function AlumniJobDetailBySlug({ params }: { params: Promise<{ slug: string }> }) {
+export default async function JobDetailBySlug({ params }: { 
+  params: Promise<{ slug: string }>
+}) {
   const { slug } = await params
-  const job = await getJobBySlug(slug)
+  
+  // Get user's preferred locale from their account preferences
+  const locale = await getLocale()
+  const job = await getJobBySlug(slug, locale)
+  
   if (!job) return notFound()
+  
   return (
     <div className="space-y-6">
       <header>
         <h1 className="text-3xl font-bold">{job.title}</h1>
-        <p className="text-muted-foreground">{job.campus} • {job.type}</p>
+        <p className="text-muted-foreground">
+          {job.campus?.name || job.campus_id} • {job.department?.Name} • {job.type}
+        </p>
+        {job.application_deadline && (
+          <p className="text-sm text-orange-600">
+            Application deadline: {new Date(job.application_deadline).toLocaleDateString()}
+          </p>
+        )}
       </header>
+      
       <article className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: job.description || '' }} />
-      <section className="space-y-3">
-        <h2 className="text-xl font-semibold">Apply for this role</h2>
-        <form
-          action={async (formData: FormData) => {
-            'use server'
-            await createJobApplication({
-              job_id: String((job as any).$id),
-              applicant_name: String(formData.get('name') || ''),
-              applicant_email: String(formData.get('email') || ''),
-              applicant_phone: String(formData.get('phone') || ''),
-              cover_letter: String(formData.get('cover_letter') || ''),
-            })
-          }}
-          className="grid gap-3"
-        >
-          <Input name="name" placeholder="Full name" required />
-          <Input name="email" type="email" placeholder="Email" required />
-          <Input name="phone" placeholder="Phone (optional)" />
-          <Textarea name="cover_letter" placeholder="Cover letter" rows={6} />
-          <div className="flex justify-end"><Button type="submit">Submit application</Button></div>
-        </form>
+      
+      {job.contact_email && (
+        <section className="space-y-3">
+          <h2 className="text-xl font-semibold">Contact Information</h2>
+          <div className="space-y-2">
+            {job.contact_name && <p><strong>Contact:</strong> {job.contact_name}</p>}
+            <p><strong>Email:</strong> {job.contact_email}</p>
+          </div>
+        </section>
+      )}
+      
+      <section className="space-y-6">
+        <div className="flex gap-3">
+          {job.apply_url && (
+            <Button asChild variant="outline">
+              <Link href={job.apply_url} target="_blank" rel="noopener noreferrer">
+                {locale === 'no' ? 'Ekstern søknad' : 'External Application'}
+              </Link>
+            </Button>
+          )}
+          
+          <Button variant="outline" asChild>
+            <Link href="/jobs">
+              {locale === 'no' ? '← Tilbake til stillinger' : '← Back to Jobs'}
+            </Link>
+          </Button>
+        </div>
+        
+        {/* Application Form */}
+        <JobApplicationForm job={job} locale={locale} />
       </section>
     </div>
   )

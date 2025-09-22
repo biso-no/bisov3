@@ -11,7 +11,8 @@ export default async function AdminJobsPage({ searchParams }: { searchParams: Pr
   const status = params.status || 'all'
   const campus = params.campus
   const q = params.q
-  const jobs = await listJobs({ limit: 200, status, campus, query: q })
+  // Admin should see jobs in all locales, so we don't pass locale parameter
+  const jobs = await listJobs({ limit: 200, status, campus, search: q })
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
@@ -30,7 +31,7 @@ export default async function AdminJobsPage({ searchParams }: { searchParams: Pr
             <Eye className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{jobs.filter(j => j.status === 'open').length}</div>
+            <div className="text-2xl font-bold">{jobs.filter(j => j.status === 'published').length}</div>
           </CardContent>
         </Card>
         <Card className="overflow-hidden">
@@ -78,25 +79,52 @@ export default async function AdminJobsPage({ searchParams }: { searchParams: Pr
             <tr>
               <th className="p-3 text-left">Title</th>
               <th className="p-3 text-left">Status</th>
+              <th className="p-3 text-left">Translations</th>
               <th className="p-3 text-left">Campus</th>
               <th className="p-3 text-left">Deadline</th>
               <th className="p-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {jobs.map((job) => (
-              <tr key={job.$id} className="border-t">
-                <td className="p-3 font-medium">{job.title}</td>
-                <td className="p-3 capitalize">{job.status}</td>
-                <td className="p-3">{job.campus}</td>
-                <td className="p-3">{job.application_deadline || '-'}</td>
-                <td className="p-3 text-right">
-                  <Button asChild variant="ghost" size="sm">
-                    <Link href={`/admin/jobs/${job.$id}`}>Edit</Link>
-                  </Button>
-                </td>
-              </tr>
-            ))}
+            {jobs.map((job) => {
+              const hasEnglish = job.translation_refs?.some((t: any) => t.locale === 'en')
+              const hasNorwegian = job.translation_refs?.some((t: any) => t.locale === 'no')
+              const primaryTitle = job.translation_refs?.[0]?.title || job.slug
+              const metadata = job.metadata ? JSON.parse(job.metadata) : {}
+              
+              return (
+                <tr key={job.$id} className="border-t">
+                  <td className="p-3 font-medium">{primaryTitle}</td>
+                  <td className="p-3 capitalize">{job.status}</td>
+                  <td className="p-3">
+                    <div className="flex gap-1">
+                      {hasEnglish && (
+                        <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                          🇬🇧 EN
+                        </span>
+                      )}
+                      {hasNorwegian && (
+                        <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                          🇳🇴 NO
+                        </span>
+                      )}
+                      {!hasEnglish && !hasNorwegian && (
+                        <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                          No translations
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="p-3">{job.campus?.name || job.campus_id}</td>
+                  <td className="p-3">{metadata.application_deadline ? new Date(metadata.application_deadline).toLocaleDateString() : '-'}</td>
+                  <td className="p-3 text-right">
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href={`/admin/jobs/${job.$id}`}>Edit</Link>
+                    </Button>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

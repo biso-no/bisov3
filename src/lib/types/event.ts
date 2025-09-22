@@ -1,24 +1,27 @@
-export type Event = {
-  $id?: string;
-  title: string;
-  description: string;
-  units?: string[]; // relationship IDs to departments
-  price?: number | null;
-  ticket_url?: string | null;
-  image?: string | null; // URL or storage file ID
-  status: 'draft' | 'publish' | string;
-  start_time?: string | null; // HH:mm or ISO
-  end_time?: string | null; // HH:mm or ISO
-  start_date: string; // ISO date
-  end_date: string; // ISO date
-  campus: string; // campus_id
-  totalAttemdees?: number | null; // note original spelling
-  departmentId?: string | null; // primary department
+import { Models } from 'node-appwrite'
+import { ContentTranslation } from './content-translation'
+
+export interface Event extends Models.Document {
+  slug?: string
+  status: 'draft' | 'published' | 'cancelled'
+  campus_id: string
+  metadata?: string // JSON string for non-translatable data (dates, location, price, etc.)
+  // Relationship references (populated at runtime)
+  campus?: { $id: string; name: string }
+  translations?: ContentTranslation[]
 }
 
-export type EventWithRefs = Event & {
-  campus_ref?: { $id: string; name: string };
-  units_ref?: { $id: string; Name: string }[];
+// Helper interface for working with event data including translations
+export interface EventWithTranslations extends Event {
+  // Convenience properties for the current locale
+  title?: string
+  description?: string
+  start_date?: string
+  end_date?: string
+  location?: string
+  price?: number
+  ticket_url?: string
+  image?: string
 }
 
 

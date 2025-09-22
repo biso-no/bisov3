@@ -2,6 +2,7 @@
 import { createContext, useContext, useCallback, useEffect, useMemo, useState } from "react";
 import { getCampuses } from "@/app/actions/campus";
 import { Campus } from "@/lib/types/campus";
+import { useHydration } from "@/lib/hooks/use-hydration";
 
 type CampusContextValue = {
   campuses: Campus[];
@@ -19,15 +20,21 @@ export const CampusProvider = ({ children }: { children: React.ReactNode }) => {
   const [campuses, setCampuses] = useState<Campus[]>([]);
   const [activeCampusId, setActiveCampusId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const isHydrated = useHydration();
 
   // Hydrate initial selection from localStorage so the choice persists between visits.
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!isHydrated) return;
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      setActiveCampusId(stored);
+      // Handle "all" selection
+      if (stored === "all") {
+        setActiveCampusId(null);
+      } else {
+        setActiveCampusId(stored);
+      }
     }
-  }, []);
+  }, [isHydrated]);
 
   useEffect(() => {
     let isMounted = true;
@@ -61,16 +68,22 @@ export const CampusProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!isHydrated) return;
     if (activeCampusId) {
       window.localStorage.setItem(STORAGE_KEY, activeCampusId);
     } else {
-      window.localStorage.removeItem(STORAGE_KEY);
+      // When no campus is selected (all campuses), store "all"
+      window.localStorage.setItem(STORAGE_KEY, "all");
     }
-  }, [activeCampusId]);
+  }, [activeCampusId, isHydrated]);
 
   const selectCampus = useCallback((campusId: string | null) => {
-    setActiveCampusId(campusId);
+    // Handle "all" selection by setting to null
+    if (campusId === "all") {
+      setActiveCampusId(null);
+    } else {
+      setActiveCampusId(campusId);
+    }
   }, []);
 
   const value = useMemo<CampusContextValue>(() => {

@@ -1,22 +1,25 @@
 import { listEvents, listCampuses } from '@/app/actions/events'
+import { getLocale } from '@/app/actions/locale'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import Link from 'next/link'
 import Image from 'next/image'
 import { PublicPageHeader } from '@/components/public/PublicPageHeader'
-import { formatDateReadable } from '@/lib/utils'
 
 export default async function PublicEventsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams
   const campus = params.campus
-  const status = params.status || 'publish'
+  const status = params.status || 'published'
   const q = params.q
+  
+  // Get user's preferred locale from their account preferences
+  const locale = await getLocale()
 
   const campusFilter = campus && campus !== 'all' ? campus : undefined
 
   const [events, campuses] = await Promise.all([
-    listEvents({ campus: campusFilter, status, search: q || undefined, limit: 100 }),
+    listEvents({ campus: campusFilter, status, search: q || undefined, limit: 100, locale }),
     listCampuses(),
   ])
 
@@ -50,9 +53,9 @@ export default async function PublicEventsPage({ searchParams }: { searchParams:
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="publish">Published</SelectItem>
+                <SelectItem value="published">Published</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
               </SelectContent>
             </Select>
             <button type="submit" className="hidden" />
@@ -73,8 +76,10 @@ export default async function PublicEventsPage({ searchParams }: { searchParams:
               <h3 className="font-semibold text-lg">{ev.title}</h3>
               <p className="text-sm text-muted-foreground line-clamp-3">{ev.description}</p>
               <div className="text-xs text-muted-foreground">
-                <span>{formatDateReadable(ev.start_date)}</span>
-                {ev.end_date ? <span> · {formatDateReadable(ev.end_date)}</span> : null}
+                <span>{new Date(ev.start_date).toLocaleDateString()}</span>
+                {ev.end_date && <span> - {new Date(ev.end_date).toLocaleDateString()}</span>}
+                {ev.location && <span> • {ev.location}</span>}
+                {ev.price && <span> • {ev.price} NOK</span>}
               </div>
             </CardContent>
             <div className="px-4 py-3 border-t bg-muted/20 flex justify-end">

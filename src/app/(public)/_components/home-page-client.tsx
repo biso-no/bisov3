@@ -11,9 +11,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { formatDateReadable } from "@/lib/utils";
 
-import type { Event } from "@/lib/types/event";
-import type { Job } from "@/lib/types/job";
-import type { NewsItem } from "@/lib/types/alumni";
+import type { EventWithTranslations } from "@/lib/types/event";
+import type { JobWithTranslations } from "@/lib/types/job";
+import type { NewsItemWithTranslations } from "@/lib/types/news";
 import { Models } from "node-appwrite";
 import { useTranslations } from "next-intl";
 
@@ -27,9 +27,9 @@ type Product = Models.Document & {
 };
 
 type HomePageClientProps = {
-  events: Event[];
-  news: NewsItem[];
-  jobs: Job[];
+  events: EventWithTranslations[];
+  news: NewsItemWithTranslations[];
+  jobs: JobWithTranslations[];
   products: Product[];
 };
 
@@ -80,13 +80,18 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
 
   const eventsForCampus = useMemo(() => {
     if (!activeCampusId) return events;
-    return events.filter((event) => event.campus === activeCampusId);
+    return events.filter((event) => event.campus_id === activeCampusId);
   }, [events, activeCampusId]);
 
   const jobsForCampus = useMemo(() => {
     if (!activeCampusId) return jobs;
-    return jobs.filter((job) => job.campus === activeCampusId);
+    return jobs.filter((job) => job.campus_id === activeCampusId);
   }, [jobs, activeCampusId]);
+
+  const newsForCampus = useMemo(() => {
+    if (!activeCampusId) return news;
+    return news.filter((newsItem) => newsItem.campus_id === activeCampusId);
+  }, [news, activeCampusId]);
 
   const heroStats = useMemo(() => {
     return [
@@ -97,7 +102,7 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
   }, [campuses.length, eventsForCampus.length, jobsForCampus.length, t]);
 
   const spotlightProducts = useMemo(() => products.slice(0, 3), [products]);
-  const spotlightNews = useMemo(() => news.slice(0, 3), [news]);
+  const spotlightNews = useMemo(() => newsForCampus.slice(0, 3), [newsForCampus]);
   const spotlightEvents = useMemo(() => eventsForCampus.slice(0, 6), [eventsForCampus]);
   const spotlightJobs = useMemo(() => jobsForCampus.slice(0, 6), [jobsForCampus]);
 
@@ -215,14 +220,17 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
                 ) : null}
                 <CardContent className="space-y-3 p-6">
                   <div className="text-xs uppercase tracking-wide text-blue-accent/90">
-                    {formatDateReadable(item.date)}
+                    {new Date(item.$createdAt).toLocaleDateString()}
                   </div>
                   <CardTitle className="text-xl font-semibold text-primary-100">
                     <Link href={`/news/${item.$id}`} className="hover:underline">
                       {item.title}
                     </Link>
                   </CardTitle>
-                  <p className="line-clamp-3 text-sm text-muted-foreground">{item.summary}</p>
+                  <p className="line-clamp-3 text-sm text-muted-foreground">
+                    {item.content?.replace(/<[^>]+>/g, "").slice(0, 160)}
+                    {item.content && item.content.length > 160 ? "…" : ""}
+                  </p>
                 </CardContent>
               </Card>
             ))
@@ -252,9 +260,9 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
                 <Card key={event.$id} className="min-w-[260px] max-w-sm flex-1 border border-primary/10 bg-white/90 shadow-md transition hover:-translate-y-1 hover:shadow-card-hover">
                   <CardContent className="space-y-3 p-6">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{formatDateReadable(event.start_date)}</span>
+                      <span>{event.start_date ? new Date(event.start_date).toLocaleDateString() : 'TBD'}</span>
                       <span className="rounded-full bg-secondary-10 px-2 py-1 text-secondary-100">
-                        {campusLookup[event.campus] ?? commonT("labels.organisation")}
+                        {campusLookup[event.campus_id] ?? commonT("labels.organisation")}
                       </span>
                     </div>
                     <CardTitle className="text-lg text-primary-100">
@@ -293,7 +301,7 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
                 <CardContent className="space-y-4 p-6">
                   <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
                     <span className="rounded-full bg-primary/10 px-2 py-1 text-primary-30">
-                      {campusLookup[job.campus] ?? commonT("labels.organisation")}
+                      {campusLookup[job.campus_id] ?? commonT("labels.organisation")}
                     </span>
                     <span>
                       {job.application_deadline

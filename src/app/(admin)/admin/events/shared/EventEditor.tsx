@@ -30,28 +30,27 @@ const JoditEditor = dynamic(() => import('jodit-react'), { ssr: false })
 const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
-  status: z.enum(['draft', 'publish']).default('draft'),
-  campus: z.string().min(1, 'Campus is required'),
+  status: z.enum(['draft', 'published', 'cancelled']).default('draft'),
+  locale: z.enum(['en', 'no']).default('en'),
+  campus_id: z.string().min(1, 'Campus is required'),
+  department_id: z.string().optional(),
   start_date: z.string().min(1, 'Start date is required'),
-  end_date: z.string().min(1, 'End date is required'),
-  start_time: z.string().optional(),
-  end_time: z.string().optional(),
+  end_date: z.string().optional(),
+  location: z.string().optional(),
   price: z.coerce.number().optional(),
   ticket_url: z.string().url().optional().or(z.literal('')).transform(v => v || undefined),
   image: z.string().optional(),
-  departmentId: z.string().optional(),
-  units: z.array(z.string()).optional(),
 })
 
 type FormValues = z.infer<typeof formSchema>
 
-export default function EventEditor({ event, campuses, departments }: { event?: { $id: string } & Partial<FormValues>, campuses?: { $id: string; name: string }[], departments?: { $id: string; Name: string; campus_id?: string }[] }) {
+export default function EventEditor({ event, campuses, departments }: { event?: any, campuses?: { $id: string; name: string }[], departments?: { $id: string; Name: string; campus_id?: string }[] }) {
   const router = useRouter()
-  const [selectedCampus, setSelectedCampus] = React.useState<string>(event?.campus || '')
+  const [selectedCampus, setSelectedCampus] = React.useState<string>(event?.campus_id || '')
   const filteredDepartments = React.useMemo(() => {
     if (!departments) return []
     if (!selectedCampus) return departments
-    return departments.filter(d => (d as any).campus_id === selectedCampus)
+    return departments.filter(d => d.campus_id === selectedCampus)
   }, [departments, selectedCampus])
 
   const form = useForm<FormValues>({
@@ -59,21 +58,16 @@ export default function EventEditor({ event, campuses, departments }: { event?: 
     defaultValues: {
       title: event?.title || '',
       description: event?.description || '',
-      status: (event?.status as 'draft' | 'publish') || 'draft',
-      campus: typeof (event as any)?.campus === 'string' ? (event as any).campus : ((event as any)?.campus?.$id || ''),
+      status: event?.status || 'draft',
+      locale: event?.locale || 'en',
+      campus_id: event?.campus_id || '',
+      department_id: event?.department_id || '',
       start_date: event?.start_date || '',
       end_date: event?.end_date || '',
-      start_time: event?.start_time || '',
-      end_time: event?.end_time || '',
-      price: (event?.price as number) || undefined,
-      ticket_url: (event?.ticket_url as string) || '',
-      image: (event?.image as string) || '',
-      departmentId: typeof (event as any)?.departmentId === 'string' ? (event as any).departmentId : ((event as any)?.departmentId?.$id || ''),
-      units: Array.isArray((event as any)?.units)
-        ? ((event as any).units as any[])
-            .map(u => typeof u === 'string' ? u : (u && (u.$id || u.id)))
-            .filter(Boolean) as string[]
-        : [],
+      location: event?.location || '',
+      price: event?.price || undefined,
+      ticket_url: event?.ticket_url || '',
+      image: event?.image || '',
     },
   })
 

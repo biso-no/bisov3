@@ -1,12 +1,18 @@
 import { getEvent, getEventImageViewUrl } from '@/app/actions/events'
+import { getLocale } from '@/app/actions/locale'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { PublicPageHeader } from '@/components/public/PublicPageHeader'
-import { formatDateReadable } from '@/lib/utils'
 
-export default async function PublicEventDetail({ params }: { params: Promise<{ id: string }> }) {
+export default async function PublicEventDetail({ params }: { 
+  params: Promise<{ id: string }>
+}) {
   const { id } = await params
-  const event = await getEvent(id)
+  
+  // Get user's preferred locale from their account preferences
+  const locale = await getLocale()
+  const event = await getEvent(id, locale)
+  
   if (!event) return notFound()
 
   const imageUrl = event.image ? await getEventImageViewUrl(event.image) : null
@@ -15,7 +21,12 @@ export default async function PublicEventDetail({ params }: { params: Promise<{ 
     <div className="space-y-6">
       <PublicPageHeader
         title={event.title}
-        subtitle={[formatDateReadable(event.start_date), event.end_date ? `– ${formatDateReadable(event.end_date)}` : '', event.campus ? `· ${event.campus}` : ''].filter(Boolean).join(' ')}
+        subtitle={[
+          new Date(event.start_date).toLocaleDateString(), 
+          event.end_date ? `– ${new Date(event.end_date).toLocaleDateString()}` : '', 
+          event.campus?.name || event.campus_id,
+          event.location
+        ].filter(Boolean).join(' • ')}
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Events', href: '/events' }, { label: event.title }]}
       />
       {imageUrl && (
@@ -24,11 +35,19 @@ export default async function PublicEventDetail({ params }: { params: Promise<{ 
         </div>
       )}
       <article className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: event.description || '' }} />
-      {event.ticket_url && (
-        <div>
-          <a href={event.ticket_url} target="_blank" rel="noreferrer" className="underline">Get tickets</a>
-        </div>
-      )}
+      
+      <div className="flex flex-wrap gap-4">
+        {event.ticket_url && (
+          <a href={event.ticket_url} target="_blank" rel="noreferrer" className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+            Get Tickets
+          </a>
+        )}
+        {event.price && (
+          <span className="inline-flex items-center px-4 py-2 bg-muted rounded-md">
+            Price: {event.price} NOK
+          </span>
+        )}
+      </div>
     </div>
   )
 }

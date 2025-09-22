@@ -1,23 +1,26 @@
 import Link from 'next/link'
-import { getNews } from '@/app/(alumni)/alumni/actions'
-import { Query } from 'node-appwrite'
+import { listNews, listCampuses } from '@/app/actions/news'
+import { getLocale } from '@/app/actions/locale'
 import { Input } from '@/components/ui/input'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { PublicPageHeader } from '@/components/public/PublicPageHeader'
 import Image from 'next/image'
-import { formatDateReadable } from '@/lib/utils'
 
 export default async function PublicNewsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams
   const q = params.q || ''
-  const category = params.category || 'all'
+  const campus = params.campus || 'all'
+  const status = params.status || 'published'
+  
+  // Get user's preferred locale from their account preferences
+  const locale = await getLocale()
 
-  const filters: any[] = []
-  if (category && category !== 'all') filters.push(Query.equal('category', category))
-  if (q) filters.push(Query.search('title', q))
+  const campusFilter = campus !== 'all' ? campus : undefined
 
-  const news = await getNews(100, filters as any)
-  const categories = Array.from(new Set(news.map(n => n.category).filter(Boolean))) as string[]
+  const [news, campuses] = await Promise.all([
+    listNews({ campus: campusFilter, status, search: q || undefined, limit: 100, locale }),
+    listCampuses(),
+  ])
 
   return (
     <div className="space-y-6">
@@ -26,18 +29,27 @@ export default async function PublicNewsPage({ searchParams }: { searchParams: P
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'News' }]}
       />
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <form className="contents">
           <Input name="q" defaultValue={q} placeholder="Search news..." className="md:col-span-2" />
-          <Select name="category" defaultValue={category}>
+          <Select name="campus" defaultValue={campus}>
             <SelectTrigger>
-              <SelectValue placeholder="All categories" />
+              <SelectValue placeholder="All campuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
-              {categories.map(c => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
+              <SelectItem value="all">All campuses</SelectItem>
+              {campuses.map(c => (
+                <SelectItem key={c.$id} value={c.$id}>{c.name}</SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+          <Select name="status" defaultValue={status}>
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
             </SelectContent>
           </Select>
           <button type="submit" className="hidden" />
@@ -56,8 +68,12 @@ export default async function PublicNewsPage({ searchParams }: { searchParams: P
               <h3 className="font-semibold text-lg">
                 <Link href={`/news/${(item as any).$id}`} className="underline-offset-4 hover:underline">{item.title}</Link>
               </h3>
-              <div className="text-xs text-muted-foreground mb-2">{formatDateReadable(item.date)} · {item.author}</div>
-              <p className="text-sm text-muted-foreground line-clamp-3">{(item as any).summary}</p>
+              <div className="text-xs text-muted-foreground mb-2">
+                {new Date(item.$createdAt).toLocaleDateString()}
+                {item.campus?.name && <span> · {item.campus.name}</span>}
+                {item.department?.Name && <span> · {item.department.Name}</span>}
+              </div>
+              <p className="text-sm text-muted-foreground line-clamp-3">{item.content?.replace(/<[^>]+>/g, '').slice(0, 150)}...</p>
             </div>
           </article>
         ))}
