@@ -4,8 +4,9 @@ import { Footer } from '@/lib/components/Footer'
 import { PublicProviders } from '@/components/layout/public-providers'
 import { AssistantModal } from '@/components/ai/public'
 
+// Anonymous session is now handled automatically by middleware
+export default async function PublicLayout({ children }: { children: React.ReactNode }) {
 
-export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <PublicProviders>
     <div className="min-h-screen flex flex-col bg-background">

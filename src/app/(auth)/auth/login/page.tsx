@@ -1,6 +1,19 @@
 import { Login } from "@/components/login";
+import { getAuthStatus } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
 
-export default async function Page() {
+export default async function Page({ searchParams }: { 
+  searchParams: { redirectTo?: string } 
+}) {
+  // Check if user is already authenticated (not anonymous)
+  const authStatus = await getAuthStatus();
+  
+  if (authStatus.isAuthenticated) {
+    // User is already authenticated, redirect them
+    const redirectTo = searchParams.redirectTo;
+    const target = redirectTo ? decodeURIComponent(redirectTo) : '/admin';
+    return redirect(target);
+  }
   return (
     <div className="relative min-h-screen flex items-center justify-center px-4 py-12 bg-primary-100">
       {/* Background decoration */}

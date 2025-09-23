@@ -13,6 +13,7 @@ export const metadata = {
 };
 
 import {AppContextProvider} from "./contexts"
+import { Toaster } from '@/components/ui/sonner';
 
 export default async function RootLayout({
   children,
@@ -27,7 +28,10 @@ export default async function RootLayout({
       <AppContextProvider>
       <body>
         <NextIntlClientProvider locale={locale} messages={messages}>
-        {children}
+          <main>
+            {children}
+            <Toaster />
+          </main>
         </NextIntlClientProvider>
       </body>
       </AppContextProvider>

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Phone, Search } from "lucide-react";
+import { getCampuses } from "@/app/actions/campus";
 
 import { getNavItems } from "@/lib/actions/main/actions";
 import { SelectCampus } from "@/components/select-campus";
@@ -13,6 +14,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Models } from "node-appwrite";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { Campus } from "@/lib/types/campus";
 
 type NavDocument = Models.Document & {
   title: string;
@@ -41,6 +43,15 @@ export const Header = ({ editMode }: { editMode: boolean }) => {
   const pathname = (usePathname() || "/").replace("/edit", "");
   const [navItems, setNavItems] = useState<NavDocument[]>([]);
   const [loadingNav, setLoadingNav] = useState(true);
+  const [campuses, setCampuses] = useState<Campus[]>([]);
+
+  useEffect(() => {
+    const fetchCampuses = async () => {
+      const response = await getCampuses();
+      setCampuses(response);
+    };
+    fetchCampuses();
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -93,6 +104,7 @@ export const Header = ({ editMode }: { editMode: boolean }) => {
             <SelectCampus
               placeholder="Velg campus"
               className="h-9 w-48 border-white/30 bg-white/10 text-left text-white"
+              campuses={campuses}
             />
             <LocaleSwitcher
               variant="ghost"
@@ -197,7 +209,7 @@ export const Header = ({ editMode }: { editMode: boolean }) => {
               </SheetTrigger>
               <SheetContent side="right" className="w-full max-w-sm border-l border-primary/10 bg-white/95">
                 <div className="flex flex-col gap-6 pt-12">
-                  <SelectCampus className="border-primary/20 bg-white" />
+                  <SelectCampus className="border-primary/20 bg-white" campuses={campuses} />
                   <div className="flex flex-col gap-3">
                     {loadingNav ? (
                       Array.from({ length: 6 }).map((_, index) => (

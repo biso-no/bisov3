@@ -15,7 +15,7 @@ import type { EventWithTranslations } from "@/lib/types/event";
 import type { JobWithTranslations } from "@/lib/types/job";
 import type { NewsItemWithTranslations } from "@/lib/types/news";
 import type { ProductWithTranslations } from "@/lib/types/product";
-import { useTranslations } from "next-intl";
+import { useTranslations, useFormatter } from "next-intl";
 
 type HomePageClientProps = {
   events: EventWithTranslations[];
@@ -61,7 +61,7 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
   const { campuses, activeCampus, activeCampusId } = useCampus();
   const t = useTranslations("home");
   const commonT = useTranslations("common");
-
+  const format = useFormatter();
   const campusLookup = useMemo(() => {
     return campuses.reduce<Record<string, string>>((acc, campus) => {
       acc[campus.$id] = campus.name;
@@ -216,7 +216,7 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
                 ) : null}
                 <CardContent className="space-y-3 p-6">
                   <div className="text-xs uppercase tracking-wide text-blue-accent/90">
-                    {new Date(item.$createdAt).toLocaleDateString()}
+                      {format.dateTime(new Date(item.$createdAt))}
                   </div>
                   <CardTitle className="text-xl font-semibold text-primary-100">
                     <Link href={`/news/${item.$id}`} className="hover:underline">
@@ -256,7 +256,7 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
                 <Card key={event.$id} className="min-w-[260px] max-w-sm flex-1 border border-primary/10 bg-white/90 shadow-md transition hover:-translate-y-1 hover:shadow-card-hover">
                   <CardContent className="space-y-3 p-6">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{event.start_date ? new Date(event.start_date).toLocaleDateString() : 'TBD'}</span>
+                      <span>{event.start_date ? format.dateTime(new Date(event.start_date)) : 'TBD'}</span>
                       <span className="rounded-full bg-secondary-10 px-2 py-1 text-secondary-100">
                         {campusLookup[event.campus_id] ?? commonT("labels.organisation")}
                       </span>
@@ -301,7 +301,7 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
                     </span>
                     <span>
                       {job.application_deadline
-                        ? t("jobs.deadline", { date: formatDateReadable(job.application_deadline) })
+                        ? t("jobs.deadline", { date: format.dateTime(new Date(job.application_deadline)) })
                         : t("jobs.rolling")}
                     </span>
                   </div>
