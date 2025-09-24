@@ -27,6 +27,8 @@ export interface ProductWithTranslations extends Product {
   dimensions?: string
   is_digital?: boolean
   shipping_required?: boolean
+  member_discount_enabled?: boolean
+  member_discount_percent?: number
 }
 
 export interface ProductMetadata {
@@ -40,6 +42,8 @@ export interface ProductMetadata {
   dimensions?: string
   is_digital?: boolean
   shipping_required?: boolean
+  member_discount_enabled?: boolean
+  member_discount_percent?: number
 }
 
 export interface ProductTranslation {

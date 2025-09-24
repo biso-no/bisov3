@@ -47,7 +47,9 @@ function combineProductWithTranslations(product: Product, locale: 'en' | 'no'): 
     weight: metadata.weight,
     dimensions: metadata.dimensions,
     is_digital: metadata.is_digital,
-    shipping_required: metadata.shipping_required
+    shipping_required: metadata.shipping_required,
+    member_discount_enabled: metadata.member_discount_enabled,
+    member_discount_percent: metadata.member_discount_percent
   }
 }
 

@@ -45,6 +45,8 @@ const productSchema = z.object({
     dimensions: z.string().optional(),
     is_digital: z.boolean().optional(),
     shipping_required: z.boolean().optional(),
+    member_discount_enabled: z.boolean().optional(),
+    member_discount_percent: z.number().min(0).max(100).optional(),
   }).optional(),
   translations: z.object({
     en: z.object({
@@ -100,6 +102,8 @@ export function EditProduct({ product }: EditProductProps) {
         dimensions: product?.dimensions || '',
         is_digital: product?.is_digital || false,
         shipping_required: product?.shipping_required !== false,
+        member_discount_enabled: (product as any).member_discount_enabled || false,
+        member_discount_percent: (product as any).member_discount_percent || 0,
       },
       translations: {
         en: getTranslation('en'),
@@ -465,6 +469,40 @@ export function EditProduct({ product }: EditProductProps) {
                               <Switch checked={field.value} onCheckedChange={field.onChange} />
                             </FormControl>
                             <FormLabel>Shipping Required</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <FormField
+                        control={form.control}
+                        name="metadata.member_discount_enabled"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                            <FormLabel>Enable member discount</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="metadata.member_discount_percent"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Member discount %</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="1"
+                                min="0"
+                                max="100"
+                                {...field}
+                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              />
+                            </FormControl>
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
