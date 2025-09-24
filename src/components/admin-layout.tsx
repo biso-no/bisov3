@@ -24,6 +24,7 @@ import {
   LogOut,
   Bell,
   Building2,
+  Shield,
 } from 'lucide-react';
 import { signOut } from '@/lib/actions/user';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -232,6 +233,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
       roles: ['Admin', 'hr', 'finance', 'pr'],
     },
     { href: '/admin/users', icon: Users, label: 'Users', roles: ['Admin', 'hr', 'finance'] },
+    { href: '/admin/varsling', icon: Shield, label: 'Varsling', roles: ['Admin'] },
     {
       href: '/admin/settings',
       icon: Settings,

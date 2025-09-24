@@ -35,7 +35,8 @@ export default async function PublicLayout({ children }: { children: React.React
           <Footer.Link href="#">National</Footer.Link>
         </Footer.List>
         <Footer.List title="About BISO">
-          <Footer.Link href="#">Our mission</Footer.Link>
+          <Footer.Link href="/about">About BISO</Footer.Link>
+          <Footer.Link href="/partner">Become a Partner</Footer.Link>
           <Footer.Link href="#">Contact</Footer.Link>
           <Footer.Link href="#">Privacy</Footer.Link>
         </Footer.List>
