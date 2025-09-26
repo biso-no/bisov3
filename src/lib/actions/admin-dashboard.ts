@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { getWebdockOverview, getWebdockAlerts, getWebdockServers, getWebdockServerMetrics } from '@/lib/services/webdock'
 
 // Types for our data
 type PageView = { name: string; views: number }
@@ -9,6 +10,11 @@ type UserGrowth = { date: string; users: number }
 type TrafficSource = { name: string; value: number }
 type RecentActivity = { id: number; user: string; action: string; timestamp: string }
 type SystemAlert = { id: number; type: string; message: string; timestamp: string }
+
+// Webdock-related types for dashboard
+type ServerStatus = { name: string; status: 'online' | 'offline' | 'maintenance'; cpu: number; memory: number; disk: number }
+type ResourceUsage = { server: string; cpu: number; memory: number; disk: number; timestamp: string }
+type WebdockAlert = { id: number; type: string; message: string; timestamp: string; severity: string }
 
 // Admin data fetching actions
 export async function getPageViews(): Promise<PageView[]> {
@@ -158,6 +164,108 @@ export async function getEmployeeDistribution() {
   ]
   
   return data
+}
+
+// Webdock data fetching actions
+export async function getWebdockServerStatus(): Promise<ServerStatus[]> {
+  try {
+    const overview = await getWebdockOverview()
+    
+    return overview.servers.map(server => {
+      // Find latest metrics for this server if available
+      const serverMetrics = overview.servers.find(s => s.id === server.id)
+      
+      return {
+        name: server.name,
+        status: server.status,
+        cpu: overview.avgCpuUsage || 0,
+        memory: overview.avgMemoryUsage || 0,
+        disk: overview.avgDiskUsage || 0
+      }
+    })
+  } catch (error) {
+    console.error('Failed to fetch Webdock server status:', error)
+    return []
+  }
+}
+
+export async function getWebdockResourceUsage(): Promise<ResourceUsage[]> {
+  try {
+    const servers = await getWebdockServers()
+    
+    // Get recent metrics for each server
+    const resourceData = await Promise.allSettled(
+      servers.map(async (server) => {
+        const metrics = await getWebdockServerMetrics(server.id, 1)
+        if (metrics.length > 0) {
+          const latest = metrics[metrics.length - 1]
+          return {
+            server: server.name,
+            cpu: latest.cpu_usage_percent,
+            memory: latest.memory_usage_percent,
+            disk: latest.disk_usage_percent,
+            timestamp: latest.timestamp
+          }
+        }
+        return null
+      })
+    )
+
+    return resourceData
+      .filter((result): result is PromiseFulfilledResult<ResourceUsage> => 
+        result.status === 'fulfilled' && result.value !== null
+      )
+      .map(result => result.value)
+  } catch (error) {
+    console.error('Failed to fetch Webdock resource usage:', error)
+    return []
+  }
+}
+
+export async function getWebdockSystemAlerts(): Promise<WebdockAlert[]> {
+  try {
+    const alerts = await getWebdockAlerts()
+    
+    return alerts.map(alert => ({
+      id: alert.id,
+      type: alert.type,
+      message: alert.message,
+      timestamp: alert.created_at,
+      severity: alert.severity
+    }))
+  } catch (error) {
+    console.error('Failed to fetch Webdock alerts:', error)
+    return []
+  }
+}
+
+export async function getWebdockOverviewStats() {
+  try {
+    const overview = await getWebdockOverview()
+    
+    return {
+      totalServers: overview.totalServers,
+      onlineServers: overview.onlineServers,
+      offlineServers: overview.offlineServers,
+      activeAlerts: overview.activeAlerts,
+      criticalAlerts: overview.criticalAlerts,
+      avgCpuUsage: overview.avgCpuUsage,
+      avgMemoryUsage: overview.avgMemoryUsage,
+      avgDiskUsage: overview.avgDiskUsage
+    }
+  } catch (error) {
+    console.error('Failed to fetch Webdock overview stats:', error)
+    return {
+      totalServers: 0,
+      onlineServers: 0,
+      offlineServers: 0,
+      activeAlerts: 0,
+      criticalAlerts: 0,
+      avgCpuUsage: 0,
+      avgMemoryUsage: 0,
+      avgDiskUsage: 0
+    }
+  }
 }
 
 // Utility function for data updates that need to trigger revalidation

@@ -102,8 +102,8 @@ export function EditProduct({ product }: EditProductProps) {
         dimensions: product?.dimensions || '',
         is_digital: product?.is_digital || false,
         shipping_required: product?.shipping_required !== false,
-        member_discount_enabled: (product as any).member_discount_enabled || false,
-        member_discount_percent: (product as any).member_discount_percent || 0,
+        member_discount_enabled: product?.member_discount_enabled || false,
+        member_discount_percent: product?.member_discount_percent || 0,
       },
       translations: {
         en: getTranslation('en'),

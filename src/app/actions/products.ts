@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { Query } from 'node-appwrite'
 import { createAdminClient } from '@/lib/appwrite'
-import { 
+import type { 
   Product, 
   ProductWithTranslations, 
   CreateProductData, 
@@ -11,7 +11,7 @@ import {
   ListProductsParams,
   ProductTranslation
 } from '@/lib/types/product'
-import { ContentTranslation } from '@/lib/types/content-translation'
+import type { ContentTranslation } from '@/lib/types/content-translation'
 import { generateObject } from 'ai'
 import { openai } from '@ai-sdk/openai'
 import { z } from 'zod'

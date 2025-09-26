@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { BellIcon, AlertCircleIcon, CheckCircleIcon } from "lucide-react"
+import { BellIcon, AlertCircleIcon, CheckCircleIcon, ServerIcon, CpuIcon, HardDriveIcon, MemoryStickIcon, WifiIcon } from "lucide-react"
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d']
 
@@ -36,7 +36,11 @@ export default function AdminDashboard({
   revenueByProduct,
   expenseCategories,
   jobApplications,
-  employeeDistribution
+  employeeDistribution,
+  webdockServerStatus,
+  webdockResourceUsage,
+  webdockSystemAlerts,
+  webdockOverviewStats
 }) {
   const [role, setRole] = useState("admin")
 
@@ -128,51 +132,109 @@ export default function AdminDashboard({
       case "analytics":
         return (
           <>
+            {/* Server Overview Cards */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ServerIcon className="h-5 w-5" />
+                  Total Servers
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{webdockOverviewStats?.totalServers || 0}</div>
+                <div className="text-sm text-green-600">
+                  {webdockOverviewStats?.onlineServers || 0} online
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CpuIcon className="h-5 w-5" />
+                  Avg CPU Usage
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{webdockOverviewStats?.avgCpuUsage?.toFixed(1) || 0}%</div>
+                <div className={`text-sm ${(webdockOverviewStats?.avgCpuUsage || 0) > 80 ? 'text-red-600' : 'text-green-600'}`}>
+                  {(webdockOverviewStats?.avgCpuUsage || 0) > 80 ? 'High usage' : 'Normal'}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MemoryStickIcon className="h-5 w-5" />
+                  Avg Memory Usage
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{webdockOverviewStats?.avgMemoryUsage?.toFixed(1) || 0}%</div>
+                <div className={`text-sm ${(webdockOverviewStats?.avgMemoryUsage || 0) > 85 ? 'text-red-600' : 'text-green-600'}`}>
+                  {(webdockOverviewStats?.avgMemoryUsage || 0) > 85 ? 'High usage' : 'Normal'}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Server Resource Usage Chart */}
             <Card className="col-span-2">
               <CardHeader>
-                <CardTitle>Traffic Sources</CardTitle>
-                <CardDescription>Breakdown of website traffic sources</CardDescription>
+                <CardTitle>Server Resource Usage</CardTitle>
+                <CardDescription>Real-time CPU, Memory, and Disk usage by server</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={trafficSources}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {trafficSources.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
+                  <BarChart data={webdockResourceUsage}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="server" />
+                    <YAxis />
                     <Tooltip />
-                  </PieChart>
+                    <Legend />
+                    <Bar dataKey="cpu" fill="#8884d8" name="CPU %" />
+                    <Bar dataKey="memory" fill="#82ca9d" name="Memory %" />
+                    <Bar dataKey="disk" fill="#ffc658" name="Disk %" />
+                  </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-            <Card className="col-span-2">
+
+            {/* Server Status Table */}
+            <Card className="col-span-1">
               <CardHeader>
-                <CardTitle>User Engagement</CardTitle>
-                <CardDescription>Daily active users and session duration</CardDescription>
+                <CardTitle>Server Status</CardTitle>
+                <CardDescription>Current status of all servers</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={userGrowth}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip />
-                    <Legend />
-                    <Line yAxisId="left" type="monotone" dataKey="users" stroke="#8884d8" name="Active Users" />
-                    <Line yAxisId="right" type="monotone" dataKey="users" stroke="#82ca9d" name="Avg. Session (min)" />
-                  </LineChart>
-                </ResponsiveContainer>
+              <CardContent>
+                <ScrollArea className="h-[300px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Server</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>CPU</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {webdockServerStatus?.map((server, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{server.name}</TableCell>
+                          <TableCell>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              server.status === 'online' 
+                                ? 'bg-green-100 text-green-800' 
+                                : server.status === 'offline'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {server.status}
+                            </span>
+                          </TableCell>
+                          <TableCell>{server.cpu.toFixed(1)}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
               </CardContent>
             </Card>
           </>
@@ -208,28 +270,116 @@ export default function AdminDashboard({
         )
       case "notifications":
         return (
-          <Card className="col-span-3">
-            <CardHeader>
-              <CardTitle>System Alerts</CardTitle>
-              <CardDescription>Important system notifications</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[400px]">
-                {systemAlerts.map((alert) => (
-                  <div key={alert.id} className="mb-4 flex items-center space-x-4">
-                    {alert.type === "error" && <AlertCircleIcon className="h-6 w-6 text-red-500" />}
-                    {alert.type === "warning" && <AlertCircleIcon className="h-6 w-6 text-yellow-500" />}
-                    {alert.type === "info" && <BellIcon className="h-6 w-6 text-blue-500" />}
-                    {alert.type === "success" && <CheckCircleIcon className="h-6 w-6 text-green-500" />}
-                    <div>
-                      <p className="font-medium">{alert.message}</p>
-                      <p className="text-sm text-gray-500">{alert.timestamp}</p>
+          <>
+            {/* Alert Summary Cards */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircleIcon className="h-5 w-5 text-red-500" />
+                  Critical Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-red-600">{webdockOverviewStats?.criticalAlerts || 0}</div>
+                <div className="text-sm text-gray-600">Require immediate attention</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BellIcon className="h-5 w-5 text-yellow-500" />
+                  Active Alerts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-yellow-600">{webdockOverviewStats?.activeAlerts || 0}</div>
+                <div className="text-sm text-gray-600">All active notifications</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ServerIcon className="h-5 w-5 text-red-500" />
+                  Offline Servers
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-red-600">{webdockOverviewStats?.offlineServers || 0}</div>
+                <div className="text-sm text-gray-600">Servers currently down</div>
+              </CardContent>
+            </Card>
+
+            {/* Webdock Server Alerts */}
+            <Card className="col-span-2">
+              <CardHeader>
+                <CardTitle>Webdock Server Alerts</CardTitle>
+                <CardDescription>Real-time alerts from your Webdock servers</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[400px]">
+                  {webdockSystemAlerts?.length > 0 ? (
+                    webdockSystemAlerts.map((alert) => (
+                      <div key={alert.id} className="mb-4 flex items-center space-x-4 p-3 border rounded-lg">
+                        {alert.severity === "critical" && <AlertCircleIcon className="h-6 w-6 text-red-500" />}
+                        {alert.severity === "high" && <AlertCircleIcon className="h-6 w-6 text-orange-500" />}
+                        {alert.severity === "medium" && <AlertCircleIcon className="h-6 w-6 text-yellow-500" />}
+                        {alert.severity === "low" && <BellIcon className="h-6 w-6 text-blue-500" />}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{alert.message}</p>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              alert.severity === 'critical' 
+                                ? 'bg-red-100 text-red-800' 
+                                : alert.severity === 'high'
+                                ? 'bg-orange-100 text-orange-800'
+                                : alert.severity === 'medium'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {alert.severity}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {alert.type} • {new Date(alert.timestamp).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500 py-8">
+                      <CheckCircleIcon className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                      <p>No active server alerts</p>
+                      <p className="text-sm">All systems are running normally</p>
                     </div>
-                  </div>
-                ))}
-              </ScrollArea>
-            </CardContent>
-          </Card>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+
+            {/* System Alerts */}
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>System Alerts</CardTitle>
+                <CardDescription>Application and platform notifications</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[400px]">
+                  {systemAlerts.map((alert) => (
+                    <div key={alert.id} className="mb-4 flex items-center space-x-4">
+                      {alert.type === "error" && <AlertCircleIcon className="h-6 w-6 text-red-500" />}
+                      {alert.type === "warning" && <AlertCircleIcon className="h-6 w-6 text-yellow-500" />}
+                      {alert.type === "info" && <BellIcon className="h-6 w-6 text-blue-500" />}
+                      {alert.type === "success" && <CheckCircleIcon className="h-6 w-6 text-green-500" />}
+                      <div>
+                        <p className="font-medium">{alert.message}</p>
+                        <p className="text-sm text-gray-500">{alert.timestamp}</p>
+                      </div>
+                    </div>
+                  ))}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </>
         )
       default:
         return <div>No content for this tab</div>

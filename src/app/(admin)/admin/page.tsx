@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import AdminDashboard from '@/components/dashboard'
-import { getPageViews, getUserDistribution, getUserGrowth, getTrafficSources, getRecentActivities, getSystemAlerts, getPostEngagement, getAudienceGrowth, getRevenueByProduct, getExpenseCategories, getJobApplications, getEmployeeDistribution } from '@/lib/actions/admin-dashboard'
+import { getPageViews, getUserDistribution, getUserGrowth, getTrafficSources, getRecentActivities, getSystemAlerts, getPostEngagement, getAudienceGrowth, getRevenueByProduct, getExpenseCategories, getJobApplications, getEmployeeDistribution, getWebdockServerStatus, getWebdockResourceUsage, getWebdockSystemAlerts, getWebdockOverviewStats } from '@/lib/actions/admin-dashboard'
 
 export default async function DashboardPage() {
   const [
@@ -15,7 +15,11 @@ export default async function DashboardPage() {
     revenueByProduct,
     expenseCategories,
     jobApplications,
-    employeeDistribution
+    employeeDistribution,
+    webdockServerStatus,
+    webdockResourceUsage,
+    webdockSystemAlerts,
+    webdockOverviewStats
   ] = await Promise.all([
     getPageViews(),
     getUserDistribution(),
@@ -28,7 +32,11 @@ export default async function DashboardPage() {
     getRevenueByProduct(),
     getExpenseCategories(),
     getJobApplications(),
-    getEmployeeDistribution()
+    getEmployeeDistribution(),
+    getWebdockServerStatus(),
+    getWebdockResourceUsage(),
+    getWebdockSystemAlerts(),
+    getWebdockOverviewStats()
   ])
 
   return (
@@ -46,6 +54,10 @@ export default async function DashboardPage() {
         expenseCategories={expenseCategories}
         jobApplications={jobApplications}
         employeeDistribution={employeeDistribution}
+        webdockServerStatus={webdockServerStatus}
+        webdockResourceUsage={webdockResourceUsage}
+        webdockSystemAlerts={webdockSystemAlerts}
+        webdockOverviewStats={webdockOverviewStats}
       />
     </Suspense>
   )

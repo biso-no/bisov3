@@ -31,7 +31,8 @@ const nextConfig: NextConfig = {
       // Don't resolve 'canvas' package on the client
       config.resolve.alias = {
         ...config.resolve.alias,
-        'pdfjs-dist/node_modules/canvas': false
+        'pdfjs-dist/node_modules/canvas': false,
+        '@webdock/sdk': false
       };
     }
     return config;
