@@ -23,7 +23,7 @@ export default function LinkedInConnect({ userId }: LinkedInConnectProps) {
   // Initialize Appwrite client
   const initAppwrite = () => {
     const client = new Client()
-      .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT!)
+      .setEndpoint(process.env.NEXT_PUBLIC_NEXT_PUBLIC_APPWRITE_ENDPOINT!)
       .setProject(process.env.NEXT_PUBLIC_APPWRITE_PROJECT!)
     
     return { client, account: new Account(client) }

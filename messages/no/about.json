@@ -1,0 +1,158 @@
+{
+  "hub": {
+    "title": "Om BISO",
+    "subtitle": "Alt du trenger å vite om studentforeningen vår",
+    "description": "Utforsk vårt formål, politikk, vedtekter, historie og hvordan vi jobber for å forbedre studiekvaliteten. Du finner også informasjon om vår nasjonale Operations Unit, Alumni-initiativet, vår støtte til SAIH og Varsling.",
+    "browse": "Utforsk temaer",
+    "cta": "Les mer"
+  },
+  "links": {
+    "whatIsBiso": {
+      "title": "Hva er BISO",
+      "description": "Hvem vi er, hva vi gjør, og hvordan vi støtter studenter på alle campus."
+    },
+    "politics": {
+      "title": "Vår politikk",
+      "description": "Vi er politisk uavhengige, engasjert i studentpolitikk for å forbedre studentlivet."
+    },
+    "bylaws": {
+      "title": "Vedtekter og lover",
+      "description": "Nasjonale vedtekter og lokale vedtekter for hver campus."
+    },
+    "history": {
+      "title": "Vår historie",
+      "description": "En kort historie om BISO og viktige milepæler."
+    },
+    "studyQuality": {
+      "title": "Studiekvalitet",
+      "description": "Hvordan vi jobber for å forbedre undervisning, læring og studentopplevelsen ved BI."
+    },
+    "operations": {
+      "title": "Operations Unit",
+      "description": "Vår nasjonale avdeling som har ansvar for organisasjonens drift."
+    },
+    "alumni": {
+      "title": "Alumni",
+      "description": "Om BISO Alumni-nettverket og hvordan du kan involvere deg."
+    },
+    "saih": {
+      "title": "Støtt SAIH",
+      "description": "Hvorfor vi støtter SAIH og hvordan du kan bidra."
+    },
+    "varsling": {
+      "title": "Varsling",
+      "description": "Rapporter saker trygt. Les våre retningslinjer og hvordan du sender inn."
+    }
+  },
+  "general": {
+    "strategy": {
+      "title": "Strategi",
+      "subtitle": "Vi jobber aktivt mot våre strategiske mål",
+      "items": {
+        "impact": {
+          "title": "Påvirkning",
+          "desc": "Gi studenter en stemme på BI, i studentpolitikken og i samfunnet."
+        },
+        "connected": {
+          "title": "Påkoblet",
+          "desc": "Forene studenter på tvers av campus og knytte dem til næringslivet."
+        },
+        "engaged": {
+          "title": "Engasjert",
+          "desc": "Et inkluderende, sosialt og givende miljø som beriker BI-opplevelsen."
+        }
+      }
+    },
+    "whatWeDo": {
+      "title": "Hva gjør vi",
+      "subtitle": "Hva gjør BISO på alle campus?",
+      "lead": "Alle midler i BISO skal gå tilbake til studentvelferd. Vi lager arrangementer, og utvalg har budsjett for å lage morsomme og faglige aktiviteter for studentene!",
+      "items": [
+        "Sosial integrering i utvalg",
+        "Bedriftpresentasjoner",
+        "Arbeidsrelevante kurs",
+        "Lager studentrabatter",
+        "Lavterskel-eventer"
+      ]
+    },
+    "academics": {
+      "title": "Academics",
+      "subtitle": "Din stemme i akademia",
+      "lead": "BISO representerer studentenes akademiske interesser og jobber for økt fokus på bærekraft. Dette gjøres gjennom ulike møtefora med BI, og i dialog med studentene.",
+      "items": [
+        "Lytter til studentene",
+        "Bedrer studietilbudet",
+        "Gir BI et studentperspektiv",
+        "Jobber for mer fokus på bærekraft",
+        "Tar saker fra studentene videre"
+      ]
+    },
+    "politics": {
+      "title": "Vår politikk",
+      "lead": "Studentpolitikk handler om å skape studentvelferd. Vi kjemper for studentenes saker.",
+      "cta": "Vår politikk"
+    },
+    "orgChart": {
+      "title": "Organisasjonsstruktur"
+    },
+    "partners": {
+      "title": "Våre nasjonale partnere"
+    },
+    "contact": {
+      "title": "Kontakt oss",
+      "subtitle": "Finn kontaktinfo nederst på campus-siden",
+      "campusCta": "Velg campus",
+      "au": {
+        "title": "Kontakt Arbeidsutvalget",
+        "desc": "Arbeidsutvalget består av studenter som jobber fulltid. De arbeider strategisk og fasiliterer for at campus-ledelsene får laget studentaktiviteter og fordeler for våre BISO-medlemmer.",
+        "emailLabel": "Send e-post"
+      }
+    }
+  },
+  "pages": {
+    "whatIsBiso": {
+      "title": "Hva er BISO",
+      "intro": "BISO er studentforeningen ved Handelshøyskolen BI, som representerer og styrker studenter på tvers av campuser.",
+      "content": "Vi skaper muligheter for studenter gjennom arrangementer, faglige initiativer og fellesskap, og samarbeider med BI og eksterne partnere for å forbedre studentopplevelsen."
+    },
+    "politics": {
+      "title": "Vår politikk",
+      "intro": "Politisk uavhengig, student først.",
+      "content": "Vi engasjerer oss i studentpolitikk for å fremme god utdanningskvalitet, inkludering og studentvelferd. Vårt fokus er konstruktiv dialog med BI og nasjonale studentorganer."
+    },
+    "bylaws": {
+      "title": "Vedtekter og lover",
+      "intro": "Styringsdokumenter som definerer vår struktur, roller og prosesser.",
+      "content": "Her finner du nasjonale vedtekter som gjelder for alle campuser og lenker til lokale vedtekter. Dokumentene sikrer åpenhet, ansvarlighet og forutsigbar drift."
+    },
+    "history": {
+      "title": "Vår historie",
+      "intro": "Hvor vi kommer fra og hvordan vi har vokst.",
+      "content": "Fra lokale initiativer til en nasjonal forening – BISOs historie er formet av frivillige som brenner for å forbedre studentlivet ved BI."
+    },
+    "studyQuality": {
+      "title": "Studiekvalitet",
+      "intro": "Kontinuerlig forbedring av utdanning og læringsmiljø.",
+      "content": "Vi samler studentinnspill, samarbeider med fagmiljøer og gjennomfører tiltak som styrker akademisk kvalitet og trivsel på tvers av campuser."
+    },
+    "operations": {
+      "title": "Operations Unit",
+      "intro": "Vår nasjonale avdeling for organisasjonsutvikling.",
+      "content": "Operations Unit støtter campuser med styring, økonomi, etterlevelse og felles tjenester for å sikre effektiv og bærekraftig drift."
+    },
+    "alumni": {
+      "title": "BISO Alumni",
+      "intro": "Et voksende nettverk for tidligere BISO-studenter og frivillige.",
+      "content": "Les om visjonen for BISO Alumni og hvordan du kan delta. For å bli med eller utforske programmer, gå til Alumni-siden.",
+      "cta": "Gå til Alumni-siden"
+    },
+    "saih": {
+      "title": "Støtt SAIH",
+      "intro": "SAIH fremmer akademisk frihet og utdanningsrettigheter globalt.",
+      "content": "BISO støtter SAIHs arbeid. Les om vårt samarbeid og hvordan du kan bidra gjennom donasjoner, bevisstgjøring og arrangementer.",
+      "cta": "Les om SAIH"
+    }
+  }
+}
+
+

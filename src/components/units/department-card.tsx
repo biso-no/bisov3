@@ -38,7 +38,7 @@ export function DepartmentCard({ department, onEdit }: DepartmentCardProps) {
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-transparent hover:border-primary/10 group">
       <CardHeader className="p-0 overflow-hidden h-36 relative">
         <div 
-          className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10 
+          className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent z-10 
                     transition-opacity duration-300 opacity-70 group-hover:opacity-90" 
         />
         

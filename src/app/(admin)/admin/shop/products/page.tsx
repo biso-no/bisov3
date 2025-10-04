@@ -18,11 +18,13 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 
-import { getProducts } from '@/app/actions/products'
+import { listProducts } from '@/app/actions/products'
 import { ProductsTable } from './_components/products-table'
 import { ProductActions } from './_components/product-actions'
+
 export default async function DashboardPage() {
-  const products = await getProducts()
+  // Don't filter by locale for admin view - show all products
+  const products = await listProducts({})
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">

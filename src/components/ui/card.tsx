@@ -14,10 +14,10 @@ const Card = React.forwardRef<
       "rounded-lg border bg-card text-card-foreground shadow-sm",
       variant === "glass" && "glass border-0",
       variant === "glass-dark" && "glass-dark border-0",
-      variant === "gradient" && "bg-gradient-to-br from-blue-strong to-primary-80 border-0 text-white",
+      variant === "gradient" && "bg-linear-to-br from-blue-strong to-primary-80 border-0 text-white",
       variant === "gradient-border" && "gradient-border",
       variant === "animated" && "relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover",
-      variant === "golden" && "bg-gradient-to-br from-gold-subtle to-gold-muted border-gold-default/20 text-primary-100",
+      variant === "golden" && "bg-linear-to-br from-gold-subtle to-gold-muted border-gold-default/20 text-primary-100",
       className
     )}
     {...props}

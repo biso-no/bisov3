@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { useHydration } from '@/lib/hooks/use-hydration';
 import { 
   Dialog,
   DialogContent,
@@ -32,8 +33,11 @@ export function CookieConsent() {
     analytics: false,
     marketing: false
   });
+  const isHydrated = useHydration();
 
   useEffect(() => {
+    if (!isHydrated) return;
+    
     // Check if consent has already been given
     const hasConsent = localStorage.getItem('cookie-consent');
     
@@ -45,9 +49,11 @@ export function CookieConsent() {
       
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isHydrated]);
 
   const saveCookiePreferences = (acceptAll = false) => {
+    if (!isHydrated) return;
+    
     const preferences = acceptAll 
       ? { essential: true, functional: true, analytics: true, marketing: true }
       : settings;

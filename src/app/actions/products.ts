@@ -1,185 +1,306 @@
 'use server'
-import { createSessionClient } from "@/lib/appwrite";
-import { ID, Models, Query } from "node-appwrite";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { ProductStatus } from "../(admin)/admin/shop/products/_components/edit-product";
-import { Department } from "@/lib/types/post";
 
-const databaseId = 'app';
-const collectionId = 'products';
+import { revalidatePath } from 'next/cache'
+import { Query } from 'node-appwrite'
+import { createAdminClient } from '@/lib/appwrite'
+import type { 
+  Product, 
+  ProductWithTranslations, 
+  CreateProductData, 
+  UpdateProductData, 
+  ListProductsParams,
+  ProductTranslation
+} from '@/lib/types/product'
+import type { ContentTranslation } from '@/lib/types/content-translation'
+import { generateObject } from 'ai'
+import { openai } from '@ai-sdk/openai'
+import { z } from 'zod'
 
+// Helper function to get translation for a specific locale
+function getProductTranslation(product: Product, locale: 'en' | 'no'): ProductTranslation | null {
+  if (!product.translation_refs) return null
+  
+  const translation = product.translation_refs.find((t: any) => t.locale === locale)
+  if (!translation) return null
+  
+  return {
+    title: translation.title,
+    description: translation.description
+  }
+}
 
+// Helper function to combine product with translations
+function combineProductWithTranslations(product: Product, locale: 'en' | 'no'): ProductWithTranslations {
+  const translation = getProductTranslation(product, locale)
+  const metadata = product.metadata ? JSON.parse(product.metadata) : {}
+  
+  return {
+    ...product,
+    title: translation?.title,
+    description: translation?.description,
+    price: metadata.price,
+    sku: metadata.sku,
+    stock_quantity: metadata.stock_quantity,
+    category: metadata.category,
+    image: metadata.image,
+    images: metadata.images,
+    weight: metadata.weight,
+    dimensions: metadata.dimensions,
+    is_digital: metadata.is_digital,
+    shipping_required: metadata.shipping_required,
+    member_discount_enabled: metadata.member_discount_enabled,
+    member_discount_percent: metadata.member_discount_percent
+  }
+}
 
+export async function listProducts(params: ListProductsParams = {}): Promise<ProductWithTranslations[]> {
+  try {
+    const { db } = await createAdminClient()
+    
+    const queries = []
+    
+    if (params.status) {
+      queries.push(Query.equal('status', params.status))
+    }
+    
+    if (params.campus_id) {
+      queries.push(Query.equal('campus_id', params.campus_id))
+    }
+    
+    if (params.search) {
+      queries.push(Query.search('slug', params.search))
+    }
+    
+    queries.push(Query.orderDesc('$createdAt'))
+    
+    if (params.limit) {
+      queries.push(Query.limit(params.limit))
+    }
+    
+    if (params.offset) {
+      queries.push(Query.offset(params.offset))
+    }
+    
+    const response = await db.listDocuments('app', 'webshop_products', queries)
+    const products = response.documents as Product[]
+    
+    // If no locale is specified (admin view), return raw products
+    if (!params.locale) {
+      return products as ProductWithTranslations[]
+    }
+    
+    // Combine products with their translations for the specified locale
+    return products.map(product => combineProductWithTranslations(product, params.locale!))
+  } catch (error) {
+    console.error('Error listing products:', error)
+    return []
+  }
+}
 
+export async function getProduct(id: string, locale?: 'en' | 'no'): Promise<ProductWithTranslations | null> {
+  try {
+    const { db } = await createAdminClient()
+    
+    const product = await db.getDocument('app', 'webshop_products', id) as Product
+    
+    if (!locale) {
+      return product as ProductWithTranslations
+    }
+    
+    return combineProductWithTranslations(product, locale)
+  } catch (error) {
+    console.error('Error getting product:', error)
+    return null
+  }
+}
 
-export async function getProducts(status: string = 'all') {
-    const { db } = await createSessionClient();
-    try {
-        let queries = [Query.limit(100)];
-        if (status !== 'all') {
-            queries.push(Query.equal('status', status));
+export async function getProductBySlug(slug: string, locale: 'en' | 'no'): Promise<ProductWithTranslations | null> {
+  try {
+    const { db } = await createAdminClient()
+    
+    const response = await db.listDocuments('app', 'webshop_products', [
+      Query.equal('slug', slug),
+      Query.limit(1)
+    ])
+    
+    if (response.documents.length === 0) {
+      return null
+    }
+    
+    const product = response.documents[0] as Product
+    return combineProductWithTranslations(product, locale)
+  } catch (error) {
+    console.error('Error getting product by slug:', error)
+    return null
+  }
+}
+
+export async function createProduct(data: CreateProductData, skipRevalidation = false): Promise<Product | null> {
+  try {
+    const { db } = await createAdminClient()
+    
+    // Create main product record first
+    const productData = {
+      slug: data.slug,
+      status: data.status,
+      campus_id: data.campus_id,
+      metadata: data.metadata ? JSON.stringify(data.metadata) : undefined
+    }
+    
+    const product = await db.createDocument('app', 'webshop_products', 'unique()', productData) as Product
+    
+    // Now create translations with the product ID and relationship
+    const translationsArray = Object.entries(data.translations)
+      .filter(([locale, translation]) => translation) // Only include non-empty translations
+      .map(([locale, translation]) => ({
+        content_type: 'product',
+        content_id: product.$id, // Set the content_id to the created product's ID
+        locale,
+        title: translation!.title,
+        description: translation!.description,
+        product_ref: product.$id // Set the relationship
+      }))
+    
+    // Create all translations
+    if (translationsArray.length > 0) {
+      const translationPromises = translationsArray.map(translationData =>
+        db.createDocument('app', 'content_translations', 'unique()', translationData)
+      )
+      await Promise.all(translationPromises)
+    }
+    
+    if (!skipRevalidation) {
+      revalidatePath('/shop')
+      revalidatePath('/admin/products')
+    }
+    
+    return product
+  } catch (error) {
+    console.error('Error creating product:', error)
+    return null
+  }
+}
+
+export async function updateProduct(id: string, data: UpdateProductData, skipRevalidation = false): Promise<Product | null> {
+  try {
+    const { db } = await createAdminClient()
+    
+    // Update main product record
+    const updateData: any = {}
+    
+    if (data.slug !== undefined) updateData.slug = data.slug
+    if (data.status !== undefined) updateData.status = data.status
+    if (data.campus_id !== undefined) updateData.campus_id = data.campus_id
+    if (data.metadata !== undefined) updateData.metadata = JSON.stringify(data.metadata)
+    
+    const product = await db.updateDocument('app', 'webshop_products', id, updateData) as Product
+    
+    // Handle translations if provided
+    if (data.translations) {
+      // Get existing translations
+      const existingTranslations = await db.listDocuments('app', 'content_translations', [
+        Query.equal('content_id', id),
+        Query.equal('content_type', 'product')
+      ])
+      
+      for (const [locale, translation] of Object.entries(data.translations)) {
+        if (!translation) continue
+        
+        const existingTranslation = existingTranslations.documents.find(
+          (t: any) => t.locale === locale
+        )
+        
+        const translationData = {
+          content_type: 'product',
+          content_id: id,
+          locale,
+          title: translation.title,
+          description: translation.description,
+          product_ref: id
         }
-
-        const response = await db.listDocuments(
-            databaseId,
-            collectionId,
-            queries
-        );
-        revalidatePath('/admin/shop/products');
-        return response.documents;
-    } catch (error) {
-        console.error('Error fetching products:', error);
-        return [];
+        
+        if (existingTranslation) {
+          // Update existing translation
+          await db.updateDocument('app', 'content_translations', existingTranslation.$id, translationData)
+        } else {
+          // Create new translation
+          await db.createDocument('app', 'content_translations', 'unique()', translationData)
+        }
+      }
     }
-}
-
-export async function updateProductStatus(productId: string, newStatus: ProductStatus) {
-    const { db } = await createSessionClient();
-    try {
-        await db.updateDocument(
-            databaseId,
-            collectionId,
-            productId,
-            { status: newStatus }
-        );
-        revalidatePath('/admin/shop/products');
-        return { success: true };
-    } catch (error) {
-        console.error('Error updating product status:', error);
-        return { success: false, error: 'Failed to update product status' };
-    }
-}
-
-export async function deleteProduct(productId: string) {
-    const { db } = await createSessionClient();
-    try {
-        await db.deleteDocument(
-            databaseId,
-            collectionId,
-            productId
-        );
-        revalidatePath('/admin/shop/products');
-        return { success: true };
-    } catch (error) {
-        console.error('Error deleting product:', error);
-        return { success: false, error: 'Failed to delete product' };
-    }
-}
-
-export async function createProduct(formData: FormData) {
-    const productData = Object.fromEntries(formData) as Record<string, FormDataEntryValue>;
-
-    const { db } = await createSessionClient();
-
-    const transformedData: any = {
-        description: productData.description as string,
-        slug: productData.slug as string,
-        url: productData.url as string,
-        type: productData.type as string,
-        status: productData.status as string,
-        campus_id: productData.campus_id as string,
-        department_id: productData.department_id as string,
-        campus: productData.campus_id as string,
-        department: productData.department_id as string,
-        images: (productData.images as string).split(',').map(image => image.trim()),  // Handling multiple images
-        price: parseFloat(productData.price as string),
-        sale_price: parseFloat(productData.sale_price as string),
-        manage_stock: productData.manage_stock === 'true',
-        sold_individually: productData.sold_individually === 'true',
-        featured: productData.featured === 'true',
-        on_sale: productData.on_sale === 'true',
-        tags: (productData.tags as string).split(',').map(tag => tag.trim()),
-    };
-
-    // Create the product in the database
-    const product = await db.createDocument(
-        'app',              // Your database ID
-        'products',         // Your collection ID
-        ID.unique(),        // Unique ID for the document
-        transformedData     // The transformed data object
-    );
-
-    return product;
-}
-
-
-export async function updateProduct(productId: string, formData: FormData) {
-    // Convert formData into an object
-    const productData = Object.fromEntries(formData) as Record<string, FormDataEntryValue>;
     
-    // Create a new object to store the transformed product data
-    const transformedData: any = {
-        description: productData.description as string,
-        slug: productData.slug as string,
-        url: productData.url as string,
-        type: productData.type as string,
-        status: productData.status as string,
-        campus_id: productData.campus_id as string,
-        department_id: productData.department_id as string,
-        campus: productData.campus_id as string,
-        department: productData.department_id as string,
-        images: (productData.images as string).split(',').map(image => image.trim()),  // Handling multiple images
-        price: parseFloat(productData.price as string),
-        sale_price: parseFloat(productData.sale_price as string),
-        manage_stock: productData.manage_stock === 'true',
-        sold_individually: productData.sold_individually === 'true',
-        featured: productData.featured === 'true',
-        on_sale: productData.on_sale === 'true',
-        tags: (productData.tags as string).split(',').map(tag => tag.trim()),
-    };
-    
-    const { db } = await createSessionClient();
-    
-    // Update the product in the database
-    const product = await db.updateDocument(
-        'app',              // Your database ID
-        'products',         // Your collection ID
-        productId,          // The unique ID of the document
-        transformedData     // The transformed data object
-    );
-
-    return product;
-}
-
-export async function uploadImage(file: File) {
-    const { storage } = await createSessionClient();
-    const uploadedFile = await storage.createFile(
-        'YOUR_BUCKET_ID',
-        'unique()',
-        file
-    );
-
-    return storage.getFileView('YOUR_BUCKET_ID', uploadedFile.$id);
-}
-
-export async function getCampuses() {
-    const { db } = await createSessionClient();
-    const campuses = await db.listDocuments(
-        'app',
-        'campus',
-        [Query.select(['name', '$id'])]
-    );
-
-    return campuses.documents;
-}
-
-export async function getDepartments(campus?: string, limit?: number) {
-    const { db } = await createSessionClient();
-
-    let query = [Query.select(['Name', '$id', 'campus_id'])];
-    if (campus) {
-        query.push(Query.equal('campus_id', campus));
-    } 
-    if (limit) {
-        query.push(Query.limit(limit));
+    if (!skipRevalidation) {
+      revalidatePath('/shop')
+      revalidatePath('/admin/products')
     }
+    
+    return product
+  } catch (error) {
+    console.error('Error updating product:', error)
+    return null
+  }
+}
 
-    const departments = await db.listDocuments(
-        'app',
-        'departments',
-        query
-    );
+export async function deleteProduct(id: string, skipRevalidation = false): Promise<boolean> {
+  try {
+    const { db } = await createAdminClient()
+    
+    // Delete the product (translations will be deleted automatically due to cascade)
+    await db.deleteDocument('app', 'webshop_products', id)
+    
+    if (!skipRevalidation) {
+      revalidatePath('/shop')
+      revalidatePath('/admin/products')
+    }
+    
+    return true
+  } catch (error) {
+    console.error('Error deleting product:', error)
+    return false
+  }
+}
 
-    return departments.documents as Department[];
+// AI Translation function
+export async function translateProductContent(
+  content: ProductTranslation,
+  fromLocale: 'en' | 'no',
+  toLocale: 'en' | 'no'
+): Promise<ProductTranslation | null> {
+  try {
+    const targetLanguage = toLocale === 'en' ? 'English' : 'Norwegian'
+    const sourceLanguage = fromLocale === 'en' ? 'English' : 'Norwegian'
+    
+    const result = await generateObject({
+      model: openai('gpt-4o'),
+      schema: z.object({
+        title: z.string(),
+        description: z.string()
+      }),
+      prompt: `Translate the following product content from ${sourceLanguage} to ${targetLanguage}. 
+      Maintain the same tone and marketing appeal. For product descriptions, keep technical specifications 
+      and measurements in their original format but translate the descriptive text.
+      
+      Title: ${content.title}
+      Description: ${content.description}
+      
+      Provide the translation in ${targetLanguage}.`
+    })
+    
+    return {
+      title: result.object.title,
+      description: result.object.description
+    }
+  } catch (error) {
+    console.error('Error translating product content:', error)
+    return null
+  }
+}
+
+// Get products for public pages (published only)
+export async function getProducts(status: 'in-stock' | 'all' = 'all', locale: 'en' | 'no' = 'en'): Promise<ProductWithTranslations[]> {
+  return listProducts({
+    status: 'published',
+    locale,
+    limit: 50
+  })
 }

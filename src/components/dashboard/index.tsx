@@ -40,6 +40,20 @@ export default function AdminDashboard({
 }) {
   const [role, setRole] = useState("admin")
 
+  const totalPageViews = pageViews.reduce((sum, page) => sum + page.views, 0)
+  const topPage = pageViews.reduce((best, current) => current.views > (best?.views ?? 0) ? current : best, pageViews[0] ?? null)
+  const totalUsers = userGrowth[userGrowth.length - 1]?.users ?? 0
+  const previousUsers = userGrowth[userGrowth.length - 2]?.users ?? totalUsers
+  const userGrowthRate = previousUsers > 0 ? ((totalUsers - previousUsers) / previousUsers) * 100 : 0
+  const topTrafficSource = trafficSources.reduce((best, current) => current.value > (best?.value ?? 0) ? current : best, trafficSources[0] ?? null)
+  const alertCounts = systemAlerts.reduce(
+    (acc, alert) => {
+      acc[alert.type] = (acc[alert.type] ?? 0) + 1
+      return acc
+    },
+    {} as Record<string, number>
+  )
+
   const renderRoleSpecificContent = (tab) => {
     switch (role) {
       case "admin":
@@ -128,10 +142,57 @@ export default function AdminDashboard({
       case "analytics":
         return (
           <>
+            {/* High-level analytics cards */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Total Page Views</CardTitle>
+                <CardDescription>Aggregate across all tracked pages</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{totalPageViews.toLocaleString()}</div>
+                {topPage ? (
+                  <div className="text-sm text-muted-foreground">Top page: {topPage.name}</div>
+                ) : (
+                  <div className="text-sm text-muted-foreground">No page data available</div>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>User Growth</CardTitle>
+                <CardDescription>Month-over-month change</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{totalUsers.toLocaleString()}</div>
+                <div className={`text-sm ${userGrowthRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {userGrowthRate >= 0 ? '+' : ''}{userGrowthRate.toFixed(1)}%
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Traffic Source</CardTitle>
+                <CardDescription>Leading channel this period</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {topTrafficSource ? (
+                  <>
+                    <div className="text-3xl font-bold">{topTrafficSource.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {topTrafficSource.value.toLocaleString()} sessions
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-sm text-muted-foreground">No traffic data available</div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Traffic Source Breakdown */}
             <Card className="col-span-2">
               <CardHeader>
-                <CardTitle>Traffic Sources</CardTitle>
-                <CardDescription>Breakdown of website traffic sources</CardDescription>
+                <CardTitle>Traffic Source Breakdown</CardTitle>
+                <CardDescription>Where your visitors are coming from</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -141,37 +202,17 @@ export default function AdminDashboard({
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      outerRadius={80}
+                      outerRadius={100}
                       fill="#8884d8"
                       dataKey="value"
                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
                       {trafficSources.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell key={`traffic-cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip />
                   </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-            <Card className="col-span-2">
-              <CardHeader>
-                <CardTitle>User Engagement</CardTitle>
-                <CardDescription>Daily active users and session duration</CardDescription>
-              </CardHeader>
-              <CardContent className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={userGrowth}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip />
-                    <Legend />
-                    <Line yAxisId="left" type="monotone" dataKey="users" stroke="#8884d8" name="Active Users" />
-                    <Line yAxisId="right" type="monotone" dataKey="users" stroke="#82ca9d" name="Avg. Session (min)" />
-                  </LineChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -208,28 +249,81 @@ export default function AdminDashboard({
         )
       case "notifications":
         return (
-          <Card className="col-span-3">
-            <CardHeader>
-              <CardTitle>System Alerts</CardTitle>
-              <CardDescription>Important system notifications</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[400px]">
-                {systemAlerts.map((alert) => (
-                  <div key={alert.id} className="mb-4 flex items-center space-x-4">
-                    {alert.type === "error" && <AlertCircleIcon className="h-6 w-6 text-red-500" />}
-                    {alert.type === "warning" && <AlertCircleIcon className="h-6 w-6 text-yellow-500" />}
-                    {alert.type === "info" && <BellIcon className="h-6 w-6 text-blue-500" />}
-                    {alert.type === "success" && <CheckCircleIcon className="h-6 w-6 text-green-500" />}
-                    <div>
-                      <p className="font-medium">{alert.message}</p>
-                      <p className="text-sm text-gray-500">{alert.timestamp}</p>
+          <>
+            {/* Alert Summary Cards */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircleIcon className="h-5 w-5 text-red-500" />
+                  Errors
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-red-600">{alertCounts.error ?? 0}</div>
+                <div className="text-sm text-gray-600">Require immediate attention</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BellIcon className="h-5 w-5 text-yellow-500" />
+                  Warnings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-yellow-600">{alertCounts.warning ?? 0}</div>
+                <div className="text-sm text-gray-600">Monitor these items</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BellIcon className="h-5 w-5 text-blue-500" />
+                  Info Messages
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-blue-600">{alertCounts.info ?? 0}</div>
+                <div className="text-sm text-gray-600">General system updates</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                  Success Events
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600">{alertCounts.success ?? 0}</div>
+                <div className="text-sm text-gray-600">Completed tasks</div>
+              </CardContent>
+            </Card>
+
+            {/* System Alerts */}
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>System Alerts</CardTitle>
+                <CardDescription>Application and platform notifications</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[400px]">
+                  {systemAlerts.map((alert) => (
+                    <div key={alert.id} className="mb-4 flex items-center space-x-4">
+                      {alert.type === "error" && <AlertCircleIcon className="h-6 w-6 text-red-500" />}
+                      {alert.type === "warning" && <AlertCircleIcon className="h-6 w-6 text-yellow-500" />}
+                      {alert.type === "info" && <BellIcon className="h-6 w-6 text-blue-500" />}
+                      {alert.type === "success" && <CheckCircleIcon className="h-6 w-6 text-green-500" />}
+                      <div>
+                        <p className="font-medium">{alert.message}</p>
+                        <p className="text-sm text-gray-500">{alert.timestamp}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </ScrollArea>
-            </CardContent>
-          </Card>
+                  ))}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </>
         )
       default:
         return <div>No content for this tab</div>

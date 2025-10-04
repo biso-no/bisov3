@@ -68,7 +68,7 @@ export function SearchPanel({
   }, [isOpen])
 
   return (
-    <div className={`fixed inset-0 z-[100] ${isOpen ? 'block' : 'hidden'}`}>
+    <div className={`fixed inset-0 z-100 ${isOpen ? 'block' : 'hidden'}`}>
       <div 
         className="fixed inset-0 bg-black/50 backdrop-blur-sm" 
         onClick={() => onOpenChange(false)}

@@ -176,7 +176,7 @@ export function PostTable({ posts }: { posts: Post[] }) {
             placeholder=""
             value={formData.search}
             onChange={handleChange}
-            className="flex-grow"
+            className="grow"
           />
           <Select
             value={formData.department}

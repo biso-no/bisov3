@@ -24,7 +24,7 @@ export async function connectLinkedIn(userId: string) {
   try {
     // For server components, we need to return the URL to redirect to
     // The actual redirection happens on the client side
-    const origin = headers().get("origin");
+    const origin = (await headers()).get("origin");
     
     // Create success and failure URLs
     const successUrl = `${origin}/alumni/profile?linkedin=true`

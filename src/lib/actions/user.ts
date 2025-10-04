@@ -16,6 +16,19 @@ export async function getLoggedInUser() {
         console.log("user authenticated:", user.$id);
         
         if (user.$id) {
+            // Check if this is an authenticated user (not anonymous)
+            const hasEmail = user.email && user.email.length > 0;
+            const hasRealName = user.name && user.name.length > 0 && !user.name.startsWith('guest_');
+            const isEmailVerified = user.emailVerification;
+            
+            const isAuthenticated = hasEmail || (hasRealName && isEmailVerified);
+            
+            // Only return user data for authenticated users
+            if (!isAuthenticated) {
+                console.log("Anonymous user detected, not returning user data");
+                return null;
+            }
+            
             try {
                 // Try to get the user profile document
                 const profile = await db.getDocument('app', 'user', user.$id);
@@ -217,3 +230,6 @@ export async function deleteUserData() {
         }
     }
 }
+
+// Anonymous signin is now handled by middleware and route handlers
+// This function is deprecated - use the /api/auth/anonymous endpoint instead

@@ -61,9 +61,9 @@ const UserLayout = ({ children }: UserLayoutProps) => {
         "hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col z-30 transition-all duration-300 ease-in-out",
         isCollapsed ? "lg:w-20" : "lg:w-72"
       )}>
-        <div className="flex flex-col flex-grow bg-white border-r border-gray-100 shadow-sm h-full">
+        <div className="flex flex-col grow bg-white border-r border-gray-100 shadow-sm h-full">
           {/* Header/Logo */}
-          <div className="flex items-center justify-between h-20 flex-shrink-0 px-5 bg-white border-b border-gray-100">
+          <div className="flex items-center justify-between h-20 shrink-0 px-5 bg-white border-b border-gray-100">
             {isCollapsed ? (
               <Image 
                 src="/images/logo-light.png" 
@@ -99,7 +99,7 @@ const UserLayout = ({ children }: UserLayoutProps) => {
           </div>
 
           {/* Navigation Links */}
-          <div className="flex flex-col flex-grow px-4 py-6 overflow-y-auto">
+          <div className="flex flex-col grow px-4 py-6 overflow-y-auto">
             <nav className="flex-1 space-y-2">
               {navigation.map((item) => {
                 const isActive = pathname === item.href;

@@ -1,6 +1,11 @@
 import { museoSans } from './fonts';
 import Providers from "./providers"
 import '@/app/globals.css';
+import "@assistant-ui/styles/index.css";
+import "@assistant-ui/styles/markdown.css";
+import {NextIntlClientProvider} from 'next-intl';
+import {getLocale} from '@/app/actions/locale';
+import {getMessages} from 'next-intl/server';
 
 export const metadata = {
   title: 'BI Student Organisation',
@@ -8,18 +13,26 @@ export const metadata = {
 };
 
 import {AppContextProvider} from "./contexts"
+import { Toaster } from '@/components/ui/toaster';
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
   return (
-    <html lang="en" className={`${museoSans.variable}`}>
+    <html lang={locale} className={`${museoSans.variable}`}>
       <Providers>
       <AppContextProvider>
       <body>
-        {children}
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <main>
+            {children}
+            <Toaster />
+          </main>
+        </NextIntlClientProvider>
       </body>
       </AppContextProvider>
       </Providers>

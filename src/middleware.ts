@@ -1,129 +1,54 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createSessionClient } from "./lib/appwrite";
-import { Query } from "node-appwrite";
-import {
-  networksFeatureFlag,
-  eventsFeatureFlag,
-  mentoringFeatureFlag,
-  jobsFeatureFlag,
-  resourcesFeatureFlag,
-  messagesFeatureFlag
-} from '@/lib/flags';
 
-// Define route types and their access requirements
-type RouteAccess = {
-  path: string;
-  roles?: string[];
-  requiresAuth?: boolean;
-  featureFlag?: () => Promise<boolean>;
-};
+export function middleware(req: NextRequest) {
+  const { pathname, searchParams } = req.nextUrl;
 
-// Define all routes and their access requirements
-const ROUTES: RouteAccess[] = [
-  // Public routes
-  { path: '/_next', requiresAuth: false },
-  { path: '/auth', requiresAuth: false },
-  
-  // Admin routes
-  { path: '/admin', roles: ['Admin'] },
-  { path: '/admin/pages', roles: ['Admin', 'pr'] },
-  { path: '/admin/posts', roles: ['Admin', 'pr'] },
-  { path: '/admin/shop', roles: ['Admin', 'finance'] },
-  { path: '/admin/users', roles: ['Admin', 'hr', 'finance'] },
-  { path: '/admin/settings', roles: ['Admin'] },
-  { path: '/admin/expenses', roles: ['Admin', 'finance'] },
-  { path: '/admin/alumni', roles: ['Admin'] },
-  { path: '/admin/units', roles: ['Admin', 'hr', 'finance', 'pr'] },
-  
-  // Authenticated routes (any logged-in user)
-  { path: '/expenses', requiresAuth: true },
-  
-  // Alumni routes with feature flags
-  { path: '/alumni/network', requiresAuth: true, featureFlag: networksFeatureFlag },
-  { path: '/alumni/events', requiresAuth: true, featureFlag: eventsFeatureFlag },
-  { path: '/alumni/mentoring', requiresAuth: true, featureFlag: mentoringFeatureFlag },
-  { path: '/alumni/jobs', requiresAuth: true, featureFlag: jobsFeatureFlag },
-  { path: '/alumni/resources', requiresAuth: true, featureFlag: resourcesFeatureFlag },
-  { path: '/alumni/messages', requiresAuth: true, featureFlag: messagesFeatureFlag },
-];
-
-export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-  
-  // Find the matching route configuration
-  const routeConfig = ROUTES.find(route => pathname.startsWith(route.path));
-  
-  // If no route config is found, deny access
-  if (!routeConfig) {
-    return NextResponse.redirect(new URL('/auth/login', req.url));
-  }
-  
-  // Handle public routes
-  if (!routeConfig.requiresAuth && !routeConfig.roles) {
-    return NextResponse.next();
-  }
-  
-  // Check authentication
-  const { account, teams } = await createSessionClient();
-  let user;
-  try {
-    user = await account.get();
-  } catch (error) {
-    // If not authenticated and route requires auth, redirect to login
-    if (routeConfig.requiresAuth || routeConfig.roles) {
-      const currentUrl = encodeURIComponent(pathname);
-      return NextResponse.redirect(new URL(`/auth/login?redirectTo=${currentUrl}`, req.url));
+  // Handle admin routes - require authenticated user
+  if (pathname.startsWith('/admin')) {
+    const sessionCookie = req.cookies.get('x-biso-session');
+    
+    if (!sessionCookie?.value) {
+      // No session at all, redirect to login
+      return NextResponse.redirect(new URL(`/auth/login?redirectTo=${encodeURIComponent(pathname)}`, req.url));
     }
-    return NextResponse.next();
+    
+    // For admin routes, we'll do the authentication check in the layout component
+    // This avoids making API calls in middleware which can be slow
+    // The admin layout will handle the redirect if user is not authenticated
   }
-  
-  // If authenticated and trying to access auth pages, redirect to intended destination
+
+  // Handle auth routes - allow anonymous users to access auth pages
   if (pathname.startsWith('/auth')) {
-    const redirectTo = req.nextUrl.searchParams.get('redirectTo');
-    if (redirectTo) {
-      return NextResponse.redirect(new URL(decodeURIComponent(redirectTo), req.url));
-    }
-    return NextResponse.redirect(new URL('/admin', req.url));
+    // Don't redirect users away from auth pages if they have anonymous sessions
+    // The auth pages themselves will handle the logic for already authenticated users
   }
-  
-  // Check role-based access
-  if (routeConfig.roles) {
-    const userTeams = await teams.list([
-      Query.equal('name', routeConfig.roles)
-    ]);
-    const userRoles = userTeams.teams.map(team => team.name);
+
+  // Handle public routes - ensure anonymous session exists
+  const isPublicRoute = !pathname.startsWith('/admin') && 
+                       !pathname.startsWith('/auth') && 
+                       !pathname.startsWith('/api') &&
+                       !pathname.startsWith('/_next') &&
+                       !pathname.startsWith('/favicon');
+
+  if (isPublicRoute) {
+    const sessionCookie = req.cookies.get('x-biso-session');
     
-    // If user is Admin, they can access everything
-    if (userRoles.includes('Admin')) {
-      return NextResponse.next();
-    }
-    
-    // Check if user has required role
-    const hasAccess = userRoles.some(role => routeConfig.roles?.includes(role));
-    if (!hasAccess) {
-      return NextResponse.redirect(new URL('/admin', req.url));
+    // If no session exists, create anonymous session
+    if (!sessionCookie?.value) {
+      // Redirect to anonymous auth API to set session, then back to original URL
+      const anonymousUrl = new URL('/api/auth/anonymous', req.url);
+      anonymousUrl.searchParams.set('redirect', pathname + req.nextUrl.search);
+      
+      return NextResponse.redirect(anonymousUrl);
     }
   }
-  
-  // Check feature flags for alumni routes
-  if (routeConfig.featureFlag) {
-    const isEnabled = await routeConfig.featureFlag();
-    if (!isEnabled) {
-      return NextResponse.redirect(new URL('/alumni', req.url));
-    }
-  }
-  
+
   return NextResponse.next();
 }
 
-// Configure middleware to run on specific paths
 export const config = {
   matcher: [
-    '/alumni/:path*',
-    '/auth/:path*',
-    '/admin/:path*',
-    '/expenses/:path*',
-    '/',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

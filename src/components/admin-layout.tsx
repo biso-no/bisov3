@@ -24,9 +24,14 @@ import {
   LogOut,
   Bell,
   Building2,
+  Shield,
 } from 'lucide-react';
 import { signOut } from '@/lib/actions/user';
 import { Skeleton } from "@/components/ui/skeleton";
+import { AssistantModal } from './ai/admin';
+import { AssistantSidebar } from './ai/admin-sidebar';
+import { useAssistantUIStore } from './ai/assistant-ui-store';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from './ui/resizable';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -156,6 +161,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
   const pathname = usePathname();
   const [selectedRole, setSelectedRole] = useState(roles.includes('Admin') ? 'Admin' : roles[0]);
   const [isLoading, setIsLoading] = useState(true);
+  const { mode: assistantMode, isSidebarOpen: assistantSidebarOpen, setSidebarOpen } = useAssistantUIStore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1000);
@@ -169,7 +175,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
         /*
     { href: '/admin/pages', icon: FileText, label: 'Pages', roles: ['Admin', 'pr'] },
     { href: '/admin/posts', icon: FileText, label: 'Posts', roles: ['Admin', 'pr'] },
-
+*/
     {
       href: '/admin/shop',
       icon: Store,
@@ -182,13 +188,34 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
         { href: '/admin/shop/settings', label: 'Settings', roles: ['Admin'] },
       ],
     },
-    */
+    
     {
       href: '/admin/expenses',
       icon: CalendarIcon,
       label: 'Expenses',
       roles: ['Admin', 'finance'],
     },
+    {
+      href: '/admin/jobs',
+      icon: Users,
+      label: 'Jobs',
+      roles: ['Admin', 'hr', 'pr'],
+      subItems: [
+        { href: '/admin/jobs', label: 'All jobs', roles: ['Admin', 'hr', 'pr'] },
+        { href: '/admin/jobs/applications', label: 'Applications', roles: ['Admin', 'hr', 'pr'] },
+      ],
+    },
+    {
+      href: '/admin/events',
+      icon: CalendarIcon,
+      label: 'Events',
+      roles: ['Admin', 'pr'],
+      subItems: [
+        { href: '/admin/events', label: 'All events', roles: ['Admin', 'pr'] },
+        { href: '/admin/events/new', label: 'Create event', roles: ['Admin', 'pr'] },
+      ],
+    },
+    /*
     {
       href: '/admin/alumni',
       icon: Users,
@@ -198,6 +225,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
         { href: '/admin/alumni/mentors', label: 'Mentor Approvals', roles: ['Admin'] },
       ],
     },
+    */
     {
       href: '/admin/units',
       icon: Building2,
@@ -205,6 +233,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
       roles: ['Admin', 'hr', 'finance', 'pr'],
     },
     { href: '/admin/users', icon: Users, label: 'Users', roles: ['Admin', 'hr', 'finance'] },
+    { href: '/admin/varsling', icon: Shield, label: 'Varsling', roles: ['Admin'] },
     {
       href: '/admin/settings',
       icon: Settings,
@@ -234,7 +263,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
       <motion.nav
         initial={false}
         animate={{ width: isSidebarExpanded ? 256 : 80 }}
-        className="bg-gray-900 flex-shrink-0 flex flex-col justify-between shadow-xl"
+        className="bg-gray-900 shrink-0 flex flex-col justify-between shadow-xl"
       >
         <div>
           <motion.div
@@ -242,7 +271,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
             initial={false}
             animate={{ justifyContent: isSidebarExpanded ? 'flex-start' : 'center' }}
           >
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 text-transparent bg-clip-text">
+            <span className="text-xl font-bold bg-linear-to-r from-blue-400 to-blue-600 text-transparent bg-clip-text">
               {isSidebarExpanded ? 'BISO Admin' : 'BA'}
             </span>
           </motion.div>
@@ -284,8 +313,8 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
       </motion.nav>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex items-center justify-between px-6 py-4 bg-white dark:bg-gray-800 border-b dark:border-gray-700 shadow-sm">
-          <div className="flex items-center space-x-4">
+        <header className="flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-800 border-b dark:border-gray-700 shadow-sm">
+          <div className="flex items-center gap-4">
             <span className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
               {isLoading ? <Skeleton className="h-8 w-32" /> : `Welcome, ${firstName}`}
             </span>
@@ -296,9 +325,22 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
                 setSelectedRole={setSelectedRole}
               />
             )}
+            <div className="ml-4">
+              <Breadcrumb />
+            </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search..."
+                className="w-[280px] pl-8"
+                onFocus={() => setIsSearchOpen(true)}
+                onBlur={() => setIsSearchOpen(false)}
+              />
+            </div>
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
               <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full" />
@@ -327,28 +369,37 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 dark:bg-gray-900">
-          <div className="container mx-auto px-6 py-8">
-            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b 
-                           bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <Breadcrumb />
-              <motion.div 
-                className="relative ml-auto flex-1 md:grow-0"
-                animate={{ width: isSearchOpen ? '100%' : 'auto' }}
-              >
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search..."
-                  className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[336px]
-                           focus:w-full transition-all duration-300 ease-in-out"
-                  onFocus={() => setIsSearchOpen(true)}
-                  onBlur={() => setIsSearchOpen(false)}
-                />
-              </motion.div>
-            </header>
-            {children}
-          </div>
+        <main className="flex-1 min-h-0 bg-gray-100 dark:bg-gray-900">
+          {assistantMode === "sidebar" && assistantSidebarOpen ? (
+            <ResizablePanelGroup direction="horizontal" className="h-full">
+              <ResizablePanel defaultSize={72} minSize={40} className="min-w-0">
+                <div className="h-full overflow-y-auto px-6 py-6">
+                  {children}
+                </div>
+              </ResizablePanel>
+              <ResizableHandle />
+              <ResizablePanel defaultSize={28} minSize={20} maxSize={60} className="min-w-[280px]">
+                <div className="flex h-full flex-col border-l bg-popover">
+                  <div className="flex items-center justify-between border-b px-3 py-2">
+                    <span className="text-sm font-medium">Admin Assistant</span>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setSidebarOpen(false)}>Close</Button>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    <AssistantSidebar open={assistantSidebarOpen} onOpenChange={setSidebarOpen} docked />
+                  </div>
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          ) : (
+            <div className="h-full overflow-y-auto px-6 py-6">
+              {children}
+              <div className="fixed bottom-6 right-6 z-50">
+                <AssistantModal />
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

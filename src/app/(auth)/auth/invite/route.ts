@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 
-const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
+const NEXT_PUBLIC_APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_NEXT_PUBLIC_APPWRITE_ENDPOINT;
 const PROJECT_ID = "biso"
 const API_KEY = process.env.NEXT_PUBLIC_APPWRITE_API_KEY;
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const response = await fetch(
-      `${APPWRITE_ENDPOINT}/teams/${teamId}/memberships/${membershipId}/status`,
+      `${NEXT_PUBLIC_APPWRITE_ENDPOINT}/teams/${teamId}/memberships/${membershipId}/status`,
       {
         method: 'PATCH',
         headers: {

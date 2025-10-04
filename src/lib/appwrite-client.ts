@@ -1,10 +1,10 @@
 import { Client, Account, ID, Databases, Storage, Functions } from "appwrite";
 
 const APPWRITE_PROJECT = "biso";
-const APPWRITE_ENDPOINT = "https://appwrite.biso.no/v1";
+const NEXT_PUBLIC_APPWRITE_ENDPOINT = "https://appwrite.biso.no/v1";
 
 export const clientSideClient = new Client()
-        .setEndpoint(APPWRITE_ENDPOINT)
+        .setEndpoint(NEXT_PUBLIC_APPWRITE_ENDPOINT)
         .setProject(APPWRITE_PROJECT)
 
 

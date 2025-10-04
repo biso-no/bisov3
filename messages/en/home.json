@@ -1,0 +1,70 @@
+{
+  "events": {
+    "cta": "See the full calendar",
+    "descriptionActive": "Plan your week at {campusName}.",
+    "descriptionDefault": "See what is happening on your campuses.",
+    "empty": "No upcoming events for this campus.",
+    "title": "Event calendar"
+  },
+  "hero": {
+    "imageAlt": "Students from BISO at an event",
+    "primaryCtaSecondary": "Explore events",
+    "promo": {
+      "headline": "Create experiences, influence policy and build networks for the future.",
+      "tagline": "More than student life"
+    },
+    "stats": {
+      "campuses": "Campuses",
+      "events": "Upcoming events",
+      "jobs": "Open positions"
+    },
+    "subtitleActive": "Experience everything happening at {campusName}. Discover events, perks and positions that make student life unforgettable.",
+    "subtitleDefault": "BI Student Organisation unites students across campuses. Explore the opportunities and find your way into the community.",
+    "titleActive": "Join the pulse at {campusName}",
+    "titleDefault": "A strong student voice across all BI campuses"
+  },
+  "jobs": {
+    "cta": "See all openings",
+    "deadline": "Deadline: {date}",
+    "description": "Join the organisation and shape the future of student life.",
+    "empty": "No open positions right now.",
+    "rolling": "Rolling applications",
+    "title": "Open positions and jobs"
+  },
+  "news": {
+    "cta": "All news",
+    "description": "News, announcements and stories from across the organisation.",
+    "empty": "No news published yet.",
+    "titleActive": "Highlights from {campusName}",
+    "titleDefault": "News in BISO"
+  },
+  "quickLinks": {
+    "benefits": {
+      "cta": "View perks",
+      "description": "Shop, discounts and resources exclusively for BISO members.",
+      "title": "Student benefits"
+    },
+    "highlights": {
+      "cta": "View calendar",
+      "description": "Stay on top of parties, academic meetups and career days.",
+      "title": "Upcoming highlights"
+    },
+    "roles": {
+      "cta": "Open positions",
+      "description": "Grow in student politics, leadership or coordination.",
+      "title": "Apply for a position"
+    },
+    "units": {
+      "cta": "Explore units",
+      "description": "Marketing, HR, finance or events – see where you can contribute.",
+      "title": "Find your unit"
+    }
+  },
+  "shop": {
+    "cta": "Go to shop",
+    "description": "Represent your campus with exclusive BISO merch.",
+    "empty": "No products available right now.",
+    "price": "{value} NOK",
+    "title": "Shop: new favourites"
+  }
+}

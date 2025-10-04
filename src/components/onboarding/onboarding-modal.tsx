@@ -80,7 +80,7 @@ export function OnboardingModal({ isOpen, onClose, userId }: OnboardingModalProp
                 <button
                   type="button"
                   onClick={goToProfilePage}
-                  className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium rounded-lg shadow-sm hover:shadow transition duration-200"
+                  className="px-5 py-2.5 bg-linear-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium rounded-lg shadow-sm hover:shadow transition duration-200"
                 >
                   Go to Profile
                 </button>

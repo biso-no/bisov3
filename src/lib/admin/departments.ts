@@ -56,6 +56,7 @@ export async function getDepartments(filters?: {
   const queries = [
     Query.limit(filters?.limit || 300),
     Query.offset(filters?.offset || 0),
+    Query.equal("active", true),
     Query.select(["$id", "Name", "campus_id", "logo", "type", "description", "active"])
   ];
   
