@@ -19,6 +19,7 @@ import type { Department as DepartmentRecord } from "@/lib/admin/departments"
 import type { CampusData } from "@/lib/types/campus-data"
 import type { Locale } from "@/i18n/config"
 import type { CampusMetadata } from "@/app/actions/campus"
+import { NewsItemWithTranslations } from "@/lib/types/news"
 
 type CampusLeader = {
   name: string
@@ -305,7 +306,7 @@ const mapToLeader = (entry: any): CampusLeader => ({
 type CampusPageClientProps = {
   events: Event[]
   jobs: Job[]
-  news: NewsItem[]
+  news: NewsItemWithTranslations[]
   departments: DepartmentRecord[]
   campusData: CampusData[]
   campusMetadata: Record<string, CampusMetadata>
@@ -499,7 +500,7 @@ export const CampusPageClient = ({ events, jobs, news, departments, campusData, 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const filtered = activeCampusId ? events.filter((event) => event.campus === activeCampusId) : events
+    const filtered = activeCampusId ? events.filter((event) => event.campus.$id === activeCampusId) : events
 
     const safeTime = (value?: string) => {
       if (!value) return Number.MAX_SAFE_INTEGER
@@ -517,7 +518,7 @@ export const CampusPageClient = ({ events, jobs, news, departments, campusData, 
   }, [events, activeCampusId])
 
   const campusSpecificJobs = useMemo(() => {
-    const filtered = activeCampusId ? jobs.filter((job) => job.campus === activeCampusId) : jobs
+    const filtered = activeCampusId ? jobs.filter((job) => job.campus.$id === activeCampusId) : jobs
     return filtered.sort((a, b) => (b.application_deadline || '').localeCompare(a.application_deadline || ''))
   }, [jobs, activeCampusId])
 

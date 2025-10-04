@@ -13,7 +13,7 @@ export const metadata = {
 };
 
 import {AppContextProvider} from "./contexts"
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from '@/components/ui/toaster';
 
 export default async function RootLayout({
   children,
