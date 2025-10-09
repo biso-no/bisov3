@@ -1,4 +1,4 @@
-import { museoSans } from './fonts';
+import { museoSans, inter } from "./fonts";
 import Providers from "./providers"
 import '@/app/globals.css';
 import "@assistant-ui/styles/index.css";
@@ -23,7 +23,7 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   return (
-    <html lang={locale} className={`${museoSans.variable}`}>
+    <html lang={locale} className={`${museoSans.variable} ${inter.variable}`}>
       <Providers>
       <AppContextProvider>
       <body>

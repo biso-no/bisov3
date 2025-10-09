@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ReactNode } from "react";
+import { Instagram, Linkedin, Mail } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -10,9 +11,21 @@ type FooterLinkProps = {
 
 const isExternalHref = (href: string) => /^https?:\/\//.test(href);
 
+const FOOTER_STATS = [
+  { label: "Medlemmer", value: "10 000+" },
+  { label: "Verv", value: "60+" },
+  { label: "Arrangementer", value: "150+" },
+];
+
+const SOCIAL_LINKS = [
+  { href: "https://linkedin.com", label: "LinkedIn", icon: Linkedin },
+  { href: "https://instagram.com", label: "Instagram", icon: Instagram },
+  { href: "mailto:post@biso.no", label: "E-post", icon: Mail },
+];
+
 const FooterLink = ({ children, href }: FooterLinkProps) => {
   const baseClasses =
-    "text-sm text-primary-20 transition hover:text-white/90 hover:underline underline-offset-4";
+    "text-sm text-primary-80 transition hover:text-primary hover:underline underline-offset-4";
 
   if (!href) {
     return (
@@ -41,17 +54,15 @@ const FooterLink = ({ children, href }: FooterLinkProps) => {
   );
 };
 
-const FooterList = ({ children, title }: { children: ReactNode; title: string }) => {
-  return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-secondary-20">{title}</h3>
-      <ul className="space-y-2 text-sm text-primary-20">{children}</ul>
-    </div>
-  );
-};
+const FooterList = ({ children, title }: { children: ReactNode; title: string }) => (
+  <div className="space-y-3">
+    <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/70">{title}</h3>
+    <ul className="space-y-2 text-sm text-primary-80">{children}</ul>
+  </div>
+);
 
 interface FooterProps {
-  children: ReactNode;
+  children: React.ReactNode;
   className?: string;
 }
 
@@ -59,33 +70,66 @@ const Footer = ({ children, className }: FooterProps) => {
   const madeByString = (
     <>
       💻 with ❤️ by{" "}
-      <Link href="https://github.com/MHeien" target="_blank" className="font-semibold text-secondary-20 hover:text-white">
+      <Link href="https://github.com/MHeien" target="_blank" className="font-semibold text-primary hover:text-primary-40">
         Markus Heien
       </Link>
     </>
   );
 
   return (
-    <footer className={cn("relative isolate overflow-hidden bg-primary-100 text-white", className)}>
-      <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(61,169,224,0.2),transparent_55%)]" />
-      <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(247,214,74,0.15),transparent_50%)]" />
-      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-        <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">{children}</div>
-        <div className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 px-6 py-5 shadow-[0_25px_45px_-30px_rgba(0,0,0,0.5)] backdrop-blur-lg sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-secondary-40">Fellesskap for studenter</p>
-            <p className="text-base font-medium text-white">
-              Samler og styrker studentengasjementet på tvers av norske campuser.
+    <footer className={cn("relative border-t border-primary/10 bg-white text-primary-90", className)}>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <div className="flex flex-col gap-6 rounded-3xl border border-primary/10 bg-surface-card/60 px-6 py-6 shadow-card-soft sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/60">
+              BI Student Organisation
+            </p>
+            <h2 className="font-heading text-2xl font-semibold text-primary-90 sm:text-3xl">
+              Et moderne studentfellesskap for alle BI-campuser.
+            </h2>
+            <p className="max-w-xl text-sm text-primary-70">
+              Vi samler arrangementer, verv og ressurser som gjør det enklere å delta i studentmiljøet – uansett hvor du studerer.
             </p>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white">
-            <span className="inline-flex h-2 w-2 rounded-full bg-secondary-100" />
-            BISO • Student Union of Norway
+          <div className="flex flex-wrap justify-start gap-3">
+            {FOOTER_STATS.map((stat) => (
+              <div
+                key={stat.label}
+                className="flex flex-col gap-1 rounded-2xl border border-primary/15 bg-white px-4 py-3 text-left shadow-sm"
+              >
+                <span className="text-lg font-semibold text-primary-90">{stat.value}</span>
+                <span className="text-xs uppercase tracking-[0.14em] text-primary/60">{stat.label}</span>
+              </div>
+            ))}
           </div>
         </div>
-        <div className="flex flex-col items-start justify-between gap-3 border-t border-white/10 pt-4 text-sm text-primary-10/80 sm:flex-row sm:items-center">
-          <span className="text-primary-10/90">{madeByString}</span>
-          <span className="text-primary-10/60">Org nr. 913 589 367 • Besøk oss i lokalene ved BI campus</span>
+
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">{children}</div>
+
+        <div className="flex flex-col gap-6 rounded-3xl border border-primary/10 bg-white px-6 py-5 shadow-card-soft md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <p className="text-xs uppercase tracking-[0.16em] text-primary/60">Hold kontakten</p>
+            <p className="text-sm text-primary-70">
+              Følg oss i sosiale medier eller send oss en e-post for samarbeid og henvendelser.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {SOCIAL_LINKS.map((social) => (
+              <Link
+                key={social.href}
+                href={social.href}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-primary/15 text-primary-70 transition hover:bg-primary-10 hover:text-primary-80"
+              >
+                <social.icon className="h-4 w-4" />
+                <span className="sr-only">{social.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-primary/10 pt-4 text-sm text-primary/60 sm:flex-row sm:items-center sm:justify-between">
+          <span className="text-primary/70">{madeByString}</span>
+          <span>Org nr. 913 589 367 • Besøk oss i lokalene ved BI campus</span>
         </div>
       </div>
     </footer>

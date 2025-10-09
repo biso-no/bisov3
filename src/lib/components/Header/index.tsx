@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
-import { ChevronDown, Menu, Phone, Search } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Menu, Search, Sparkles } from "lucide-react";
 import { getCampuses } from "@/app/actions/campus";
 
 import { getNavItems, type NavTreeItem } from "@/lib/actions/main/actions";
@@ -18,17 +18,17 @@ import { Campus } from "@/lib/types/campus";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { SUPPORTED_LOCALES, type Locale } from "@/i18n/config";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 type NavDocument = NavTreeItem;
 
-const QuickActionLink = ({ href, label }: { href: string; label: string }) => (
-  <Link
-    href={href}
-    className="text-xs font-medium text-white/80 transition hover:text-white"
-  >
-    {label}
-  </Link>
-);
+const PRIMARY_ACTIONS = [
+  {
+    href: "/membership",
+    label: "Bli medlem",
+    icon: Sparkles,
+  }
+];
 
 const deriveHref = (item: NavDocument, editMode: boolean) => {
   if (editMode) return "#";
@@ -119,9 +119,9 @@ export const Header = ({ editMode }: { editMode: boolean }) => {
         const hasNested = child.children.length > 0;
 
         const linkClasses = cn(
-          "flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium transition-colors",
+          "flex items-center justify-between rounded-xl px-3.5 py-2 text-sm font-medium transition-colors",
           active
-            ? "bg-primary/10 text-primary-50"
+            ? "bg-primary/10 text-primary-40 shadow-card-soft"
             : "text-primary-80 hover:bg-primary/5 hover:text-primary-40"
         );
 
@@ -171,8 +171,8 @@ export const Header = ({ editMode }: { editMode: boolean }) => {
         const active = isItemActive(child);
         const hasNested = child.children.length > 0;
         const linkClasses = cn(
-          "text-sm font-medium text-primary-80 transition hover:text-primary-40",
-          active && "text-primary-50"
+          "text-sm font-medium text-primary-80 transition hover:text-primary-30",
+          active && "text-primary-40"
         );
 
         const linkNode = external ? (
@@ -200,202 +200,219 @@ export const Header = ({ editMode }: { editMode: boolean }) => {
   );
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/80 shadow-sm backdrop-blur">
-      <div className="hidden border-b border-white/10 bg-primary-100/95 text-white lg:block">
-        <div className="container flex items-center justify-between px-4 py-2">
-          <div className="flex items-center gap-4">
-            <QuickActionLink href="/membership" label="Bli medlem" />
-            <QuickActionLink href="/jobs" label="Søk verv" />
-            <QuickActionLink href="/partners" label="Book samarbeid" />
-            <QuickActionLink href="/safety" label="Varsling" />
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden h-8 gap-2 border-white/20 text-xs text-white/80 hover:bg-white/10 hover:text-white xl:flex"
-            >
-              <Search className="h-3.5 w-3.5" />
-              Søk
-            </Button>
-            <SelectCampus
-              placeholder="Velg campus"
-              className="h-9 w-48 border-white/30 bg-white/10 text-left text-white"
-              campuses={campuses}
-            />
-            <LocaleSwitcher
-              variant="ghost"
-              size="sm"
-              className="h-9 w-48 border-white/30 bg-white/10 text-left text-white"
-            />
-          </div>
-        </div>
-      </div>
+    <header className="sticky top-0 z-50 w-full bg-transparent px-4 py-4 sm:px-6">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/95 via-white/70 to-transparent dark:from-surface-strong/90 dark:via-surface-card/70"
+      />
+      <div className="relative mx-auto flex w-full max-w-6xl items-center gap-3 rounded-[28px] border border-white/60 bg-white/90 px-4 py-3 shadow-card-soft backdrop-blur-md dark:border-surface-hover/60 dark:bg-surface-card/90">
+        <Link href="/" className="flex items-center gap-3">
+          <Image src="/images/logo-home.png" alt="BISO logo" width={148} height={38} priority />
+        </Link>
 
-      <div className="border-b border-primary/10 bg-white/90">
-        <div className="container flex items-center justify-between gap-4 px-4 py-4 lg:gap-8">
-          <div className="flex items-center gap-3 lg:gap-6">
-            <Link href="/" className="flex items-center gap-3">
-              <Image
-                src="/images/logo-home.png"
-                alt="BISO logo"
-                width={148}
-                height={38}
-                priority
-              />
-            </Link>
-          </div>
+        <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
+          {loadingNav ? (
+            <div className="flex items-center gap-3">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Skeleton key={index} className="h-6 w-16 rounded-full bg-primary/10" />
+              ))}
+            </div>
+          ) : (
+            desktopNav.map((item) => {
+              const href = deriveHref(item, editMode);
+              const external = isExternalLink(item);
+              const active = isItemActive(item);
+              const hasChildren = item.children.length > 0;
 
-          <nav className="hidden flex-1 items-center justify-center gap-6 lg:flex">
-            {loadingNav ? (
-              <div className="flex items-center gap-3">
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Skeleton key={index} className="h-6 w-16 rounded-full bg-primary/10" />
-                ))}
-              </div>
-            ) : (
-              desktopNav.map((item) => {
-                const href = deriveHref(item, editMode);
-                const external = isExternalLink(item);
-                const active = isItemActive(item);
-                const hasChildren = item.children.length > 0;
+              const linkContent = (
+                <span
+                  className={cn(
+                    "group flex items-center gap-1 rounded-full px-3.5 py-2 text-sm font-semibold transition-colors",
+                    active
+                      ? "bg-primary/10 text-primary-40 shadow-card-soft"
+                      : "text-primary-80 hover:bg-primary/5 hover:text-primary-40"
+                  )}
+                >
+                  {item.title}
+                  {hasChildren && <ChevronDown className="h-3 w-3 opacity-70" />}
+                </span>
+              );
 
-                const linkContent = (
-                  <span
-                    className={cn(
-                      "relative flex items-center gap-1 text-sm font-semibold tracking-wide transition-colors duration-200",
-                      active ? "text-primary-40" : "text-primary-80 hover:text-primary-40"
-                    )}
-                  >
-                    {item.title}
-                    {hasChildren && <ChevronDown className="h-3 w-3 opacity-70" />}
-                    <span
-                      className={cn(
-                        "absolute left-0 top-full mt-1 h-0.5 w-full origin-left scale-x-0 bg-primary-40 transition-transform duration-200",
-                        active ? "scale-x-100" : "group-hover:scale-x-100"
-                      )}
-                    />
-                  </span>
-                );
+              const linkNode = external ? (
+                <a href={href} className="group relative flex items-center" target="_blank" rel="noreferrer">
+                  {linkContent}
+                </a>
+              ) : (
+                <Link href={href} className="group relative flex items-center">
+                  {linkContent}
+                </Link>
+              );
 
-                const linkNode = external ? (
-                  <a href={href} className="group flex items-center" target="_blank" rel="noreferrer">
-                    {linkContent}
-                  </a>
-                ) : (
-                  <Link href={href} className="group flex items-center">
-                    {linkContent}
-                  </Link>
-                );
-
-                return (
-                  <div key={item.id} className="group relative">
-                    {linkNode}
-                    {hasChildren && (
-                      <div className="invisible absolute left-1/2 top-full z-40 mt-3 w-64 -translate-x-1/2 rounded-xl border border-primary/10 bg-white/95 p-4 opacity-0 shadow-xl transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+              return (
+                <div key={item.id} className="group relative">
+                  {linkNode}
+                  {hasChildren && (
+                    <div className="noise-overlay invisible absolute left-1/2 top-full z-40 mt-4 w-72 -translate-x-1/2 overflow-hidden rounded-3xl border border-primary/10 bg-white/95 p-5 opacity-0 shadow-2xl ring-1 ring-black/5 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 dark:bg-surface-strong/95">
+                      <div className="relative flex flex-col gap-3">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="border-primary/20 text-xs uppercase tracking-[0.14em] text-primary-50">
+                            {item.title}
+                          </Badge>
+                          <ArrowUpRight className="h-4 w-4 text-primary-50" />
+                        </div>
                         {renderDesktopChildLinks(item.children)}
                       </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="hidden border-primary/20 text-primary-80 hover:border-primary-30 hover:text-primary-40 lg:flex"
-            >
-              <Link href="/contact" className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                Kontakt
-              </Link>
-            </Button>
-
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 lg:hidden">
-                  <Menu className="h-5 w-5 text-primary-100" />
-                  <span className="sr-only">Åpne meny</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full max-w-sm border-l border-primary/10 bg-white/95">
-                <div className="flex flex-col gap-6 pt-12">
-                  <SelectCampus className="border-primary/20 bg-white" campuses={campuses} />
-                  <div className="flex flex-col gap-3">
-                    {loadingNav ? (
-                      Array.from({ length: 6 }).map((_, index) => (
-                        <Skeleton key={index} className="h-10 w-full rounded-full bg-primary/10" />
-                      ))
-                    ) : (
-                      <Accordion type="multiple" className="w-full space-y-2">
-                        {navItems.map((item) => {
-                          const href = deriveHref(item, editMode);
-                          const external = isExternalLink(item);
-                          const hasChildren = item.children.length > 0;
-                          const active = isItemActive(item);
-
-                          const linkClasses = cn(
-                            "flex w-full items-center justify-between rounded-lg px-4 py-3 text-base font-semibold text-primary-80 transition hover:bg-primary/5 hover:text-primary-40",
-                            active && "text-primary-50"
-                          );
-
-                          if (!hasChildren) {
-                            return (
-                              <div key={item.id} className="w-full">
-                                {external ? (
-                                  <a href={href} className={linkClasses} target="_blank" rel="noreferrer">
-                                    {item.title}
-                                  </a>
-                                ) : (
-                                  <Link href={href} className={linkClasses}>
-                                    {item.title}
-                                  </Link>
-                                )}
-                              </div>
-                            );
-                          }
-
-                          return (
-                            <AccordionItem key={item.id} value={item.id} className="border-b border-primary/10">
-                              <AccordionTrigger
-                                className={cn(
-                                  linkClasses,
-                                  "pl-0 pr-2 text-left font-semibold data-[state=open]:text-primary-40"
-                                )}
-                              >
-                                <span className="flex-1 text-left">{item.title}</span>
-                              </AccordionTrigger>
-                              <AccordionContent>
-                                <div className="flex flex-col gap-2 pb-2 pt-1">
-                                  {renderMobileChildLinks(item.children, 1)}
-                                </div>
-                              </AccordionContent>
-                            </AccordionItem>
-                          );
-                        })}
-                      </Accordion>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col gap-3 border-t border-primary/10 pt-4">
-                    <Link href="/membership" className="text-sm font-medium text-primary-70">
-                      Bli medlem
-                    </Link>
-                    <Link href="/jobs" className="text-sm font-medium text-primary-70">
-                      Søk verv
-                    </Link>
-                    <Link href="/contact" className="text-sm font-medium text-primary-70">
-                      Kontakt oss
-                    </Link>
-                  </div>
+                    </div>
+                  )}
                 </div>
-              </SheetContent>
-            </Sheet>
+              );
+            })
+          )}
+        </nav>
+
+        <div className="ml-auto hidden items-center gap-2 xl:flex">
+          <SelectCampus
+            placeholder="Velg campus"
+            className="h-10 rounded-full border border-primary/15 bg-white px-4 text-sm font-medium text-primary-80 shadow-sm hover:border-primary/25"
+            campuses={campuses}
+          />
+          <LocaleSwitcher
+            variant="ghost"
+            size="sm"
+            className="h-10 rounded-full border border-primary/15 bg-white px-4 text-xs font-semibold uppercase tracking-[0.16em] text-primary-70 hover:bg-primary/5"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden h-10 w-10 rounded-full border border-primary/10 text-primary-80 hover:border-primary/30 hover:bg-primary/5 md:inline-flex"
+          >
+            <Search className="h-4 w-4" />
+            <span className="sr-only">Søk</span>
+          </Button>
+          <div className="hidden items-center gap-2 md:flex">
+            {PRIMARY_ACTIONS.map((action) => (
+              <Button
+                key={action.href}
+                asChild
+                size="sm"
+                className="group h-10 rounded-full bg-primary-100/95 px-4 text-sm font-semibold text-white shadow-card-soft hover:bg-primary-90"
+              >
+                <Link href={action.href} className="flex items-center gap-2">
+                  <action.icon className="h-4 w-4" />
+                  {action.label}
+                </Link>
+              </Button>
+            ))}
           </div>
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-11 w-11 rounded-full border border-primary/15 bg-white/90 text-primary-100 shadow-sm lg:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Åpne meny</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full max-w-sm border-l border-primary/10 bg-surface-strong/95 px-0 pb-12 pt-8 backdrop-blur">
+              <div className="flex flex-col gap-6 px-6">
+                <div className="flex flex-col gap-3">
+                  <Badge variant="gradient" className="w-max rounded-full px-3 py-1 text-xs uppercase tracking-[0.16em]">
+                    Studentliv
+                  </Badge>
+                  <p className="text-base font-semibold text-primary-90">Naviger BISO-universet</p>
+                </div>
+                <SelectCampus className="rounded-2xl border-primary/20 bg-white" campuses={campuses} />
+                <LocaleSwitcher className="w-full rounded-2xl border border-primary/20 bg-white py-2 text-primary-80" />
+                <div className="flex flex-wrap gap-2">
+                  {PRIMARY_ACTIONS.map((action) => (
+                    <Button
+                      key={action.href}
+                      asChild
+                      size="sm"
+                      className="flex-1 rounded-xl bg-primary-100/90 text-white shadow-card-soft hover:bg-primary-90"
+                    >
+                      <Link href={action.href} className="flex items-center justify-center gap-2">
+                        <action.icon className="h-4 w-4" />
+                        {action.label}
+                      </Link>
+                    </Button>
+                  ))}
+                </div>
+                <div className="flex flex-col gap-3">
+                  {loadingNav ? (
+                    Array.from({ length: 6 }).map((_, index) => (
+                      <Skeleton key={index} className="h-10 w-full rounded-xl bg-primary/10" />
+                    ))
+                  ) : (
+                    <Accordion type="multiple" className="w-full space-y-2">
+                      {navItems.map((item) => {
+                        const href = deriveHref(item, editMode);
+                        const external = isExternalLink(item);
+                        const hasChildren = item.children.length > 0;
+                        const active = isItemActive(item);
+
+                        const linkClasses = cn(
+                          "flex w-full items-center justify-between rounded-xl px-4 py-3 text-base font-semibold text-primary-80 transition hover:bg-primary/5 hover:text-primary-40",
+                          active && "bg-primary/5 text-primary-40"
+                        );
+
+                        if (!hasChildren) {
+                          return (
+                            <div key={item.id} className="w-full">
+                              {external ? (
+                                <a href={href} className={linkClasses} target="_blank" rel="noreferrer">
+                                  {item.title}
+                                </a>
+                              ) : (
+                                <Link href={href} className={linkClasses}>
+                                  {item.title}
+                                </Link>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <AccordionItem key={item.id} value={item.id} className="overflow-hidden rounded-xl border border-primary/10">
+                            <AccordionTrigger
+                              className={cn(
+                                linkClasses,
+                                "px-4 py-3 text-left font-semibold data-[state=open]:bg-primary/5 data-[state=open]:text-primary-40"
+                              )}
+                            >
+                              <span className="flex-1 text-left">{item.title}</span>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="flex flex-col gap-2 border-t border-primary/10 bg-white/80 px-4 py-3 dark:bg-surface-card">
+                                {renderMobileChildLinks(item.children, 1)}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  )}
+                </div>
+
+                <div className="grid gap-3 border-t border-primary/10 pt-4 text-sm font-medium text-primary-70">
+                  <Link href="/membership" className="flex items-center justify-between rounded-xl border border-primary/10 bg-white/70 px-4 py-2 hover:border-primary/20 hover:text-primary-40">
+                    Bli medlem
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                  <Link href="/jobs" className="flex items-center justify-between rounded-xl border border-primary/10 bg-white/70 px-4 py-2 hover:border-primary/20 hover:text-primary-40">
+                    Søk verv
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                  <Link href="/contact" className="flex items-center justify-between rounded-xl border border-primary/10 bg-white/70 px-4 py-2 hover:border-primary/20 hover:text-primary-40">
+                    Kontakt oss
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>

@@ -316,7 +316,7 @@ const NavMenuManager = ({ items }: NavMenuManagerProps) => {
   const topLevelItems = items.length
   const externalLinks = treeData.filter((node) => node.data?.isExternal).length
   const translationCoverage = useMemo(() => {
-    const localeCount = SUPPORTED_LOCALES.length
+    const localeCount = Number(SUPPORTED_LOCALES.length)
     if (localeCount === 0 || totalItems === 0) return 0
     const filled = treeData.reduce((total, node) => {
       return (
