@@ -1,7 +1,9 @@
 'use client'
 
+import { useMemo } from "react"
 import Image from "next/image"
-import { MoreHorizontal } from "lucide-react"
+import Link from "next/link"
+import { MoreHorizontal, Plus, TrendingUp } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -31,147 +33,240 @@ import {
 } from "@/components/ui/table"
 import { TabsContent } from "@/components/ui/tabs"
 
-import { updateProduct, deleteProduct } from '@/app/actions/products'
-import { ProductWithTranslations } from '@/lib/types/product'
-import Link from 'next/link'
+import { updateProduct, deleteProduct } from "@/app/actions/products"
+import { ProductWithTranslations } from "@/lib/types/product"
+import {
+  formatPercentage,
+  getLocaleLabel,
+  getStatusToken,
+  getUniqueLocales,
+  parseJSONSafe,
+} from "@/lib/utils/admin"
+
+const NOK_FORMATTER = new Intl.NumberFormat("nb-NO", {
+  style: "currency",
+  currency: "NOK",
+  maximumFractionDigits: 0,
+})
+
+const DATE_FORMATTER = new Intl.DateTimeFormat("nb-NO", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+})
 
 export function ProductsTable({ products }: { products: ProductWithTranslations[] }) {
-  const handleUpdateStatus = async (productId: string, newStatus: 'draft' | 'published' | 'archived') => {
+  const aggregates = useMemo(() => {
+    const total = products.length
+    const published = products.filter((product) => product.status === "published").length
+    const draft = products.filter((product) => product.status === "draft").length
+    const archived = products.filter((product) => product.status === "archived").length
+    const translationComplete = products.filter((product) => {
+      const refs = product.translation_refs ?? []
+      const locales = refs.map((ref) => ref.locale)
+      return locales.includes("no") && locales.includes("en")
+    }).length
+
+    return {
+      total,
+      published,
+      draft,
+      archived,
+      translationCoverage: formatPercentage(translationComplete, total),
+    }
+  }, [products])
+
+  const formatPrice = (metadata: Record<string, any>) => {
+    if (typeof metadata.price === "number") return NOK_FORMATTER.format(metadata.price)
+    const parsed = Number(metadata.price)
+    if (!Number.isFinite(parsed)) return "—"
+    return NOK_FORMATTER.format(parsed)
+  }
+
+  const handleUpdateStatus = async (productId: string, newStatus: "draft" | "published" | "archived") => {
     await updateProduct(productId, { status: newStatus })
-    // You might want to add some state management or refetching logic here
   }
 
   const handleDeleteProduct = async (productId: string) => {
     await deleteProduct(productId)
-    // You might want to add some state management or refetching logic here
   }
 
   return (
     <TabsContent value="all">
-      <Card>
-        <CardHeader>
-          <CardTitle>Products</CardTitle>
-          <CardDescription>
-            Manage your products and view their sales performance.
-          </CardDescription>
+      <div className="surface-spotlight glass-panel accent-ring mb-6 flex flex-col gap-6 rounded-3xl border border-primary/10 px-6 py-6 sm:px-8 sm:py-7">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-2">
+            <Badge variant="outline" className="rounded-full border-primary/20 bg-primary/5 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-primary-70">
+              Produktkatalog
+            </Badge>
+            <div className="space-y-1">
+              <h2 className="text-2xl font-semibold tracking-tight text-primary-100 sm:text-3xl">
+                Shop inventory
+              </h2>
+              <p className="text-sm text-primary-60">
+                Følg lanseringer, tilgjengelighet og språkdekning på merch og produkter.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild size="sm" className="rounded-full bg-primary-40 px-4 font-semibold text-white shadow-[0_15px_35px_-22px_rgba(0,23,49,0.7)] hover:bg-primary-30">
+              <Link href="/admin/shop/products/new" className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Nytt produkt
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" className="rounded-full border-primary/20 bg-white/80 text-primary-90 hover:bg-primary/5">
+              <TrendingUp className="mr-2 h-4 w-4" />
+              Rapporter
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { label: "Totalt", value: aggregates.total },
+            { label: "Publiserte", value: aggregates.published },
+            { label: "Utkast", value: aggregates.draft },
+            { label: "Oversettelser", value: aggregates.translationCoverage },
+          ].map((metric) => (
+            <div key={metric.label} className="rounded-2xl border border-primary/10 bg-white/80 px-4 py-4 shadow-[0_22px_45px_-32px_rgba(0,23,49,0.45)] backdrop-blur">
+              <span className="text-[0.65rem] uppercase tracking-[0.18em] text-primary-60">{metric.label}</span>
+              <span className="mt-1 block text-lg font-semibold text-primary-100">{metric.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Card className="glass-panel border border-primary/10 shadow-[0_30px_55px_-40px_rgba(0,23,49,0.4)]">
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold text-primary-100">Produkter</CardTitle>
+            <CardDescription className="text-sm text-primary-60">
+              Administrer produkter, status og lokalisering direkte i katalogen.
+            </CardDescription>
+          </div>
+          <Badge variant="outline" className="rounded-full border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-80">
+            {aggregates.translationCoverage} dekket
+          </Badge>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="hidden w-[100px] sm:table-cell">
-                  <span className="sr-only">Image</span>
-                </TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Translations</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Price
-                </TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Campus
-                </TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Created at
-                </TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map((product) => {
-                const hasEnglish = product.translation_refs?.some((t: any) => t.locale === 'en')
-                const hasNorwegian = product.translation_refs?.some((t: any) => t.locale === 'no')
-                const primaryTitle = product.translation_refs?.[0]?.title || product.slug
-                const metadata = product.metadata ? JSON.parse(product.metadata) : {}
-                
-                return (
-                  <TableRow key={product.$id}>
-                    <TableCell className="hidden sm:table-cell">
-                      <Image
-                        alt="Product image"
-                        className="aspect-square rounded-md object-cover"
-                        height="64"
-                        src={product.image || metadata.image || "/placeholder.svg"}
-                        width="64"
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      <Link href={`/admin/shop/products/${product.$id}`} className="hover:underline">
-                        {primaryTitle}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{product.status}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {hasEnglish && (
-                          <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                            🇬🇧 EN
-                          </span>
-                        )}
-                        {hasNorwegian && (
-                          <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                            🇳🇴 NO
-                          </span>
-                        )}
-                        {!hasEnglish && !hasNorwegian && (
-                          <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
-                            No translations
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {metadata.price ? `${metadata.price.toFixed(2)} NOK` : '-'}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {product.campus?.name || product.campus_id}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {new Date(product.$createdAt).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleUpdateStatus(product.$id, 'published')}>
-                          Set Published
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleUpdateStatus(product.$id, 'draft')}>
-                          Set Draft
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleUpdateStatus(product.$id, 'archived')}>
-                          Archive
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleDeleteProduct(product.$id)}>
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+        <CardContent className="p-0">
+          <div className="relative overflow-x-auto">
+            <Table className="text-sm">
+              <TableHeader>
+                <TableRow className="bg-primary/5">
+                  <TableHead className="hidden w-[100px] sm:table-cell">
+                    <span className="sr-only">Image</span>
+                  </TableHead>
+                  <TableHead className="min-w-[160px]">Produkt</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Oversettelser</TableHead>
+                  <TableHead className="hidden md:table-cell">Pris</TableHead>
+                  <TableHead className="hidden md:table-cell">Campus</TableHead>
+                  <TableHead className="hidden md:table-cell">Opprettet</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-primary/10 bg-white/70">
+                {products.map((product) => {
+                  const refs = product.translation_refs ?? []
+                  const metadata = parseJSONSafe<Record<string, unknown>>(product.metadata)
+                  const title = refs[0]?.title || product.slug
+                  const statusToken = getStatusToken(product.status)
+                  const uniqueLocales = getUniqueLocales(refs)
+                  const primaryImage = product.image || (metadata as any).image || "/placeholder.svg"
+
+                  return (
+                    <TableRow key={product.$id} className="group transition hover:bg-primary/5">
+                      <TableCell className="hidden sm:table-cell">
+                        <div className="overflow-hidden rounded-xl border border-primary/10 bg-primary/5">
+                          <Image
+                            alt={`${title} image`}
+                            className="aspect-square h-16 w-16 object-cover transition group-hover:scale-105"
+                            height={64}
+                            src={primaryImage}
+                            width={64}
+                          />
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium text-primary-100">
+                        <Link href={`/admin/shop/products/${product.$id}`} className="hover:underline">
+                          {title}
+                        </Link>
+                        <div className="text-xs text-primary-50">{product.slug}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`rounded-full px-3 py-0.5 text-xs font-semibold uppercase tracking-wide ${statusToken.className}`}>
+                          {statusToken.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1.5">
+                          {uniqueLocales.length > 0 ? (
+                            uniqueLocales.map((locale) => (
+                              <span
+                                key={`${product.$id}-${locale}`}
+                                className="inline-flex items-center rounded-full border border-primary/10 bg-primary/5 px-2 py-0.5 text-[11px] font-semibold text-primary-80"
+                              >
+                                {getLocaleLabel(locale)}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="inline-flex items-center rounded-full border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
+                              Mangler oversettelser
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {formatPrice(metadata)}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {product.campus?.name || product.campus_id || "—"}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {DATE_FORMATTER.format(new Date(product.$createdAt))}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-primary/10">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleUpdateStatus(product.$id, "published")}>
+                              Set Published
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleUpdateStatus(product.$id, "draft")}>
+                              Set Draft
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleUpdateStatus(product.$id, "archived")}>
+                              Archive
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleDeleteProduct(product.$id)}>
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
-        <CardFooter>
-          <div className="text-xs text-muted-foreground">
-            Showing <strong>1-{products.length}</strong> of <strong>{products.length}</strong> products
+        <CardFooter className="flex flex-col items-start justify-between gap-3 border-t border-primary/10 bg-white/70 px-6 py-4 text-xs text-primary-60 sm:flex-row sm:items-center sm:text-sm">
+          <span>
+            Viser <strong>1-{products.length}</strong> av <strong>{products.length}</strong> produkter
+          </span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary-70">
+            Oppdatert {DATE_FORMATTER.format(new Date())}
           </div>
         </CardFooter>
       </Card>

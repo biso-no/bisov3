@@ -47,14 +47,14 @@ interface NavItem {
   subItems?: { href: string; label: string; roles?: string[] }[];
 }
 
-const SidebarItem = ({ 
-  item, 
-  isActive, 
-  isExpanded, 
-  pathname 
-}: { 
-  item: NavItem; 
-  isActive: boolean; 
+const SidebarItem = ({
+  item,
+  isActive,
+  isExpanded,
+  pathname,
+}: {
+  item: NavItem;
+  isActive: boolean;
   isExpanded: boolean;
   pathname: string;
 }) => {
@@ -62,41 +62,44 @@ const SidebarItem = ({
 
   useEffect(() => {
     if (item.subItems) {
-      setIsOpen(item.subItems.some(subItem => pathname.startsWith(subItem.href)));
+      setIsOpen(item.subItems.some((subItem) => pathname.startsWith(subItem.href)));
     }
   }, [pathname, item.subItems]);
 
   return (
     <motion.li
       initial={false}
-      animate={{ backgroundColor: isActive ? 'rgb(37 99 235)' : 'transparent' }}
-      className="mb-2 rounded-lg overflow-hidden"
+      animate={{
+        scale: isActive ? 1.01 : 1,
+        backgroundColor: isActive ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0)",
+      }}
+      className="group relative mb-1 rounded-2xl px-2 py-1"
     >
-      <div className={cn(
-          "flex items-center px-4 py-3 text-sm transition-all duration-200 ease-in-out rounded-lg mx-2",
-          isActive 
-            ? "bg-blue-600 text-white shadow-md" 
-            : "text-gray-300 hover:bg-gray-800/50"
-        )}>
-        <Link
-          href={item.href}
-          className="flex-1 flex items-center"
-        >
-          <motion.div
+      <div
+        className={cn(
+          "flex items-center gap-2 rounded-2xl px-2 py-2 transition-all duration-200 ease-out",
+          isActive
+            ? "bg-white/15 text-white shadow-[0_15px_35px_-25px_rgba(0,0,0,0.8)] backdrop-blur"
+            : "text-white/70 hover:bg-white/5 hover:text-white"
+        )}
+      >
+        <Link href={item.href} className="flex flex-1 items-center gap-3">
+          <motion.span
             initial={false}
-            animate={{ 
-              color: isActive ? '#ffffff' : '#9ca3af',
-              rotate: item.subItems && isOpen ? 90 : 0 
+            animate={{
+              backgroundColor: isActive ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.08)",
+              color: isActive ? "rgba(255,255,255,0.98)" : "rgba(255,255,255,0.75)",
             }}
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-sm font-medium"
           >
-            <item.icon className="h-5 w-5" />
-          </motion.div>
+            <item.icon className="h-4 w-4" />
+          </motion.span>
           {isExpanded && (
             <motion.span
-              initial={{ opacity: 0, x: -10 }}
+              initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              className="ml-3"
+              exit={{ opacity: 0, x: -12 }}
+              className="text-sm font-medium"
             >
               {item.label}
             </motion.span>
@@ -109,44 +112,41 @@ const SidebarItem = ({
               e.stopPropagation();
               setIsOpen(!isOpen);
             }}
-            className="ml-auto p-1 hover:bg-gray-700/50 rounded-md"
+            className="rounded-lg p-1.5 text-white/60 transition hover:bg-white/10 hover:text-white"
           >
-            <ChevronRight className={cn(
-              "h-4 w-4 transition-transform",
-              isOpen && "transform rotate-90"
-            )} />
+            <ChevronRight
+              className={cn("h-4 w-4 transition-transform", isOpen && "rotate-90")}
+            />
           </button>
         )}
       </div>
       {item.subItems && isExpanded && (
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {isOpen && (
             <motion.ul
               initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
+              animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="ml-6 mt-2 space-y-1 overflow-hidden"
+              className="ml-7 mt-2 space-y-1 border-l border-white/10 pl-4"
             >
-              {item.subItems.map((subItem) => (
-                <motion.li
-                  key={subItem.href}
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: -20, opacity: 0 }}
-                >
-                  <Link
-                    href={subItem.href}
-                    className={cn(
-                      "flex items-center px-4 py-2 text-sm transition-colors duration-200 ease-in-out rounded-lg",
-                      pathname === subItem.href
-                        ? "text-blue-400 bg-blue-500/10"
-                        : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/30"
-                    )}
-                  >
-                    {subItem.label}
-                  </Link>
-                </motion.li>
-              ))}
+              {item.subItems.map((subItem) => {
+                const isSubActive = pathname === subItem.href;
+                return (
+                  <motion.li key={subItem.href} initial={{ x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
+                    <Link
+                      href={subItem.href}
+                      className={cn(
+                        "flex items-center rounded-xl px-3 py-2 text-xs font-medium transition-colors",
+                        isSubActive
+                          ? "bg-white/15 text-white shadow-inner"
+                          : "text-white/60 hover:bg-white/5 hover:text-white"
+                      )}
+                    >
+                      {subItem.label}
+                    </Link>
+                  </motion.li>
+                );
+              })}
             </motion.ul>
           )}
         </AnimatePresence>
@@ -259,107 +259,130 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-      <motion.nav
-        initial={false}
-        animate={{ width: isSidebarExpanded ? 256 : 80 }}
-        className="bg-gray-900 shrink-0 flex flex-col justify-between shadow-xl"
-      >
-        <div>
-          <motion.div
-            className="p-4 flex items-center"
-            initial={false}
-            animate={{ justifyContent: isSidebarExpanded ? 'flex-start' : 'center' }}
-          >
-            <span className="text-xl font-bold bg-linear-to-r from-blue-400 to-blue-600 text-transparent bg-clip-text">
-              {isSidebarExpanded ? 'BISO Admin' : 'BA'}
-            </span>
-          </motion.div>
-          <ul className="mt-6">
-            <AnimatePresence mode="wait">
-              {navItems.map((item) => {
-                if (!hasAccess(item.roles)) return null;
+    <div className="relative isolate flex min-h-screen overflow-hidden bg-gradient-to-br from-primary-10/25 via-slate-50 to-secondary-10/40">
+      <div className="pointer-events-none absolute inset-0 bg-grid-primary-soft opacity-40" />
+      <div className="pointer-events-none absolute -left-20 top-[-18%] h-72 w-72 rounded-full bg-secondary-20/60 blur-[140px]" />
+      <div className="pointer-events-none absolute bottom-[-25%] right-[-10%] h-80 w-80 rounded-full bg-gold-muted/45 blur-[160px]" />
 
-                const isActive =
-                  item.href === '/admin'
-                    ? pathname === '/admin' || pathname === '/admin/'
-                    : pathname.startsWith(item.href);
-
-                return (
-                  <SidebarItem
-                    key={item.href}
-                    item={item}
-                    isActive={isActive}
-                    isExpanded={isSidebarExpanded}
-                    pathname={pathname}
-                  />
-                );
-              })}
-            </AnimatePresence>
-          </ul>
-        </div>
-        <button
-          onClick={toggleSidebar}
-          className="p-4 mx-auto mb-4 text-gray-400 hover:text-white focus:outline-none 
-                   transition-colors duration-200 ease-in-out hover:bg-gray-800 rounded-lg"
+      <div className="relative z-10 flex w-full gap-4 p-4">
+        <motion.nav
+          initial={false}
+          animate={{ width: isSidebarExpanded ? 268 : 88 }}
+          className="relative flex shrink-0 flex-col overflow-hidden rounded-[26px] border border-primary-100/30 bg-primary-100/95 text-white shadow-[0_45px_80px_-45px_rgba(0,23,49,0.9)]"
         >
-          <motion.div
-            animate={{ rotate: isSidebarExpanded ? 0 : 180 }}
-            transition={{ duration: 0.3 }}
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </motion.div>
-        </button>
-      </motion.nav>
+          <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(61,169,224,0.25),transparent_60%)]" />
+          <div className="relative flex h-full flex-col justify-between">
+            <div>
+              <motion.div
+                className="flex items-center gap-3 px-4 pb-4 pt-5"
+                initial={false}
+                animate={{ justifyContent: isSidebarExpanded ? "flex-start" : "center" }}
+              >
+                <Link href="/admin" className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-lg font-semibold tracking-tight text-white">
+                  B
+                </Link>
+                {isSidebarExpanded && (
+                  <div className="space-y-0.5">
+                    <span className="text-xs uppercase tracking-[0.2em] text-white/60">BISO Admin</span>
+                    <span className="text-base font-semibold leading-none text-white">Control Center</span>
+                  </div>
+                )}
+              </motion.div>
+              <div className="px-4">
+                <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
+                  <p className="text-[0.65rem] uppercase tracking-[0.24em] text-white/60">Aktiv rolle</p>
+                  <p className="text-sm font-medium text-white">{selectedRole}</p>
+                </div>
+              </div>
+              <ul className="mt-6 space-y-1 px-2">
+                <AnimatePresence mode="wait">
+                  {navItems.map((item) => {
+                    if (!hasAccess(item.roles)) return null;
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-800 border-b dark:border-gray-700 shadow-sm">
-          <div className="flex items-center gap-4">
-            <span className="text-2xl font-semibold text-gray-800 dark:text-gray-200">
-              {isLoading ? <Skeleton className="h-8 w-32" /> : `Welcome, ${firstName}`}
+                    const isActive =
+                      item.href === "/admin"
+                        ? pathname === "/admin" || pathname === "/admin/"
+                        : pathname.startsWith(item.href);
+
+                    return (
+                      <SidebarItem
+                        key={item.href}
+                        item={item}
+                        isActive={isActive}
+                        isExpanded={isSidebarExpanded}
+                        pathname={pathname}
+                      />
+                    );
+                  })}
+                </AnimatePresence>
+              </ul>
+            </div>
+            <div className="mt-6 space-y-3 px-4 pb-4">
+              <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-xs text-white/70">
+                <p className="font-semibold text-white">Supportlinje</p>
+                <p className="mt-1 text-white/70">support@biso.no</p>
+              </div>
+              <button
+                onClick={toggleSidebar}
+                className="flex h-11 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-sm font-medium text-white/80 transition hover:bg-white/20"
+              >
+                <motion.div animate={{ rotate: isSidebarExpanded ? 0 : 180 }} transition={{ duration: 0.25 }}>
+                  <ChevronLeft className="h-5 w-5" />
+                </motion.div>
+                {isSidebarExpanded && <span className="ml-2">Collapse</span>}
+              </button>
+            </div>
+          </div>
+        </motion.nav>
+
+        <div className="flex flex-1 flex-col overflow-hidden rounded-[32px] bg-white/85 shadow-[0_45px_80px_-60px_rgba(0,23,49,0.35)] backdrop-blur-xl">
+          <header className="sticky top-0 z-20 flex flex-col gap-4 border-b border-primary/10 bg-white/85 px-6 py-4 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:gap-6 lg:px-10">
+          <div className="flex flex-col gap-2">
+            <span className="text-xs uppercase tracking-[0.22em] text-primary-60">
+              {isLoading ? "Laster..." : `Velkommen tilbake`}
             </span>
-            {roles.includes('Admin') && (
-              <RoleSwitcher
-                roles={roles}
-                selectedRole={selectedRole}
-                setSelectedRole={setSelectedRole}
-              />
-            )}
-            <div className="ml-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-2xl font-semibold text-primary-100">
+                {isLoading ? <Skeleton className="h-8 w-32" /> : firstName}
+              </span>
+              {roles.includes("Admin") && (
+                <RoleSwitcher roles={roles} selectedRole={selectedRole} setSelectedRole={setSelectedRole} />
+              )}
+            </div>
+            <div className="rounded-full border border-primary/10 bg-primary/5 px-4 py-1 text-xs font-medium text-primary-70">
               <Breadcrumb />
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-1 flex-wrap items-center justify-end gap-3">
+            <div className="relative w-full max-w-sm">
+              <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-primary-30" />
               <Input
                 type="search"
-                placeholder="Search..."
-                className="w-[280px] pl-8"
+                placeholder="Hurtigsøk i admin..."
+                className="w-full rounded-2xl border-primary/10 bg-white/60 pl-9 text-sm shadow-inner focus-visible:ring-primary-30"
                 onFocus={() => setIsSearchOpen(true)}
                 onBlur={() => setIsSearchOpen(false)}
               />
+              {isSearchOpen && <span className="pointer-events-none absolute right-3 top-2 text-[11px] uppercase tracking-[0.18em] text-primary-40">⌘K</span>}
             </div>
-            <Button variant="ghost" size="icon" className="relative">
+            <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-xl border border-primary/10 bg-white/70 text-primary-80 hover:bg-primary/5">
               <Bell className="h-5 w-5" />
-              <span className="absolute top-0 right-0 h-2 w-2 bg-red-500 rounded-full" />
+              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-secondary-100" />
             </Button>
-            <Avatar className="h-8 w-8">
+            <Avatar className="h-10 w-10 border border-primary/10 shadow-sm">
               <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${firstName}`} />
               <AvatarFallback>{firstName.charAt(0)}</AvatarFallback>
             </Avatar>
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
+              className="h-10 w-10 rounded-xl border border-primary/10 bg-primary-10/60 text-primary-80 hover:bg-primary/10"
               onClick={handleSignOut}
               disabled={isLoading}
             >
               {isLoading ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                >
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
                   <LogOut className="h-5 w-5" />
                 </motion.div>
               ) : (
@@ -369,22 +392,23 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
           </div>
         </header>
 
-        <main className="flex-1 min-h-0 bg-gray-100 dark:bg-gray-900">
+        <main className="relative flex-1">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary-10/18 via-transparent to-secondary-10/30" />
           {assistantMode === "sidebar" && assistantSidebarOpen ? (
-            <ResizablePanelGroup direction="horizontal" className="h-full">
-              <ResizablePanel defaultSize={72} minSize={40} className="min-w-0">
-                <div className="h-full overflow-y-auto px-6 py-6">
+            <ResizablePanelGroup direction="horizontal" className="relative z-10 h-full">
+              <ResizablePanel defaultSize={70} minSize={40} className="min-w-0">
+                <div className="h-full overflow-y-auto px-6 py-6 lg:px-10 lg:py-8">
                   {children}
                 </div>
               </ResizablePanel>
-              <ResizableHandle />
-              <ResizablePanel defaultSize={28} minSize={20} maxSize={60} className="min-w-[280px]">
-                <div className="flex h-full flex-col border-l bg-popover">
-                  <div className="flex items-center justify-between border-b px-3 py-2">
-                    <span className="text-sm font-medium">Admin Assistant</span>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setSidebarOpen(false)}>Close</Button>
-                    </div>
+              <ResizableHandle className="bg-primary/10" />
+              <ResizablePanel defaultSize={30} minSize={22} maxSize={50} className="min-w-[280px] bg-white/70 backdrop-blur-xl">
+                <div className="flex h-full flex-col border-l border-primary/10">
+                  <div className="flex items-center justify-between border-b border-primary/10 px-4 py-3">
+                    <span className="text-sm font-semibold text-primary-90">Admin Assistant</span>
+                    <Button variant="outline" size="sm" onClick={() => setSidebarOpen(false)}>
+                      Close
+                    </Button>
                   </div>
                   <div className="flex-1 min-h-0">
                     <AssistantSidebar open={assistantSidebarOpen} onOpenChange={setSidebarOpen} docked />
@@ -393,14 +417,15 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
               </ResizablePanel>
             </ResizablePanelGroup>
           ) : (
-            <div className="h-full overflow-y-auto px-6 py-6">
+            <div className="relative z-10 h-full overflow-y-auto px-6 py-6 lg:px-10 lg:py-8">
               {children}
-              <div className="fixed bottom-6 right-6 z-50">
-                <AssistantModal />
-              </div>
             </div>
           )}
+          <div className="fixed bottom-6 right-6 z-40">
+            <AssistantModal />
+          </div>
         </main>
+        </div>
       </div>
     </div>
   );

@@ -398,3 +398,90 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .bg-grid-primary {
+    background-image: linear-gradient(
+        to right,
+        rgba(0, 23, 49, 0.08) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        rgba(0, 23, 49, 0.08) 1px,
+        transparent 1px
+      );
+    background-size: 32px 32px;
+  }
+
+  .bg-grid-primary-soft {
+    background-image: linear-gradient(
+        to right,
+        rgba(0, 23, 49, 0.04) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        rgba(0, 23, 49, 0.04) 1px,
+        transparent 1px
+      );
+    background-size: 40px 40px;
+  }
+
+  .surface-spotlight {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .surface-spotlight::before {
+    content: "";
+    position: absolute;
+    inset: -40% auto auto -20%;
+    width: clamp(320px, 40vw, 520px);
+    aspect-ratio: 1 / 1;
+    border-radius: 999px;
+    background: radial-gradient(circle at center,
+        rgba(61, 169, 224, 0.28),
+        rgba(0, 23, 49, 0));
+    filter: blur(4px);
+    opacity: 0.85;
+    z-index: -2;
+  }
+
+  .surface-spotlight::after {
+    content: "";
+    position: absolute;
+    inset: auto -20% -40% auto;
+    width: clamp(280px, 32vw, 420px);
+    aspect-ratio: 1 / 1;
+    border-radius: 999px;
+    background: radial-gradient(circle at center,
+        rgba(247, 214, 74, 0.18),
+        rgba(0, 23, 49, 0));
+    filter: blur(6px);
+    opacity: 0.8;
+    z-index: -2;
+  }
+
+  .glass-panel {
+    @apply relative overflow-hidden rounded-3xl border border-primary/10 bg-white/80 shadow-[0_25px_60px_-30px_rgba(0,23,49,0.45)] backdrop-blur-xl;
+  }
+
+  .glass-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(61, 169, 224, 0.08), rgba(0, 23, 49, 0.12));
+    opacity: 0.75;
+    z-index: -1;
+  }
+
+  .accent-ring {
+    box-shadow: 0 0 0 1px rgba(0, 23, 49, 0.08), 0 30px 60px -40px rgba(0, 23, 49, 0.45);
+  }
+
+  .gradient-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(0, 23, 49, 0.2), transparent);
+  }
+}

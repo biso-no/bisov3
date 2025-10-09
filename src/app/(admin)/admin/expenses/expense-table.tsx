@@ -1,7 +1,21 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
+import { ArrowUpDown, CheckCircle2, Clock, Edit, Loader2, Search } from "lucide-react";
+
 import { Expense } from "@/lib/types/expense";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -10,86 +24,51 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useRouter } from "next/navigation";
-import { Edit, Search, ArrowUpDown, Clock, CheckCircle2, Loader2 } from 'lucide-react';
-import { useState, useMemo, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { motion, AnimatePresence } from "motion/react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  formatPercentage,
+  getStatusToken,
+  getUniqueLocales,
+  parseJSONSafe,
+} from "@/lib/utils/admin";
 
-// Loading skeleton for the table
 const TableSkeleton = () => (
-  <div className="space-y-4">
-    {[...Array(5)].map((_, i) => (
-      <div key={i} className="flex gap-4">
-        {[...Array(7)].map((_, j) => (
-          <Skeleton key={j} className="h-8 flex-1" />
+  <div className="space-y-3">
+    {Array.from({ length: 6 }).map((_, row) => (
+      <div key={row} className="flex gap-3">
+        {Array.from({ length: 6 }).map((_, cell) => (
+          <Skeleton key={cell} className="h-10 flex-1 rounded-xl" />
         ))}
       </div>
     ))}
   </div>
 );
 
-const StatCard = ({ 
-  title, 
-  value, 
-  icon: Icon, 
-  trend 
-}: { 
-  title: string; 
-  value: number; 
-  icon: React.ElementType;
-  trend?: number;
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3 }}
-  >
-    <Card className="overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-baseline space-x-3">
-          <div className="text-2xl font-bold">{value}</div>
-          {trend && (
-            <span className={`text-sm ${trend > 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {trend > 0 ? '+' : ''}{trend}%
-            </span>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  </motion.div>
-);
+const EXPENSE_STATUS_TOKENS = {
+  pending: { label: "Pending", className: "bg-amber-100 text-amber-800 border-amber-200" },
+  submitted: { label: "Submitted", className: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+};
+
+const STATUS_ICONS: Record<string, React.ElementType> = {
+  pending: Clock,
+  submitted: CheckCircle2,
+};
+
+const NOK_FORMATTER = new Intl.NumberFormat("nb-NO", {
+  style: "currency",
+  currency: "NOK",
+  maximumFractionDigits: 0,
+});
 
 const StatusBadge = ({ status }: { status: string }) => {
-  const config = {
-    pending: {
-      icon: Clock,
-      className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200",
-    },
-    submitted: {
-      icon: CheckCircle2,
-      className: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200",
-    },
-  };
-
-  const statusConfig = config[status as keyof typeof config];
-  const Icon = statusConfig.icon;
+  const token = getStatusToken(status, EXPENSE_STATUS_TOKENS);
+  const Icon = STATUS_ICONS[status] ?? CheckCircle2;
 
   return (
-    <Badge 
-      variant="secondary" 
-      className={`${statusConfig.className} flex items-center gap-1.5`}
-    >
+    <Badge className={`flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-semibold uppercase tracking-wide ${token.className}`}>
       <Icon className="h-3 w-3" />
-      {status}
+      {token.label}
     </Badge>
   );
 };
@@ -97,230 +76,303 @@ const StatusBadge = ({ status }: { status: string }) => {
 export function AdminExpenseTable({ expenses }: { expenses: Expense[] }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [uniqueDepartments, setUniqueDepartments] = useState<string[]>([]);
-  const [uniqueCampuses, setUniqueCampuses] = useState<string[]>([]);
-  const [formData, setFormData] = useState({
+  const [searchParams, setSearchParams] = useState({
     search: "",
     department: "all",
     campus: "all",
-    status: "all"
+    status: "all",
   });
-  const [filters, setFilters] = useState({
-    search: "",
-    department: "all",
-    campus: "all",
-    status: "all"
-  });
-  const [sortConfig, setSortConfig] = useState<{
-    key: keyof Expense | null;
-    direction: 'asc' | 'desc';
-  }>({ key: null, direction: 'asc' });
+  const [filters, setFilters] = useState(searchParams);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Expense | null; direction: "asc" | "desc" }>({ key: null, direction: "asc" });
+
+  const uniqueDepartments = useMemo(
+    () => Array.from(new Set(expenses.map((expense) => expense.department).filter(Boolean))) as string[],
+    [expenses]
+  );
+  const uniqueCampuses = useMemo(
+    () => Array.from(new Set(expenses.map((expense) => expense.campus).filter(Boolean))) as string[],
+    [expenses]
+  );
 
   useEffect(() => {
-    const departments = Array.from(new Set(expenses.map(expense => expense.department)));
-    const campuses = Array.from(new Set(expenses.map(expense => expense.campus)));
-    setUniqueDepartments(departments);
-    setUniqueCampuses(campuses);
-    // Simulate loading state
-    const timer = setTimeout(() => setIsLoading(false), 1000);
+    const timer = setTimeout(() => setIsLoading(false), 600);
     return () => clearTimeout(timer);
   }, [expenses]);
 
-  const handleSort = (key: keyof Expense) => {
-    setSortConfig({
-      key,
-      direction:
-        sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc',
-    });
-  };
-
   const filteredExpenses = useMemo(() => {
-    return expenses.filter(
-      (expense) =>
-        (filters.search === "" ||
-          expense.user?.name?.toLowerCase().includes(filters.search.toLowerCase())) &&
-        (filters.department === "all" || expense.department === filters.department) &&
-        (filters.campus === "all" || expense.campus === filters.campus) &&
-        (filters.status === "all" || expense.status === filters.status)
-    );
-  }, [filters, expenses]);
+    return expenses.filter((expense) => {
+      const matchesSearch =
+        filters.search === "" || expense.user?.name?.toLowerCase().includes(filters.search.toLowerCase());
+      const matchesDepartment = filters.department === "all" || expense.department === filters.department;
+      const matchesCampus = filters.campus === "all" || expense.campus === filters.campus;
+      const matchesStatus = filters.status === "all" || expense.status === filters.status;
+      return matchesSearch && matchesDepartment && matchesCampus && matchesStatus;
+    });
+  }, [expenses, filters]);
 
   const sortedExpenses = useMemo(() => {
     const sorted = [...filteredExpenses];
     if (sortConfig.key) {
       sorted.sort((a, b) => {
-        if (a[sortConfig.key!] < b[sortConfig.key!]) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (a[sortConfig.key!] > b[sortConfig.key!]) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
+        const aValue = a[sortConfig.key!];
+        const bValue = b[sortConfig.key!];
+        if (aValue === bValue) return 0;
+        if (aValue === undefined || aValue === null) return 1;
+        if (bValue === undefined || bValue === null) return -1;
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
       });
     }
     return sorted;
   }, [filteredExpenses, sortConfig]);
 
+  const stats = useMemo(() => ({
+    pending: expenses.filter((expense) => expense.status === "pending").length,
+    submitted: expenses.filter((expense) => expense.status === "submitted").length,
+    totalAmount: expenses.reduce((sum, expense) => sum + Number(expense.total ?? 0), 0),
+    campuses: new Set(expenses.map((expense) => expense.campus)).size,
+    departments: new Set(expenses.map((expense) => expense.department)).size,
+  }), [expenses]);
 
+  const approvalRate = formatPercentage(stats.submitted, expenses.length);
+  const summaryMetrics = [
+    { label: "Totalt", value: expenses.length },
+    { label: "Pending", value: stats.pending },
+    { label: "Submitted", value: stats.submitted },
+    { label: "Godkjenningsgrad", value: approvalRate },
+    { label: "Campuser", value: stats.campuses },
+  ];
+  const formattedTotal = NOK_FORMATTER.format(stats.totalAmount);
 
-  const handleChange = (field: string) => (value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleSort = (key: keyof Expense) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFilters(formData);
+  const getSortIcon = (key: keyof Expense) => {
+    if (sortConfig.key !== key) return null;
+    return sortConfig.direction === "asc" ? <ArrowUpDown className="h-4 w-4 rotate-180" /> : <ArrowUpDown className="h-4 w-4" />;
   };
 
-  const actionClick = async (selected_expense_id: string) => {
+  const handleSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    setFilters(searchParams);
+  };
+
+  const handleReset = () => {
+    const cleared = { search: "", department: "all", campus: "all", status: "all" };
+    setSearchParams(cleared);
+    setFilters(cleared);
+  };
+
+  const actionClick = async (expenseId: string) => {
     setIsLoading(true);
     try {
-      await router.push(`/admin/expenses/${selected_expense_id}`);
+      await router.push(`/admin/expenses/${expenseId}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const stats = useMemo(() => ({
-    pending: expenses.filter(expense => expense.status === "pending").length,
-    submitted: expenses.filter(expense => expense.status === "submitted").length,
-    totalAmount: expenses.reduce((sum, expense) => sum + Number(expense.total), 0),
-  }), [expenses]);
-
   return (
-    <div className="container mx-auto py-10 space-y-8">
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard
-          title="Pending Expenses"
-          value={stats.pending}
-          icon={Clock}
-          trend={5}
-        />
-        <StatCard
-          title="Submitted Expenses"
-          value={stats.submitted}
-          icon={CheckCircle2}
-          trend={-2}
-        />
-        <StatCard
-          title="Total Amount"
-          value={Number((stats.totalAmount / 1000).toFixed(1))}
-          icon={ArrowUpDown}
-        />
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Expenses Overview</h1>
-          <p className="text-sm text-muted-foreground">
-            Showing {filteredExpenses.length} of {expenses.length} expenses
-          </p>
+    <div className="space-y-8">
+      <section className="surface-spotlight glass-panel accent-ring relative overflow-hidden rounded-3xl border border-primary/10 px-6 py-6 sm:px-8 sm:py-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-3">
+            <Badge variant="outline" className="rounded-full border-primary/15 bg-primary/5 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-primary-70">
+              Utlegg
+            </Badge>
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold tracking-tight text-primary-100 sm:text-3xl">Expense intelligence</h1>
+              <p className="text-sm text-primary-60">
+                Følg status, campus og volum for innsendte utlegg fra hele organisasjonen.
+              </p>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-70">
+              Totalsum {formattedTotal}
+            </div>
+          </div>
+          <div className="grid w-full max-w-md grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:w-auto">
+            {summaryMetrics.map((metric) => (
+              <div key={metric.label} className="rounded-2xl border border-primary/10 bg-white/80 px-4 py-3 text-center shadow-[0_20px_45px_-32px_rgba(0,23,49,0.45)] backdrop-blur">
+                <span className="text-[0.65rem] uppercase tracking-[0.18em] text-primary-50">{metric.label}</span>
+                <span className="mt-1 block text-lg font-semibold text-primary-100">{metric.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
+      </section>
 
-        <form onSubmit={handleSearch} className="grid gap-4 md:grid-cols-5">
-          <Input
-            type="text"
-            placeholder="Search by name..."
-            value={formData.search}
-            onChange={(e) => setFormData(prev => ({ ...prev, search: e.target.value }))}
-            className="md:col-span-2"
-          />
-          <Select value={formData.department} onValueChange={handleChange("department")}>
-            <SelectTrigger>
-              <SelectValue placeholder="All Departments" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Departments</SelectItem>
-              {uniqueDepartments.map((dep) => (
-                <SelectItem key={dep} value={dep}>{dep}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={formData.campus} onValueChange={handleChange("campus")}>
-            <SelectTrigger>
-              <SelectValue placeholder="All Campuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Campuses</SelectItem>
-              {uniqueCampuses.map((camp) => (
-                <SelectItem key={camp} value={camp}>{camp}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button type="submit" className="w-full">
-            <Search className="w-4 h-4 mr-2" />
-            Search
-          </Button>
-        </form>
-      </div>
-
-      <div className="rounded-md border">
-        {isLoading ? (
-          <TableSkeleton />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead onClick={() => handleSort('user')} className="cursor-pointer hover:bg-muted/50">
-                  User <ArrowUpDown className="inline h-4 w-4 ml-1" />
-                </TableHead>
-                <TableHead onClick={() => handleSort('department')} className="cursor-pointer hover:bg-muted/50">
-                  Department <ArrowUpDown className="inline h-4 w-4 ml-1" />
-                </TableHead>
-                <TableHead onClick={() => handleSort('campus')} className="cursor-pointer hover:bg-muted/50">
-                  Campus <ArrowUpDown className="inline h-4 w-4 ml-1" />
-                </TableHead>
-                <TableHead>Bank Account</TableHead>
-                <TableHead onClick={() => handleSort('total')} className="cursor-pointer hover:bg-muted/50">
-                  Total <ArrowUpDown className="inline h-4 w-4 ml-1" />
-                </TableHead>
-                <TableHead onClick={() => handleSort('status')} className="cursor-pointer hover:bg-muted/50">
-                  Status <ArrowUpDown className="inline h-4 w-4 ml-1" />
-                </TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <AnimatePresence>
-                {sortedExpenses.map((expense) => (
-                  <motion.tr
-                    key={expense.$id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="group"
-                  >
-                    <TableCell>{expense.user?.name || 'N/A'}</TableCell>
-                    <TableCell>{expense.department}</TableCell>
-                    <TableCell>{expense.campus}</TableCell>
-                    <TableCell>{expense.bank_account}</TableCell>
-                    <TableCell>
-                      {new Intl.NumberFormat('sv-SE', { 
-                        style: 'currency', 
-                        currency: 'SEK' 
-                      }).format(Number(expense.total))}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={expense.status} />
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => actionClick(expense.$id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        View
-                      </Button>
-                    </TableCell>
-                  </motion.tr>
+      <Card className="glass-panel border border-primary/10 shadow-[0_30px_55px_-40px_rgba(0,23,49,0.5)]">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-primary-100">Filtrer utlegg</CardTitle>
+          <CardDescription className="text-sm text-primary-60">
+            Avgrens listen etter søker, avdeling, campus og status.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSearch} className="grid gap-3 md:grid-cols-5">
+            <Input
+              type="text"
+              placeholder="Søk på navn..."
+              value={searchParams.search}
+              onChange={(e) => setSearchParams((prev) => ({ ...prev, search: e.target.value }))}
+              className="rounded-xl border-primary/20 bg-white/70 text-sm focus-visible:ring-primary-40 md:col-span-2"
+            />
+            <Select value={searchParams.department} onValueChange={(value) => setSearchParams((prev) => ({ ...prev, department: value }))}>
+              <SelectTrigger className="rounded-xl border-primary/20 bg-white/70 text-sm">
+                <SelectValue placeholder="Alle avdelinger" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle avdelinger</SelectItem>
+                {uniqueDepartments.map((dep) => (
+                  <SelectItem key={dep} value={dep}>
+                    {dep || "—"}
+                  </SelectItem>
                 ))}
-              </AnimatePresence>
-            </TableBody>
-          </Table>
-        )}
+              </SelectContent>
+            </Select>
+            <Select value={searchParams.campus} onValueChange={(value) => setSearchParams((prev) => ({ ...prev, campus: value }))}>
+              <SelectTrigger className="rounded-xl border-primary/20 bg-white/70 text-sm">
+                <SelectValue placeholder="Alle campuser" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle campuser</SelectItem>
+                {uniqueCampuses.map((campusName) => (
+                  <SelectItem key={campusName} value={campusName}>
+                    {campusName || "—"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={searchParams.status} onValueChange={(value) => setSearchParams((prev) => ({ ...prev, status: value }))}>
+              <SelectTrigger className="rounded-xl border-primary/20 bg-white/70 text-sm">
+                <SelectValue placeholder="Alle statuser" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle statuser</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="submitted">Submitted</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1 rounded-xl bg-primary-40 text-sm font-semibold text-white shadow hover:bg-primary-30">
+                Filtrer
+              </Button>
+              <Button type="button" variant="outline" className="rounded-xl border-primary/20 bg-white/70 text-sm" onClick={handleReset}>
+                Nullstill
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <div className="glass-panel overflow-hidden rounded-3xl border border-primary/10 bg-white/85 shadow-[0_25px_55px_-38px_rgba(0,23,49,0.45)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/10 px-6 py-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-primary-100">Utleggsoversikt</h2>
+            <p className="text-sm text-primary-60">
+              Viser {filteredExpenses.length} av {expenses.length} registrerte utlegg
+            </p>
+          </div>
+          <Badge variant="outline" className="rounded-full border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-70">
+            {approvalRate} godkjent
+          </Badge>
+        </div>
+        <div className="relative">
+          {isLoading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur">
+              <Loader2 className="h-6 w-6 animate-spin text-primary-80" />
+            </div>
+          )}
+          <div className="overflow-x-auto">
+            <Table className="min-w-[760px] text-sm">
+              <TableHeader>
+                <TableRow className="bg-primary/5">
+                  <TableHead className="w-[200px] cursor-pointer" onClick={() => handleSort("user")}>
+                    <div className="flex items-center gap-2">
+                      Navn
+                      {getSortIcon("user")}
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("department")}>
+                    Avdeling
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("campus")}>
+                    Campus
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("category")}>
+                    Kategori
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("total")}>
+                    Beløp
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("status")}>
+                    Status
+                  </TableHead>
+                  <TableHead className="text-right">Handlinger</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-primary/10">
+                <AnimatePresence>
+                  {(isLoading ? [] : sortedExpenses).map((expense) => (
+                    <motion.tr
+                      key={expense.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.18 }}
+                      className="bg-white/70 transition hover:bg-primary/5"
+                    >
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary-80">
+                            {expense.user?.name?.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="flex flex-col">
+                            <span>{expense.user?.name}</span>
+                            <span className="text-xs text-primary-50">{expense.user?.email}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{expense.department || "—"}</TableCell>
+                      <TableCell>{expense.campus || "—"}</TableCell>
+                      <TableCell>{expense.category || "—"}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="rounded-full border-primary/20 px-3 py-0.5 font-mono text-xs text-primary-80">
+                          {expense.total ? NOK_FORMATTER.format(Number(expense.total)) : "N/A"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={expense.status || "pending"} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-full px-3 py-1 text-xs font-semibold text-primary-80 hover:bg-primary/10"
+                          onClick={() => actionClick(expense.id)}
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          Se detalj
+                        </Button>
+                      </TableCell>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </TableBody>
+            </Table>
+          </div>
+          {!sortedExpenses.length && !isLoading && (
+            <div className="flex flex-col items-center justify-center gap-2 border-t border-dashed border-primary/10 px-6 py-10 text-sm text-primary-60">
+              <Search className="h-6 w-6" />
+              Ingen utlegg matcher filtrene dine.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

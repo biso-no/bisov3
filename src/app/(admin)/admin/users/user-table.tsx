@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Search, SlidersHorizontal, Download, UserPlus, RefreshCw, ChevronDown, ChevronUp, Check } from "lucide-react"
@@ -60,6 +60,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+import { formatPercentage } from "@/lib/utils/admin"
 
 export function UserTable({ initialUsers }: { initialUsers: User[] }) {
   const router = useRouter()
@@ -98,6 +101,52 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
   const indexOfLastUser = currentPage * usersPerPage
   const indexOfFirstUser = indexOfLastUser - usersPerPage
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser)
+
+  const totalCount = filteredUsers.length
+  const activeCount = useMemo(() => filteredUsers.filter((user) => user.isActive).length, [filteredUsers])
+  const inactiveCount = useMemo(() => filteredUsers.filter((user) => !user.isActive).length, [filteredUsers])
+  const rosterSource = users.length ? users : initialUsers
+  const activeRate = formatPercentage(activeCount, totalCount || 0)
+
+  const uniqueRoles = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          rosterSource.flatMap((user) => (Array.isArray(user.roles) ? user.roles : []))
+        )
+      ),
+    [rosterSource]
+  )
+  const uniqueCampuses = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          rosterSource
+            .map((user) => user.campus?.name?.trim())
+            .filter((name): name is string => !!name && name.length > 0)
+        )
+      ),
+    [rosterSource]
+  )
+
+  const summaryMetrics = [
+    { label: "Total users", value: totalCount },
+    { label: "Active", value: activeCount },
+    { label: "Inactive", value: inactiveCount },
+    { label: "Campuses", value: uniqueCampuses.length },
+    { label: "Active rate", value: activeRate },
+  ]
+
+  const formatMetricValue = (value: number | string) =>
+    typeof value === "number" ? value.toLocaleString() : value
+
+  const quickRoleFilters = useMemo(() => {
+    const roleEntries = uniqueRoles.slice(0, 4).map((roleName) => ({
+      label: roleName,
+      value: roleName,
+    }))
+    return [{ label: "All users", value: "all" }, ...roleEntries]
+  }, [uniqueRoles])
   
   // Handle row click to navigate to user detail
   const handleRowClick = (userId: string, e: React.MouseEvent) => {
@@ -224,13 +273,57 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
   }
   
   return (
-    <Card className="shadow-sm">
+    <div className="space-y-6">
+      <section className="surface-spotlight glass-panel accent-ring relative overflow-hidden rounded-3xl border border-primary/10 px-6 py-6 sm:px-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-3">
+            <Badge variant="outline" className="rounded-full border-primary/20 bg-primary/5 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-primary-70">
+              User operations
+            </Badge>
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold tracking-tight text-primary-100 sm:text-3xl">Member directory</h1>
+              <p className="text-sm text-primary-60 sm:text-base">
+                Administrer rettigheter, roller og campus-tilhørighet i ett samlet overblikk.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {quickRoleFilters.map((chip) => {
+                const active = filterRole === chip.value
+                return (
+                  <Button
+                    key={chip.value}
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setFilterRole(chip.value)}
+                    className={cn(
+                      "rounded-full border border-primary/10 bg-white/70 px-3 py-1 text-xs font-semibold text-primary-80 shadow-sm transition",
+                      active && "bg-primary-40 text-white shadow-[0_18px_40px_-25px_rgba(0,23,49,0.6)] hover:bg-primary-30 hover:text-white"
+                    )}
+                  >
+                    {chip.label}
+                  </Button>
+                )
+              })}
+            </div>
+          </div>
+          <div className="grid w-full max-w-md grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:w-auto">
+            {summaryMetrics.map((metric) => (
+              <div key={metric.label} className="rounded-2xl border border-primary/10 bg-white/75 px-4 py-3 text-center shadow-[0_22px_45px_-32px_rgba(0,23,49,0.45)] backdrop-blur">
+                <span className="text-[0.65rem] uppercase tracking-[0.18em] text-primary-50">{metric.label}</span>
+                <div className="mt-1 text-lg font-semibold text-primary-100">{formatMetricValue(metric.value)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Card className="glass-panel border border-primary/10 shadow-[0_30px_55px_-40px_rgba(0,23,49,0.55)]">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <CardTitle className="text-2xl font-bold">User Management</CardTitle>
-            <CardDescription className="mt-1.5">
-              Manage your organization&apos;s users and their access
+            <CardTitle className="text-xl font-semibold text-primary-100">User Management</CardTitle>
+            <CardDescription className="mt-1.5 text-sm text-primary-60">
+              Manage memberships, verify activity, og raffiner tilgangsroller for BISO sine medlemmer.
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -242,7 +335,7 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
                     size="icon" 
                     onClick={handleRefresh}
                     disabled={isLoading}
-                  >
+                    >
                     <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                   </Button>
                 </TooltipTrigger>
@@ -252,7 +345,7 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
               </Tooltip>
             </TooltipProvider>
             
-            <Button variant="default" className="gap-1.5">
+            <Button variant="default" className="gap-1.5 rounded-xl bg-primary-40 px-4 py-2 text-white shadow-[0_18px_45px_-30px_rgba(0,23,49,0.7)] hover:bg-primary-30">
               <UserPlus className="h-4 w-4" />
               <span>Add User</span>
             </Button>
@@ -261,41 +354,40 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
       </CardHeader>
       
       <CardContent className="p-0">
-        <div className="border-t border-b py-4 px-6">
-          <div className="flex flex-col sm:flex-row gap-3 justify-between">
+        <div className="border-y border-primary/10 bg-white/60 py-4 px-6 backdrop-blur">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div className="relative w-full sm:max-w-sm">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-primary-40" />
               <Input
                 type="text"
                 placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 w-full"
+                className="w-full rounded-xl border-primary/20 bg-white/70 pl-9 text-sm shadow-inner focus-visible:ring-primary-40"
               />
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Select value={filterRole} onValueChange={setFilterRole}>
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] rounded-xl border-primary/20 bg-white/70">
                   <SelectValue placeholder="Filter by role" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Roles</SelectLabel>
                     <SelectItem value="all">All Roles</SelectItem>
-                    <SelectItem value="User">User</SelectItem>
-                    <SelectItem value="HR">HR</SelectItem>
-                    <SelectItem value="PR">PR</SelectItem>
-                    <SelectItem value="KK">KK</SelectItem>
-                    <SelectItem value="Finance">Finance</SelectItem>
-                    <SelectItem value="Admin">Admin</SelectItem>
+                    {uniqueRoles.map((roleName) => (
+                      <SelectItem key={roleName} value={roleName}>
+                        {roleName}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-1.5">
+                  <Button variant="outline" className="gap-1.5 rounded-xl border-primary/20 bg-white/70 text-sm">
                     <SlidersHorizontal className="h-4 w-4" />
                     <span className="hidden sm:inline">Filters</span>
                   </Button>
@@ -319,7 +411,7 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-1.5">
+                  <Button variant="outline" className="gap-1.5 rounded-xl border-primary/20 bg-white/70 text-sm">
                     <Download className="h-4 w-4" />
                     <span className="hidden sm:inline">Export</span>
                   </Button>
@@ -342,7 +434,7 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
         
         <div className="relative">
           {isLoading && (
-            <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10">
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/60 backdrop-blur">
               <div className="animate-pulse flex flex-col items-center">
                 <RefreshCw className="animate-spin h-8 w-8 text-primary mb-2" />
                 <span className="text-sm text-muted-foreground">Loading users...</span>
@@ -351,9 +443,9 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
           )}
           
           <div className="relative overflow-x-auto">
-            <Table>
+            <Table className="text-sm">
               <TableHeader>
-                <TableRow>
+                <TableRow className="bg-primary/5">
                   <TableHead className="w-[40px]">
                     <Checkbox 
                       checked={allSelected}
@@ -401,7 +493,7 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="divide-y divide-primary/10">
                 <AnimatePresence>
                   {currentUsers.map((user) => (
                     <motion.tr
@@ -411,7 +503,7 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.2 }}
                       onClick={(e) => handleRowClick(user.$id, e)}
-                      className="cursor-pointer group"
+                      className="group cursor-pointer bg-white/70 transition hover:bg-primary/5"
                     >
                       <TableCell className="w-[40px]">
                         <Checkbox 
@@ -431,7 +523,7 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono text-sm">{user.email}</TableCell>
+                      <TableCell className="font-mono text-xs text-primary-70">{user.email}</TableCell>
                       <TableCell>
                         <RoleBadgeList roles={user.roles} />
                       </TableCell>
@@ -464,7 +556,7 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
         </div>
       </CardContent>
       
-      <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t">
+      <CardFooter className="flex flex-col items-center justify-between gap-4 border-t border-primary/10 bg-white/70 px-6 py-4 sm:flex-row">
         <div className="text-sm text-muted-foreground">
           {selectedUsers.length > 0 ? (
             <div className="flex items-center gap-2">
@@ -508,5 +600,6 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
         </Pagination>
       </CardFooter>
     </Card>
+    </div>
   )
 }

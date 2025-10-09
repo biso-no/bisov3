@@ -1,135 +1,224 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { listJobs } from '@/app/actions/jobs'
-import { ArrowUpDown, Eye } from 'lucide-react'
-import Link from 'next/link'
+import Link from "next/link"
+import { Calendar } from "lucide-react"
 
-export default async function AdminJobsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+import { listJobs } from "@/app/actions/jobs"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  formatPercentage,
+  getLocaleLabel,
+  getStatusToken,
+  getUniqueLocales,
+  parseJSONSafe,
+} from "@/lib/utils/admin"
+
+export default async function AdminJobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
   const params = await searchParams
-  const status = params.status || 'all'
+  const status = params.status || "all"
   const campus = params.campus
   const q = params.q
-  // Admin should see jobs in all locales, so we don't pass locale parameter
+
   const jobs = await listJobs({ limit: 200, status, campus, search: q })
+  const totalJobs = jobs.length
+  const publishedJobs = jobs.filter((job) => job.status === "published").length
+  const draftJobs = jobs.filter((job) => job.status === "draft").length
+  const closedJobs = jobs.filter((job) => job.status === "closed").length
+  const translationCoverage = formatPercentage(
+    jobs.filter((job) => {
+      const refs = job.translation_refs ?? []
+      const locales = refs.map((ref: any) => ref.locale)
+      return locales.includes("no") && locales.includes("en")
+    }).length,
+    totalJobs
+  )
+
+  const summaryCards = [
+    { label: "Aktive stillinger", value: totalJobs, description: "Total i katalogen" },
+    { label: "Publiserte", value: publishedJobs, description: "Synlig for studenter" },
+    { label: "Utkast", value: draftJobs, description: "Klar for gjennomgang" },
+    { label: "Oversatt", value: translationCoverage, description: "NO + EN komplett" },
+  ]
+
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total jobs</CardTitle>
-            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{jobs.length}</div>
-          </CardContent>
-        </Card>
-        <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{jobs.filter(j => j.status === 'published').length}</div>
-          </CardContent>
-        </Card>
-        <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Drafts</CardTitle>
-            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{jobs.filter(j => j.status === 'draft').length}</div>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Jobs</h1>
-        <Button asChild>
-          <Link href="/admin/jobs/new">Create job</Link>
-        </Button>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
+    <div className="space-y-8">
+      <section className="surface-spotlight glass-panel accent-ring relative overflow-hidden rounded-3xl border border-primary/10 px-6 py-6 sm:px-8 sm:py-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-3">
+            <Badge variant="outline" className="rounded-full border-primary/20 bg-primary/5 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-primary-70">
+              Rekruttering
+            </Badge>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-semibold tracking-tight text-primary-100">Jobboard</h1>
+              <p className="text-sm text-primary-60">
+                Følg status, campus og språk for frivillige verv og stillinger.
+              </p>
+            </div>
+          </div>
+          <Button asChild className="rounded-full bg-primary-40 px-4 py-2 text-sm font-semibold text-white shadow-[0_18px_45px_-30px_rgba(0,23,49,0.65)] hover:bg-primary-30">
+            <Link href="/admin/jobs/new">Opprett ny stilling</Link>
+          </Button>
+        </div>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {summaryCards.map((card) => (
+            <div key={card.label} className="rounded-2xl border border-primary/10 bg-white/75 px-4 py-4 shadow-[0_20px_45px_-32px_rgba(0,23,49,0.45)] backdrop-blur">
+              <span className="text-[0.65rem] uppercase tracking-[0.18em] text-primary-60">{card.label}</span>
+              <span className="mt-1 block text-xl font-semibold text-primary-100">{card.value}</span>
+              <span className="text-xs text-primary-60">{card.description}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Card className="glass-panel border border-primary/10 shadow-[0_30px_55px_-40px_rgba(0,23,49,0.5)]">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-primary-100">Filtrer jobber</CardTitle>
+          <CardDescription className="text-sm text-primary-60">
+            Kombiner tekstsøk, campus og status for å snevre inn resultatene.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-5">
-          <form className="contents">
-            <Input defaultValue={q || ''} name="q" placeholder="Search by title..." className="md:col-span-2" />
+        <CardContent>
+          <form className="grid gap-3 md:grid-cols-5">
+            <Input
+              defaultValue={q || ""}
+              name="q"
+              placeholder="Søk på tittel eller slug..."
+              className="rounded-xl border-primary/20 bg-white/70 text-sm focus-visible:ring-primary-40 md:col-span-2"
+            />
             <Select name="status" defaultValue={status}>
-              <SelectTrigger>
+              <SelectTrigger className="rounded-xl border-primary/20 bg-white/70">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
+                <SelectItem value="all">Alle</SelectItem>
+                <SelectItem value="published">Publisert</SelectItem>
+                <SelectItem value="draft">Utkast</SelectItem>
+                <SelectItem value="closed">Lukket</SelectItem>
               </SelectContent>
             </Select>
-            <Input name="campus" defaultValue={campus || ''} placeholder="Campus ID" />
-            <Button type="submit" className="w-full">Apply</Button>
+            <Input
+              name="campus"
+              defaultValue={campus || ""}
+              placeholder="Campus"
+              className="rounded-xl border-primary/20 bg-white/70 text-sm focus-visible:ring-primary-40"
+            />
+            <Button type="submit" className="w-full rounded-xl bg-primary-40 text-sm font-semibold text-white shadow">
+              Filtrer
+            </Button>
           </form>
         </CardContent>
       </Card>
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50">
-            <tr>
-              <th className="p-3 text-left">Title</th>
-              <th className="p-3 text-left">Status</th>
-              <th className="p-3 text-left">Translations</th>
-              <th className="p-3 text-left">Campus</th>
-              <th className="p-3 text-left">Deadline</th>
-              <th className="p-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {jobs.map((job) => {
-              const hasEnglish = job.translation_refs?.some((t: any) => t.locale === 'en')
-              const hasNorwegian = job.translation_refs?.some((t: any) => t.locale === 'no')
-              const primaryTitle = job.translation_refs?.[0]?.title || job.slug
-              const metadata = job.metadata ? JSON.parse(job.metadata) : {}
-              
-              return (
-                <tr key={job.$id} className="border-t">
-                  <td className="p-3 font-medium">{primaryTitle}</td>
-                  <td className="p-3 capitalize">{job.status}</td>
-                  <td className="p-3">
-                    <div className="flex gap-1">
-                      {hasEnglish && (
-                        <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                          🇬🇧 EN
-                        </span>
+
+      <div className="glass-panel overflow-hidden rounded-3xl border border-primary/10 bg-white/85 shadow-[0_25px_55px_-38px_rgba(0,23,49,0.45)]">
+        <div className="flex items-center justify-between border-b border-primary/10 px-6 py-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-primary-100">Stillingsoversikt</h2>
+            <p className="text-sm text-primary-60">
+              {totalJobs}stillinger på tvers av {new Set(jobs.map((job) => job.campus?.name || job.campus_id || "Ukjent")).size} campuser
+            </p>
+          </div>
+          <Badge variant="outline" className="rounded-full border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-70">
+            {translationCoverage} oversatt
+          </Badge>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
+            <thead className="bg-primary/5">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide text-primary-70">Tittel</th>
+                <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide text-primary-70">Status</th>
+                <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide text-primary-70">Språk</th>
+                <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide text-primary-70">Campus</th>
+                <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide text-primary-70">Frist</th>
+                <th className="px-4 py-3 text-right font-semibold uppercase tracking-wide text-primary-70">Handlinger</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-primary/10 bg-white/80">
+              {jobs.map((job) => {
+                const translationLocales = getUniqueLocales(job.translation_refs)
+                const primaryTitle = job.translation_refs?.[0]?.title || job.slug
+                const metadata = parseJSONSafe<Record<string, unknown>>(job.metadata)
+                const statusToken = getStatusToken(job.status)
+                const deadline = metadata.application_deadline
+                  ? new Date(metadata.application_deadline)
+                  : null
+
+                return (
+                  <tr key={job.$id} className="transition hover:bg-primary/5">
+                    <td className="px-4 py-3 font-medium text-primary-100">
+                      {primaryTitle}
+                      <span className="block text-xs text-primary-50">{job.slug}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge className={`rounded-full px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${statusToken.className}`}>
+                        {statusToken.label}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {translationLocales.length ? (
+                          translationLocales.map((locale) => (
+                            <span
+                              key={`${job.$id}-${locale}`}
+                              className="inline-flex items-center rounded-full border border-primary/10 bg-primary/5 px-2 py-0.5 text-[11px] font-semibold text-primary-70"
+                            >
+                              {getLocaleLabel(locale)}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="inline-flex items-center rounded-full border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
+                            Mangler
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-primary-80">{job.campus?.name || job.campus_id || "—"}</td>
+                    <td className="px-4 py-3 text-primary-80">
+                      {deadline ? (
+                        <>
+                          {deadline.toLocaleDateString("nb-NO")}
+                          <span className="block text-[11px] uppercase tracking-wide text-primary-50">
+                            <Calendar className="mr-1 inline h-3 w-3" />
+                            {deadline.toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </>
+                      ) : (
+                        "—"
                       )}
-                      {hasNorwegian && (
-                        <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                          🇳🇴 NO
-                        </span>
-                      )}
-                      {!hasEnglish && !hasNorwegian && (
-                        <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
-                          No translations
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="p-3">{job.campus?.name || job.campus_id}</td>
-                  <td className="p-3">{metadata.application_deadline ? new Date(metadata.application_deadline).toLocaleDateString() : '-'}</td>
-                  <td className="p-3 text-right">
-                    <Button asChild variant="ghost" size="sm">
-                      <Link href={`/admin/jobs/${job.$id}`}>Edit</Link>
-                    </Button>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Button asChild variant="ghost" size="sm" className="rounded-full px-3 py-1 text-xs font-semibold text-primary-80 hover:bg-primary/10">
+                        <Link href={`/admin/jobs/${job.$id}`}>Rediger</Link>
+                      </Button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div className="border-t border-primary/10 bg-primary/5 px-6 py-3 text-xs uppercase tracking-[0.2em] text-primary-60">
+          {closedJobs} lukkede stillinger i arkivet
+        </div>
       </div>
     </div>
   )
 }
-
-

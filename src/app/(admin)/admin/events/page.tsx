@@ -1,142 +1,236 @@
-import { listEvents } from '@/app/actions/events'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowUpDown, CalendarDays, Users, Eye } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import Link from 'next/link'
+import Link from "next/link"
 
-export default async function AdminEventsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+import { listEvents } from "@/app/actions/events"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  formatPercentage,
+  getLocaleLabel,
+  getStatusToken,
+  getUniqueLocales,
+  parseJSONSafe,
+} from "@/lib/utils/admin"
+
+const DATE_FORMATTER = new Intl.DateTimeFormat("nb-NO", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+})
+
+export default async function AdminEventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | undefined>>
+}) {
   const params = await searchParams
   const campus = params.campus
-  const status = params.status || 'all'
+  const status = params.status || "all"
   const search = params.q
 
-  // Admin should see events in all locales, so we don't pass locale parameter
   const events = await listEvents({ campus, status, search, limit: 200 })
+  const totalEvents = events.length
+  const publishedEvents = events.filter((evt) => evt.status === "published").length
+  const draftEvents = events.filter((evt) => evt.status === "draft").length
+  const cancelledEvents = events.filter((evt) => evt.status === "cancelled").length
+  const translationCoverage = formatPercentage(
+    events.filter((evt) => {
+      const refs = evt.translation_refs ?? []
+      const locales = refs.map((ref: any) => ref.locale)
+      return locales.includes("no") && locales.includes("en")
+    }).length,
+    totalEvents
+  )
+
+  const summaryCards = [
+    { label: "Aktive arrangementer", value: totalEvents, description: "Totalt registrert" },
+    { label: "Publiserte", value: publishedEvents, description: "Synlig for medlemmer" },
+    { label: "Utkast", value: draftEvents, description: "Til gjennomgang" },
+    { label: "Oversettelser", value: translationCoverage, description: "NO + EN ferdig" },
+  ]
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total events</CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{events.length}</div>
-          </CardContent>
-        </Card>
-        <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Published</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{events.filter(e => e.status === 'published').length}</div>
-          </CardContent>
-        </Card>
-        <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Drafts</CardTitle>
-            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{events.filter(e => e.status === 'draft').length}</div>
-          </CardContent>
-        </Card>
-      </div>
+    <div className="space-y-8">
+      <section className="surface-spotlight glass-panel accent-ring relative overflow-hidden rounded-3xl border border-primary/10 px-6 py-6 sm:px-8 sm:py-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-3">
+            <Badge variant="outline" className="rounded-full border-primary/20 bg-primary/5 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-primary-70">
+              Arrangementer
+            </Badge>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-semibold tracking-tight text-primary-100">Event workbench</h1>
+              <p className="text-sm text-primary-60">
+                Koordiner arrangementer på tvers av campus med språk, status og tilgjengelighet.
+              </p>
+            </div>
+          </div>
+          <Button asChild className="rounded-full bg-primary-40 px-4 py-2 text-sm font-semibold text-white shadow-[0_18px_45px_-30px_rgba(0,23,49,0.55)] hover:bg-primary-30">
+            <Link href="/admin/events/new">Ny event</Link>
+          </Button>
+        </div>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {summaryCards.map((card) => (
+            <div key={card.label} className="rounded-2xl border border-primary/10 bg-white/80 px-4 py-4 shadow-[0_22px_45px_-32px_rgba(0,23,49,0.45)] backdrop-blur">
+              <span className="text-[0.65rem] uppercase tracking-[0.18em] text-primary-60">{card.label}</span>
+              <span className="mt-1 block text-xl font-semibold text-primary-100">{card.value}</span>
+              <span className="text-xs text-primary-60">{card.description}</span>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Events</h1>
-        <Button asChild>
-          <Link href="/admin/events/new">Create event</Link>
-        </Button>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
+      <Card className="glass-panel border border-primary/10 shadow-[0_30px_55px_-40px_rgba(0,23,49,0.5)]">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg font-semibold text-primary-100">Filtrer arrangementer</CardTitle>
+          <CardDescription className="text-sm text-primary-60">
+            Avgrens visningen etter status, campus eller søkeord.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-5">
-          <form className="contents">
-            <Input defaultValue={search || ''} name="q" placeholder="Search by title..." className="md:col-span-2" />
+        <CardContent>
+          <form className="grid gap-3 md:grid-cols-5">
+            <Input
+              defaultValue={search || ""}
+              name="q"
+              placeholder="Søk på tittel eller slug..."
+              className="rounded-xl border-primary/20 bg-white/70 text-sm focus-visible:ring-primary-40 md:col-span-2"
+            />
             <Select name="status" defaultValue={status}>
-              <SelectTrigger>
+              <SelectTrigger className="rounded-xl border-primary/20 bg-white/70">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="published">Published</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">Alle</SelectItem>
+                <SelectItem value="draft">Utkast</SelectItem>
+                <SelectItem value="published">Publisert</SelectItem>
+                <SelectItem value="cancelled">Avlyst</SelectItem>
               </SelectContent>
             </Select>
-            <Input name="campus" defaultValue={campus || ''} placeholder="Campus ID" />
-            <Button type="submit" className="w-full">Apply</Button>
+            <Input
+              name="campus"
+              defaultValue={campus || ""}
+              placeholder="Campus"
+              className="rounded-xl border-primary/20 bg-white/70 text-sm focus-visible:ring-primary-40"
+            />
+            <Button type="submit" className="w-full rounded-xl bg-primary-40 text-sm font-semibold text-white shadow">
+              Filtrer
+            </Button>
           </form>
         </CardContent>
       </Card>
 
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50">
-            <tr>
-              <th className="p-3 text-left">Title</th>
-              <th className="p-3 text-left">Status</th>
-              <th className="p-3 text-left">Translations</th>
-              <th className="p-3 text-left">Campus</th>
-              <th className="p-3 text-left">Date</th>
-              <th className="p-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((evt) => {
-              const hasEnglish = evt.translation_refs?.some((t: any) => t.locale === 'en')
-              const hasNorwegian = evt.translation_refs?.some((t: any) => t.locale === 'no')
-              const primaryTitle = evt.translation_refs?.[0]?.title || evt.slug || 'Untitled'
-              const metadata = evt.metadata ? JSON.parse(evt.metadata) : {}
-              
-              return (
-                <tr key={evt.$id} className="border-t">
-                  <td className="p-3 font-medium">{primaryTitle}</td>
-                  <td className="p-3 capitalize">{evt.status}</td>
-                  <td className="p-3">
-                    <div className="flex gap-1">
-                      {hasEnglish && (
-                        <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                          🇬🇧 EN
-                        </span>
-                      )}
-                      {hasNorwegian && (
-                        <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                          🇳🇴 NO
-                        </span>
-                      )}
-                      {!hasEnglish && !hasNorwegian && (
-                        <span className="inline-flex items-center px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
-                          No translations
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="p-3">{evt.campus?.name || evt.campus_id}</td>
-                  <td className="p-3">{metadata.start_date ? new Date(metadata.start_date).toLocaleDateString() : '-'}</td>
-                <td className="p-3 text-right">
-                  <Button asChild variant="ghost" size="sm">
-                    <Link href={`/admin/events/${evt.$id}`}>Edit</Link>
-                  </Button>
-                  <Button asChild variant="ghost" size="sm">
-                    <Link href={`/alumni/events/${evt.$id}`}>Preview</Link>
-                  </Button>
-                  <Button asChild variant="ghost" size="sm">
-                    <Link href={`/admin/events/new?duplicate=${evt.$id}`}>Duplicate</Link>
-                  </Button>
-                </td>
+      <div className="glass-panel overflow-hidden rounded-3xl border border-primary/10 bg-white/88 shadow-[0_25px_55px_-38px_rgba(0,23,49,0.45)]">
+        <div className="flex items-center justify-between border-b border-primary/10 px-6 py-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold text-primary-100">Eventliste</h2>
+            <p className="text-sm text-primary-60">
+              {totalEvents} arrangementer over {new Set(events.map((evt) => evt.campus?.name || evt.campus_id || "Ukjent")).size} campuser
+            </p>
+          </div>
+          <Badge variant="outline" className="rounded-full border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-80">
+            {translationCoverage} oversatt
+          </Badge>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-sm">
+            <thead className="bg-primary/5">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide text-primary-70">Event</th>
+                <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide text-primary-70">Status</th>
+                <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide text-primary-70">Språk</th>
+                <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide text-primary-70">Campus</th>
+                <th className="px-4 py-3 text-left font-semibold uppercase tracking-wide text-primary-70">Dato</th>
+                <th className="px-4 py-3 text-right font-semibold uppercase tracking-wide text-primary-70">Handlinger</th>
               </tr>
-            )})}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-primary/10 bg-white/78">
+              {events.map((evt) => {
+                const refs = evt.translation_refs ?? []
+                const metadata = parseJSONSafe<Record<string, unknown>>(evt.metadata)
+                const translationLocales = getUniqueLocales(refs)
+                const primaryTitle = refs[0]?.title || evt.slug || "Untitled"
+                const statusToken = getStatusToken(evt.status)
+                const startDate = metadata.start_date ? new Date(metadata.start_date) : null
+
+                return (
+                  <tr key={evt.$id} className="transition hover:bg-primary/5">
+                    <td className="px-4 py-3 font-medium text-primary-100">
+                      {primaryTitle}
+                      <span className="block text-xs text-primary-50">{evt.slug}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge className={`rounded-full px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${statusToken.className}`}>
+                        {statusToken.label}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {translationLocales.length ? (
+                          translationLocales.map((locale) => (
+                            <span
+                              key={`${evt.$id}-${locale}`}
+                              className="inline-flex items-center rounded-full border border-primary/10 bg-primary/5 px-2 py-0.5 text-[11px] font-semibold text-primary-70"
+                            >
+                              {getLocaleLabel(locale)}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="inline-flex items-center rounded-full border border-destructive/20 bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
+                            Mangler
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-primary-80">{evt.campus?.name || evt.campus_id || "—"}</td>
+                    <td className="px-4 py-3 text-primary-80">
+                      {startDate ? (
+                        <>
+                          {DATE_FORMATTER.format(startDate)}
+                          {metadata.start_time && (
+                            <span className="block text-[11px] uppercase tracking-wide text-primary-50">
+                              {metadata.start_time}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-1.5">
+                        <Button asChild variant="ghost" size="sm" className="rounded-full px-3 py-1 text-xs font-semibold text-primary-80 hover:bg-primary/10">
+                          <Link href={`/admin/events/${evt.$id}`}>Rediger</Link>
+                        </Button>
+                        <Button asChild variant="ghost" size="sm" className="rounded-full px-3 py-1 text-xs font-semibold text-primary-70 hover:bg-primary/10">
+                          <Link href={`/alumni/events/${evt.$id}`}>Preview</Link>
+                        </Button>
+                        <Button asChild variant="ghost" size="sm" className="rounded-full px-3 py-1 text-xs font-semibold text-primary-70 hover:bg-primary/10">
+                          <Link href={`/admin/events/new?duplicate=${evt.$id}`}>Dupliser</Link>
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div className="border-t border-primary/10 bg-primary/5 px-6 py-3 text-xs uppercase tracking-[0.2em] text-primary-60">
+          {cancelledEvents} avlyste arrangementer i arkivet
+        </div>
       </div>
     </div>
   )
