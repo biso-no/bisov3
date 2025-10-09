@@ -240,7 +240,7 @@ export function AdminLayout({ children, roles, firstName }: AdminLayoutProps) {
       label: 'Settings',
       roles: ['Admin'],
       subItems: [
-        { href: '/admin/settings', label: 'Overview', roles: ['Admin'] },
+        { href: '/admin/settings', label: 'Navigation', roles: ['Admin'] },
         { href: '/admin/settings/profile', label: 'Profile', roles: ['Admin'] },
         { href: '/admin/settings/security', label: 'Security', roles: ['Admin'] },
       ],

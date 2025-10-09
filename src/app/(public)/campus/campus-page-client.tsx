@@ -544,18 +544,24 @@ export const CampusPageClient = ({ events, jobs, news, departments, campusData, 
 
   const benefitSections = useMemo<BenefitSection[]>(() => {
     if (!activeCampusData) return []
+    const suffix = locale === "en" ? "en" : "nb"
     return benefitConfigs
       .map((config) => {
-        const items = Array.isArray((activeCampusData as any)[config.key])
-          ? ((activeCampusData as any)[config.key] as string[]).filter(Boolean)
-          : []
+        const localizedKey = `${config.key}_${suffix}` as keyof CampusData
+        const localized = (activeCampusData as any)[localizedKey]
+        const fallback = (activeCampusData as any)[config.key]
+        const items = Array.isArray(localized)
+          ? (localized as string[]).filter(Boolean)
+          : Array.isArray(fallback)
+            ? (fallback as string[]).filter(Boolean)
+            : []
         return {
           ...config,
           items,
         }
       })
       .filter((section) => section.items.length)
-  }, [activeCampusData])
+  }, [activeCampusData, locale])
 
   const featuredServices = useMemo(() => heroMeta.services.slice(0, 3), [heroMeta.services])
 

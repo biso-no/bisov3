@@ -2,6 +2,7 @@
 
 import { createAdminClient, createSessionClient } from "@/lib/appwrite"
 import { Campus } from "@/lib/types/campus"
+import { CampusData } from "@/lib/types/campus-data"
 import { Query, Models } from "node-appwrite"
 
 export type CampusMetadata = Models.Document & {
@@ -97,5 +98,5 @@ export async function getCampusData() {
     'campus_data'
   );
 
-  return campuses.documents as Campus[];
+  return campuses.documents as CampusData[];
 }

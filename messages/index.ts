@@ -10,4 +10,15 @@ export async function loadMessages(locale: Locale) {
   }
 }
 
-export const messageNamespaces = ['common', 'home', 'varsling', 'partner', 'about'] as const;
+export const messageNamespaces = [
+  'common',
+  'home',
+  'varsling',
+  'partner',
+  'about',
+  'membership',
+  'students',
+  'projects',
+  'fundingProgram',
+  'projectDetail'
+] as const;
