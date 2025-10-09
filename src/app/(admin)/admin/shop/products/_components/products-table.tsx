@@ -42,6 +42,7 @@ import {
   getUniqueLocales,
   parseJSONSafe,
 } from "@/lib/utils/admin"
+import { AdminSummary } from "@/components/admin/admin-summary"
 
 const NOK_FORMATTER = new Intl.NumberFormat("nb-NO", {
   style: "currency",
@@ -93,21 +94,18 @@ export function ProductsTable({ products }: { products: ProductWithTranslations[
 
   return (
     <TabsContent value="all">
-      <div className="surface-spotlight glass-panel accent-ring mb-6 flex flex-col gap-6 rounded-3xl border border-primary/10 px-6 py-6 sm:px-8 sm:py-7">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-2">
-            <Badge variant="outline" className="rounded-full border-primary/20 bg-primary/5 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-primary-70">
-              Produktkatalog
-            </Badge>
-            <div className="space-y-1">
-              <h2 className="text-2xl font-semibold tracking-tight text-primary-100 sm:text-3xl">
-                Shop inventory
-              </h2>
-              <p className="text-sm text-primary-60">
-                Følg lanseringer, tilgjengelighet og språkdekning på merch og produkter.
-              </p>
-            </div>
-          </div>
+      <AdminSummary
+        className="mb-6"
+        badge="Produktkatalog"
+        title="Shop inventory"
+        description="Følg lanseringer, tilgjengelighet og språkdekning på merch og produkter."
+        metrics={[
+          { label: "Totalt", value: aggregates.total },
+          { label: "Publiserte", value: aggregates.published },
+          { label: "Utkast", value: aggregates.draft },
+          { label: "Oversettelser", value: aggregates.translationCoverage },
+        ]}
+        action={
           <div className="flex flex-wrap gap-2">
             <Button asChild size="sm" className="rounded-full bg-primary-40 px-4 font-semibold text-white shadow-[0_15px_35px_-22px_rgba(0,23,49,0.7)] hover:bg-primary-30">
               <Link href="/admin/shop/products/new" className="flex items-center gap-2">
@@ -120,22 +118,8 @@ export function ProductsTable({ products }: { products: ProductWithTranslations[
               Rapporter
             </Button>
           </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { label: "Totalt", value: aggregates.total },
-            { label: "Publiserte", value: aggregates.published },
-            { label: "Utkast", value: aggregates.draft },
-            { label: "Oversettelser", value: aggregates.translationCoverage },
-          ].map((metric) => (
-            <div key={metric.label} className="rounded-2xl border border-primary/10 bg-white/80 px-4 py-4 shadow-[0_22px_45px_-32px_rgba(0,23,49,0.45)] backdrop-blur">
-              <span className="text-[0.65rem] uppercase tracking-[0.18em] text-primary-60">{metric.label}</span>
-              <span className="mt-1 block text-lg font-semibold text-primary-100">{metric.value}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+        }
+      />
 
       <Card className="glass-panel border border-primary/10 shadow-[0_30px_55px_-40px_rgba(0,23,49,0.4)]">
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

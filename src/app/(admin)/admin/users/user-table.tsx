@@ -62,6 +62,7 @@ import {
 } from "@/components/ui/tooltip"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { AdminSummary } from "@/components/admin/admin-summary"
 import { formatPercentage } from "@/lib/utils/admin"
 
 export function UserTable({ initialUsers }: { initialUsers: User[] }) {
@@ -130,11 +131,10 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
   )
 
   const summaryMetrics = [
-    { label: "Total users", value: totalCount },
-    { label: "Active", value: activeCount },
+    { label: "Total users", value: totalCount, hint: `${selectedUsers.length} selected` },
+    { label: "Active", value: activeCount, hint: `${activeRate} active` },
     { label: "Inactive", value: inactiveCount },
     { label: "Campuses", value: uniqueCampuses.length },
-    { label: "Active rate", value: activeRate },
   ]
 
   const formatMetricValue = (value: number | string) =>
@@ -274,48 +274,37 @@ export function UserTable({ initialUsers }: { initialUsers: User[] }) {
   
   return (
     <div className="space-y-6">
-      <section className="surface-spotlight glass-panel accent-ring relative overflow-hidden rounded-3xl border border-primary/10 px-6 py-6 sm:px-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-3">
-            <Badge variant="outline" className="rounded-full border-primary/20 bg-primary/5 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-primary-70">
-              User operations
-            </Badge>
-            <div className="space-y-1">
-              <h1 className="text-2xl font-semibold tracking-tight text-primary-100 sm:text-3xl">Member directory</h1>
-              <p className="text-sm text-primary-60 sm:text-base">
-                Administrer rettigheter, roller og campus-tilhørighet i ett samlet overblikk.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {quickRoleFilters.map((chip) => {
-                const active = filterRole === chip.value
-                return (
-                  <Button
-                    key={chip.value}
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setFilterRole(chip.value)}
-                    className={cn(
-                      "rounded-full border border-primary/10 bg-white/70 px-3 py-1 text-xs font-semibold text-primary-80 shadow-sm transition",
-                      active && "bg-primary-40 text-white shadow-[0_18px_40px_-25px_rgba(0,23,49,0.6)] hover:bg-primary-30 hover:text-white"
-                    )}
-                  >
-                    {chip.label}
-                  </Button>
-                )
-              })}
-            </div>
+      <AdminSummary
+        badge="User operations"
+        title="Member directory"
+        description="Administrer rettigheter, roller og campus-tilhørighet i ett samlet overblikk."
+        metrics={summaryMetrics.map((metric) => ({
+          label: metric.label,
+          value: formatMetricValue(metric.value),
+          hint: metric.hint,
+        }))}
+        slot={
+          <div className="flex flex-wrap gap-2">
+            {quickRoleFilters.map((chip) => {
+              const active = filterRole === chip.value
+              return (
+                <Button
+                  key={chip.value}
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setFilterRole(chip.value)}
+                  className={cn(
+                    "rounded-full border border-primary/10 bg-white/70 px-3 py-1 text-xs font-semibold text-primary-80 shadow-sm transition",
+                    active && "bg-primary-40 text-white shadow-[0_18px_40px_-25px_rgba(0,23,49,0.6)] hover:bg-primary-30 hover:text-white"
+                  )}
+                >
+                  {chip.label}
+                </Button>
+              )
+            })}
           </div>
-          <div className="grid w-full max-w-md grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:w-auto">
-            {summaryMetrics.map((metric) => (
-              <div key={metric.label} className="rounded-2xl border border-primary/10 bg-white/75 px-4 py-3 text-center shadow-[0_22px_45px_-32px_rgba(0,23,49,0.45)] backdrop-blur">
-                <span className="text-[0.65rem] uppercase tracking-[0.18em] text-primary-50">{metric.label}</span>
-                <div className="mt-1 text-lg font-semibold text-primary-100">{formatMetricValue(metric.value)}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        }
+      />
 
       <Card className="glass-panel border border-primary/10 shadow-[0_30px_55px_-40px_rgba(0,23,49,0.55)]">
       <CardHeader className="pb-3">

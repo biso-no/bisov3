@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AdminSummary } from "@/components/admin/admin-summary";
 
 export default async function PartnersAdminPage() {
   const [partners, campuses] = await Promise.all([listPartners(), getCampuses()]);
@@ -31,32 +32,20 @@ export default async function PartnersAdminPage() {
 
   return (
     <div className="space-y-8">
-      <section className="surface-spotlight glass-panel accent-ring relative overflow-hidden rounded-3xl border border-primary/10 px-6 py-6 sm:px-8 sm:py-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-3">
-            <Badge variant="outline" className="rounded-full border-primary/15 bg-primary/5 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-primary-70">
-              Partnere
-            </Badge>
-            <div className="space-y-1">
-              <h1 className="text-2xl font-semibold tracking-tight text-primary-100 sm:text-3xl">Partneroversikt</h1>
-              <p className="text-sm text-primary-60">
-                Administrer avtaler og synlighet for samarbeidspartnere på tvers av campuser.
-              </p>
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-70">
-              <span>BISO partnerprogram</span>
-            </div>
+      <AdminSummary
+        badge="Partnere"
+        title="Partneroversikt"
+        description="Administrer avtaler og synlighet for samarbeidspartnere på tvers av campuser."
+        metrics={summaryMetrics.map((metric) => ({
+          label: metric.label,
+          value: metric.value.toString(),
+        }))}
+        slot={
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary-70">
+            BISO partnerprogram
           </div>
-          <div className="grid w-full max-w-md grid-cols-2 gap-3 sm:grid-cols-4 lg:w-auto">
-            {summaryMetrics.map((metric) => (
-              <div key={metric.label} className="rounded-2xl border border-primary/10 bg-white/80 px-4 py-3 text-center shadow-[0_20px_45px_-32px_rgba(0,23,49,0.45)] backdrop-blur">
-                <span className="text-[0.65rem] uppercase tracking-[0.18em] text-primary-50">{metric.label}</span>
-                <span className="mt-1 block text-lg font-semibold text-primary-100">{metric.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        }
+      />
 
       <Card className="glass-panel border border-primary/10 shadow-[0_30px_55px_-40px_rgba(0,23,49,0.5)]">
         <CardHeader className="pb-4">

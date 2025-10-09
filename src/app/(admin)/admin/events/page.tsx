@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { AdminSummary } from "@/components/admin/admin-summary"
 import {
   formatPercentage,
   getLocaleLabel,
@@ -65,33 +66,21 @@ export default async function AdminEventsPage({
 
   return (
     <div className="space-y-8">
-      <section className="surface-spotlight glass-panel accent-ring relative overflow-hidden rounded-3xl border border-primary/10 px-6 py-6 sm:px-8 sm:py-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-3">
-            <Badge variant="outline" className="rounded-full border-primary/20 bg-primary/5 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-primary-70">
-              Arrangementer
-            </Badge>
-            <div className="space-y-2">
-              <h1 className="text-3xl font-semibold tracking-tight text-primary-100">Event workbench</h1>
-              <p className="text-sm text-primary-60">
-                Koordiner arrangementer på tvers av campus med språk, status og tilgjengelighet.
-              </p>
-            </div>
-          </div>
+      <AdminSummary
+        badge="Arrangementer"
+        title="Event workbench"
+        description="Koordiner arrangementer på tvers av campus med språk, status og tilgjengelighet."
+        metrics={summaryCards.map((card) => ({
+          label: card.label,
+          value: card.value,
+          hint: card.description,
+        }))}
+        action={
           <Button asChild className="rounded-full bg-primary-40 px-4 py-2 text-sm font-semibold text-white shadow-[0_18px_45px_-30px_rgba(0,23,49,0.55)] hover:bg-primary-30">
             <Link href="/admin/events/new">Ny event</Link>
           </Button>
-        </div>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {summaryCards.map((card) => (
-            <div key={card.label} className="rounded-2xl border border-primary/10 bg-white/80 px-4 py-4 shadow-[0_22px_45px_-32px_rgba(0,23,49,0.45)] backdrop-blur">
-              <span className="text-[0.65rem] uppercase tracking-[0.18em] text-primary-60">{card.label}</span>
-              <span className="mt-1 block text-xl font-semibold text-primary-100">{card.value}</span>
-              <span className="text-xs text-primary-60">{card.description}</span>
-            </div>
-          ))}
-        </div>
-      </section>
+        }
+      />
 
       <Card className="glass-panel border border-primary/10 shadow-[0_30px_55px_-40px_rgba(0,23,49,0.5)]">
         <CardHeader className="pb-4">
