@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { search, SearchResult, SearchIndex } from "../search";
+import { search, DEFAULT_SEARCH_INDICES } from "../search";
+import type { SearchResult, SearchIndex } from "../search/types";
 
 export type UseSearchOptions = {
   defaultQuery?: string;
@@ -13,7 +14,7 @@ export type UseSearchOptions = {
 export function useSearch(options: UseSearchOptions = {}) {
   const {
     defaultQuery = "",
-    defaultIndices = ["users", "events", "jobs", "resources"],
+    defaultIndices = DEFAULT_SEARCH_INDICES,
     debounceTime = 300,
     limit = 10,
     minQueryLength = 2,

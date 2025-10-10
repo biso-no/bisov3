@@ -18,7 +18,7 @@ interface SearchPanelProps {
 export function SearchPanel({
   isOpen,
   onOpenChange,
-  defaultIndices = ["users", "events", "jobs", "resources", "mentors", "experiences", "education", "certifications"],
+  defaultIndices = ["jobs", "events", "news"],
   limit = 10,
   showIndexFilter = false
 }: SearchPanelProps) {
@@ -83,7 +83,7 @@ export function SearchPanel({
             </div>
             <Input
               className="flex-1 border-0 rounded-none h-14 bg-transparent shadow-none focus-visible:ring-0 text-base text-white placeholder:text-gray-400 pl-3"
-              placeholder="Search for people, events, jobs, resources..."
+              placeholder="Search for jobs, events, or news..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               autoFocus
@@ -106,16 +106,20 @@ export function SearchPanel({
           {/* Index filters */}
           {showIndexFilter && (
             <div className="flex gap-1 p-2 border-b border-secondary-100/20 overflow-x-auto">
-              {(["all", "users", "events", "jobs", "resources", "mentors", "experiences", "education", "certifications"] as const).map(index => (
+              {(["all", "jobs", "events", "news"] as const).map(index => (
                 <Button
                   key={index}
                   variant="ghost"
                   size="sm"
                   className={cn(
                     "h-7 px-2 text-xs rounded-full",
-                    index === "all" 
-                      ? indices.length === defaultIndices.length ? "bg-blue-accent/20 text-blue-accent" : "text-gray-400"
-                      : indices.includes(index as SearchIndex) ? "bg-blue-accent/20 text-blue-accent" : "text-gray-400"
+                    index === "all"
+                      ? indices.length === defaultIndices.length
+                        ? "bg-blue-accent/20 text-blue-accent"
+                        : "text-gray-400"
+                      : indices.includes(index as SearchIndex)
+                        ? "bg-blue-accent/20 text-blue-accent"
+                        : "text-gray-400"
                   )}
                   onClick={() => {
                     if (index === "all") {
@@ -132,15 +136,15 @@ export function SearchPanel({
                     }
                   }}
                 >
-                  {index === "all" ? "All" : 
-                   index === "users" ? "Alumni" :
-                   index === "jobs" ? "Jobs" :
-                   index === "events" ? "Events" :
-                   index === "resources" ? "Resources" :
-                   index === "mentors" ? "Mentors" :
-                   index === "experiences" ? "Experiences" :
-                   index === "education" ? "Education" :
-                   index === "certifications" ? "Certifications" : index}
+                  {index === "all"
+                    ? "All"
+                    : index === "jobs"
+                      ? "Jobs"
+                      : index === "events"
+                        ? "Events"
+                        : index === "news"
+                          ? "News"
+                          : index}
                 </Button>
               ))}
             </div>
@@ -209,32 +213,18 @@ interface SearchResultItemProps {
 function SearchResultItem({ result, onClick }: SearchResultItemProps) {
   // Ensure correct URL for user profiles
   const getHref = () => {
-    if (result.index === "users") {
-      const userId = result.$id || result.id || result._id || "";
-      return `/alumni/profile/${userId}`;
-    }
     return result.href || '#';
   };
 
   // Get appropriate display texts based on result type
   const getDisplayName = () => {
     switch(result.index) {
-      case "users":
-        return result.name || `${result.firstName || ''} ${result.lastName || ''}`.trim() || "User";
-      case "education":
-        return result.institution || result.degree || "Education";
-      case "experiences":
-        return result.company || result.title || "Experience"; 
-      case "certifications":
-        return result.name || result.title || "Certification";
       case "events":
         return result.name || result.title || "Event";
       case "jobs":
         return result.title || result.company || "Job Opportunity";
-      case "resources":
-        return result.title || result.name || "Resource";
-      case "mentors":
-        return `${result.firstName || ''} ${result.lastName || ''}`.trim() || result.name || "Mentor";
+      case "news":
+        return result.title || result.name || "News";
       default:
         return result.name || result.title || "Unnamed";
     }
@@ -243,22 +233,6 @@ function SearchResultItem({ result, onClick }: SearchResultItemProps) {
   // Get appropriate details text
   const getDetailsText = () => {
     switch(result.index) {
-      case "users":
-        return [
-          result.department, 
-          result.title, 
-          result.graduationYear ? `Class of ${result.graduationYear}` : null
-        ].filter(Boolean).join(" • ");
-      case "education":
-        return [
-          result.degree,
-          result.startYear && result.endYear ? `${result.startYear} - ${result.endYear}` : null
-        ].filter(Boolean).join(" • ");
-      case "experiences":
-        return [
-          result.title,
-          result.startDate && result.endDate ? `${formatDate(result.startDate)} - ${formatDate(result.endDate)}` : null
-        ].filter(Boolean).join(" • ");
       case "jobs":
         return [
           result.company,
@@ -270,11 +244,13 @@ function SearchResultItem({ result, onClick }: SearchResultItemProps) {
           result.date ? formatDate(result.date) : null,
           result.location
         ].filter(Boolean).join(" • ");
-      default:
+      case "news":
         return [
-          result.department || result.company || result.organization || result.institution || null,
-          result.year ? `Class of ${result.year}` : null
+          result.department || null,
+          result.date ? formatDate(result.date) : null
         ].filter(Boolean).join(" • ");
+      default:
+        return result.description || "";
     }
   };
 
@@ -302,25 +278,15 @@ function SearchResultItem({ result, onClick }: SearchResultItemProps) {
       <Link href={getHref()} className="flex items-start gap-4">
         <div className={cn(
           "rounded-full h-8 w-8 flex items-center justify-center",
-          result.index === "users" && "bg-blue-accent/20",
           result.index === "events" && "bg-gold-default/20",
           result.index === "jobs" && "bg-secondary-100/20",
-          result.index === "resources" && "bg-blue-strong/20",
-          result.index === "mentors" && "bg-gold-default/20",
-          result.index === "experiences" && "bg-blue-accent/20",
-          result.index === "education" && "bg-blue-strong/20",
-          result.index === "certifications" && "bg-secondary-100/20",
+          result.index === "news" && "bg-blue-strong/20",
         )}>
           <span className={cn(
             "text-xs",
-            result.index === "users" && "text-blue-accent",
             result.index === "events" && "text-gold-default",
             result.index === "jobs" && "text-secondary-100",
-            result.index === "resources" && "text-blue-strong",
-            result.index === "mentors" && "text-gold-default",
-            result.index === "experiences" && "text-blue-accent",
-            result.index === "education" && "text-blue-strong",
-            result.index === "certifications" && "text-secondary-100",
+            result.index === "news" && "text-blue-strong",
           )}>
             {result.index[0].toUpperCase()}
           </span>
@@ -329,14 +295,9 @@ function SearchResultItem({ result, onClick }: SearchResultItemProps) {
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-white">{getDisplayName()}</p>
             <span className="text-xs text-gray-400">
-              {result.index === "users" ? "Alumni" : 
-                result.index === "jobs" ? "Job" :
+              {result.index === "jobs" ? "Job" :
                 result.index === "events" ? "Event" :
-                result.index === "resources" ? "Resource" :
-                result.index === "mentors" ? "Mentor" :
-                result.index === "experiences" ? "Experience" :
-                result.index === "education" ? "Education" :
-                result.index === "certifications" ? "Certification" :
+                result.index === "news" ? "News" :
                 (result.index as string).charAt(0).toUpperCase() + (result.index as string).slice(1)}
             </span>
           </div>
