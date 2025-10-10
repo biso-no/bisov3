@@ -4,7 +4,6 @@ import { AssistantModal } from "@/components/ai/public";
 import { PublicProviders } from "@/components/layout/public-providers";
 import { Footer } from "@/lib/components/Footer";
 import { Header } from "@/lib/components/Header";
-import { Sparkles } from "lucide-react";
 
 // Anonymous session is now handled automatically by middleware
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -30,17 +29,7 @@ export default async function PublicLayout({ children }: { children: React.React
           <div className="pointer-events-none absolute inset-x-[10%] bottom-0 mx-auto h-48 max-w-5xl rounded-full bg-gradient-to-t from-primary/10 via-transparent to-transparent" />
         </main>
 
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-4 sm:bottom-8 sm:right-8">
-          <div className="glass-elevated flex items-center gap-3 rounded-full px-4 py-2 shadow-card-soft">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100/90 text-white">
-              <Sparkles className="h-4 w-4" />
-            </div>
-            <div className="text-sm font-semibold text-primary-90">
-              Trenger du hjelp? Vår assistent er klar.
-            </div>
-          </div>
-          <AssistantModal />
-        </div>
+        <AssistantModal />
 
         <Footer className="relative z-10 border-t border-primary/10 bg-white/85 backdrop-blur">
           <Footer.List title="Explore">
