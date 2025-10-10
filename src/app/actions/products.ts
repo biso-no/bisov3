@@ -3,11 +3,11 @@
 import { revalidatePath } from 'next/cache'
 import { Query } from 'node-appwrite'
 import { createAdminClient } from '@/lib/appwrite'
-import type { 
-  Product, 
-  ProductWithTranslations, 
-  CreateProductData, 
-  UpdateProductData, 
+import type {
+  Product,
+  ProductWithTranslations,
+  CreateProductData,
+  UpdateProductData,
   ListProductsParams,
   ProductTranslation
 } from '@/lib/types/product'
@@ -49,7 +49,11 @@ function combineProductWithTranslations(product: Product, locale: 'en' | 'no'): 
     is_digital: metadata.is_digital,
     shipping_required: metadata.shipping_required,
     member_discount_enabled: metadata.member_discount_enabled,
-    member_discount_percent: metadata.member_discount_percent
+    member_discount_percent: metadata.member_discount_percent,
+    max_per_user: metadata.max_per_user,
+    max_per_order: metadata.max_per_order,
+    custom_fields: metadata.custom_fields,
+    variations: metadata.variations
   }
 }
 
@@ -84,13 +88,8 @@ export async function listProducts(params: ListProductsParams = {}): Promise<Pro
     const response = await db.listDocuments('app', 'webshop_products', queries)
     const products = response.documents as Product[]
     
-    // If no locale is specified (admin view), return raw products
-    if (!params.locale) {
-      return products as ProductWithTranslations[]
-    }
-    
-    // Combine products with their translations for the specified locale
-    return products.map(product => combineProductWithTranslations(product, params.locale!))
+    const locale = params.locale ?? 'en'
+    return products.map(product => combineProductWithTranslations(product, locale))
   } catch (error) {
     console.error('Error listing products:', error)
     return []
@@ -103,11 +102,8 @@ export async function getProduct(id: string, locale?: 'en' | 'no'): Promise<Prod
     
     const product = await db.getDocument('app', 'webshop_products', id) as Product
     
-    if (!locale) {
-      return product as ProductWithTranslations
-    }
-    
-    return combineProductWithTranslations(product, locale)
+    const resolvedLocale = locale ?? 'en'
+    return combineProductWithTranslations(product, resolvedLocale)
   } catch (error) {
     console.error('Error getting product:', error)
     return null
@@ -303,4 +299,23 @@ export async function getProducts(status: 'in-stock' | 'all' = 'all', locale: 'e
     locale,
     limit: 50
   })
+}
+
+const PRODUCT_IMAGE_BUCKET = process.env.APPWRITE_PRODUCT_BUCKET_ID || 'product-images'
+
+export async function uploadProductImage(formData: FormData) {
+  const file = formData.get('file')
+  if (!file || !(file instanceof File)) {
+    throw new Error('No file provided')
+  }
+
+  const { storage } = await createAdminClient()
+  const uploaded = await storage.createFile(PRODUCT_IMAGE_BUCKET, 'unique()', file)
+  const view = (storage as any).getFileView(PRODUCT_IMAGE_BUCKET, uploaded.$id)
+  const url = typeof view === 'string' ? view : view.href
+
+  return {
+    fileId: uploaded.$id,
+    url
+  }
 }

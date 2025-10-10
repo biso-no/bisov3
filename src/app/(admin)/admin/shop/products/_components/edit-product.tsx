@@ -10,7 +10,7 @@ import { ChevronLeft, Languages, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -18,6 +18,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 
 import { updateProduct, createProduct, translateProductContent } from '@/app/actions/products'
 import { listCampuses } from '@/app/actions/events' // Using from events actions
@@ -29,6 +35,28 @@ import type {
   UpdateProductData 
 } from '@/lib/types/product'
 import type { Campus } from '@/lib/types/campus'
+import ImageUploadCard from './image-upload-card'
+import { VariationsEditor } from './variations-editor'
+import { CustomFieldsEditor } from './custom-fields-editor'
+
+const customFieldSchema = z.object({
+  id: z.string(),
+  label: z.string().min(1, 'Field label is required'),
+  type: z.enum(['text', 'textarea', 'number', 'select']),
+  required: z.boolean().optional(),
+  placeholder: z.string().optional(),
+  options: z.array(z.string().min(1)).optional(),
+})
+
+const variationSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, 'Variation name is required'),
+  description: z.string().optional(),
+  price_modifier: z.number().optional(),
+  sku: z.string().optional(),
+  stock_quantity: z.number().int().min(0).optional(),
+  is_default: z.boolean().optional(),
+})
 
 const productSchema = z.object({
   slug: z.string().min(1, 'Slug is required'),
@@ -47,6 +75,10 @@ const productSchema = z.object({
     shipping_required: z.boolean().optional(),
     member_discount_enabled: z.boolean().optional(),
     member_discount_percent: z.number().min(0).max(100).optional(),
+    max_per_user: z.number().int().min(1).optional(),
+    max_per_order: z.number().int().min(1).optional(),
+    custom_fields: z.array(customFieldSchema).optional(),
+    variations: z.array(variationSchema).optional(),
   }).optional(),
   translations: z.object({
     en: z.object({
@@ -104,6 +136,10 @@ export function EditProduct({ product }: EditProductProps) {
         shipping_required: product?.shipping_required !== false,
         member_discount_enabled: product?.member_discount_enabled || false,
         member_discount_percent: product?.member_discount_percent || 0,
+        max_per_user: product?.max_per_user,
+        max_per_order: product?.max_per_order,
+        custom_fields: product?.custom_fields || [],
+        variations: product?.variations || [],
       },
       translations: {
         en: getTranslation('en'),
@@ -178,12 +214,85 @@ export function EditProduct({ product }: EditProductProps) {
         }
       }
 
+      const metadata: ProductMetadata | undefined = data.metadata ? { ...data.metadata } : undefined
+
+      if (metadata) {
+        const imageList = Array.isArray(metadata.images)
+          ? metadata.images.filter((url): url is string => typeof url === 'string' && url.trim().length > 0)
+          : []
+
+        metadata.images = imageList
+        if (imageList.length > 0) {
+          metadata.image = imageList[0]
+        } else {
+          delete metadata.image
+        }
+
+        if (!metadata.member_discount_enabled) {
+          metadata.member_discount_percent = 0
+        }
+
+        if (!metadata.custom_fields || metadata.custom_fields.length === 0) {
+          delete metadata.custom_fields
+        } else {
+          metadata.custom_fields = metadata.custom_fields.map((field) => ({
+            ...field,
+            options: field.type === 'select'
+              ? (field.options || []).filter((option) => option.trim().length > 0)
+              : undefined,
+          }))
+        }
+
+        if (!metadata.variations || metadata.variations.length === 0) {
+          delete metadata.variations
+        } else {
+          metadata.variations = metadata.variations.map((variation) => ({
+            ...variation,
+            price_modifier: typeof variation.price_modifier === 'number'
+              ? variation.price_modifier
+              : 0,
+            stock_quantity: typeof variation.stock_quantity === 'number'
+              ? Math.max(0, variation.stock_quantity)
+              : undefined,
+          }))
+        }
+
+        if (!metadata.max_per_user) {
+          delete metadata.max_per_user
+        }
+
+        if (!metadata.max_per_order) {
+          delete metadata.max_per_order
+        }
+
+        if (metadata.sku) {
+          metadata.sku = metadata.sku.trim()
+        }
+        if (!metadata.sku) {
+          delete metadata.sku
+        }
+
+        if (metadata.category) {
+          metadata.category = metadata.category.trim()
+        }
+        if (!metadata.category) {
+          delete metadata.category
+        }
+
+        if (metadata.dimensions) {
+          metadata.dimensions = metadata.dimensions.trim()
+        }
+        if (!metadata.dimensions) {
+          delete metadata.dimensions
+        }
+      }
+
       if (isEditing && product) {
         const updateData: UpdateProductData = {
           slug: data.slug,
           status: data.status,
           campus_id: data.campus_id,
-          metadata: data.metadata,
+          metadata,
           translations: transformedTranslations,
         }
         await updateProduct(product.$id, updateData)
@@ -193,7 +302,7 @@ export function EditProduct({ product }: EditProductProps) {
           slug: data.slug!,
           status: data.status,
           campus_id: data.campus_id!,
-          metadata: data.metadata,
+          metadata,
           translations: transformedTranslations,
         }
         await createProduct(createData)
@@ -358,157 +467,236 @@ export function EditProduct({ product }: EditProductProps) {
                   </CardContent>
                 </Card>
 
-                {/* Product Metadata */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Product Details</CardTitle>
-                    <CardDescription>
-                      Configure pricing, inventory, and other product details
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid gap-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="metadata.price"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Price (NOK)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                placeholder="0.00"
-                                {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                <Accordion
+                  type="multiple"
+                  defaultValue={['product-details']}
+                  className="space-y-4"
+                >
+                  <AccordionItem value="product-details" className="overflow-hidden rounded-lg border bg-card">
+                    <AccordionTrigger className="px-4 py-3 text-left text-base font-semibold">
+                      Product Details
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      <p className="pb-4 text-sm text-muted-foreground">
+                        Configure pricing, inventory, and other product data.
+                      </p>
+                      <div className="grid gap-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="metadata.price"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Price (NOK)</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    {...field}
+                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="metadata.sku"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>SKU</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Product SKU" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="metadata.stock_quantity"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Stock Quantity</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    placeholder="0"
+                                    {...field}
+                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="metadata.category"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Category</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Product category" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="metadata.is_digital"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3">
+                                <FormControl>
+                                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <FormLabel>Digital Product</FormLabel>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="metadata.shipping_required"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3">
+                                <FormControl>
+                                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <FormLabel>Shipping Required</FormLabel>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="metadata.member_discount_enabled"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3">
+                                <FormControl>
+                                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                </FormControl>
+                                <FormLabel>Enable member discount</FormLabel>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="metadata.member_discount_percent"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Member discount %</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    step="1"
+                                    min="0"
+                                    max="100"
+                                    {...field}
+                                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <FormField
+                          control={form.control}
+                          name="metadata.max_per_user"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-col space-y-2 rounded-md border p-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="space-y-1">
+                                  <FormLabel className="text-sm font-medium leading-none">
+                                    Limit to one per customer
+                                  </FormLabel>
+                                  <FormDescription>
+                                    Prevents customers from purchasing the same product more than once with their account.
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={!!field.value && field.value <= 1}
+                                    onCheckedChange={(checked) => field.onChange(checked ? 1 : undefined)}
+                                  />
+                                </FormControl>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="metadata.max_per_order"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Maximum per order</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  value={field.value ?? ''}
+                                  onChange={(event) => {
+                                    const next = event.target.value
+                                    field.onChange(next ? parseInt(next) : undefined)
+                                  }}
+                                  placeholder="Unlimited"
+                                />
+                              </FormControl>
+                              <FormDescription>Restrict how many units can be purchased in a single checkout.</FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="options-fields" className="overflow-hidden rounded-lg border bg-card">
+                    <AccordionTrigger className="px-4 py-3 text-left text-base font-semibold">
+                      Options & Fields
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      <p className="pb-4 text-sm text-muted-foreground">
+                        Configure variations and gather extra details needed to fulfill the order.
+                      </p>
+                      <div className="space-y-8">
+                        <FormField
+                          control={form.control}
+                          name="metadata.variations"
+                          render={({ field }) => (
+                            <FormItem>
+                              <VariationsEditor
+                                value={field.value || []}
+                                onChange={(next) => field.onChange(next)}
                               />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="metadata.sku"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>SKU</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Product SKU" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="metadata.stock_quantity"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Stock Quantity</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="0"
-                                {...field}
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="metadata.custom_fields"
+                          render={({ field }) => (
+                            <FormItem>
+                              <CustomFieldsEditor
+                                value={field.value || []}
+                                onChange={(next) => field.onChange(next)}
                               />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="metadata.category"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Category</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Product category" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name="metadata.image"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Image URL</FormLabel>
-                          <FormControl>
-                            <Input placeholder="https://example.com/image.jpg" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex items-center space-x-4">
-                      <FormField
-                        control={form.control}
-                        name="metadata.is_digital"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <Switch checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <FormLabel>Digital Product</FormLabel>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="metadata.shipping_required"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <Switch checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <FormLabel>Shipping Required</FormLabel>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <FormField
-                        control={form.control}
-                        name="metadata.member_discount_enabled"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-                            <FormControl>
-                              <Switch checked={field.value} onCheckedChange={field.onChange} />
-                            </FormControl>
-                            <FormLabel>Enable member discount</FormLabel>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="metadata.member_discount_percent"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Member discount %</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="1"
-                                min="0"
-                                max="100"
-                                {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
 
               {/* Sidebar */}
@@ -578,14 +766,30 @@ export function EditProduct({ product }: EditProductProps) {
                         </FormItem>
                       )}
                     />
-                    {selectedCampus && (
-                      <div className="text-sm text-muted-foreground">
-                        Selected: {selectedCampus.name}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+                {selectedCampus && (
+                  <div className="text-sm text-muted-foreground">
+                    Selected: {selectedCampus.name}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            <FormField
+              control={form.control}
+              name="metadata.images"
+              render={({ field }) => (
+                <FormItem>
+                  <ImageUploadCard
+                    images={field.value || []}
+                    onChange={(next) => {
+                      field.onChange(next)
+                      form.setValue('metadata.image', next[0] || '')
+                    }}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
             </form>
           </Form>
 

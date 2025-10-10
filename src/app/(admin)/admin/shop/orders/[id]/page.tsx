@@ -39,21 +39,60 @@ export default async function AdminOrderDetail({ params }: { params: Promise<{ i
         <CardHeader>
           <CardTitle>Items</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
-          {items.map((it) => (
-            <div key={it.product_id} className="flex justify-between text-sm">
-              <div>
-                <div className="font-medium">{it.title}</div>
-                <div className="text-muted-foreground">x{it.quantity}</div>
+        <CardContent className="space-y-3">
+          {items.map((it) => {
+            const customFields = Array.isArray(it.custom_fields) ? it.custom_fields : []
+            const fallbackFields = !customFields.length && it.custom_field_responses
+              ? Object.entries(it.custom_field_responses as Record<string, string>).map(([key, value]) => ({
+                  id: key,
+                  label: key,
+                  value,
+                }))
+              : []
+
+            return (
+              <div key={`${it.product_id}-${it.variation_id || 'base'}`} className="rounded-lg border p-4 text-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="font-medium">{it.title}</div>
+                    {it.variation_name ? (
+                      <div className="text-xs text-muted-foreground">Variation: {it.variation_name}</div>
+                    ) : null}
+                    <div className="text-xs text-muted-foreground">Quantity: {it.quantity}</div>
+                  </div>
+                  <div className="text-right font-semibold">{Number(it.unit_price).toFixed(2)} NOK</div>
+                </div>
+                {customFields.length > 0 ? (
+                  <div className="mt-3 rounded-md bg-muted/40 p-3 text-xs">
+                    <div className="mb-1 font-semibold text-muted-foreground">Customer input</div>
+                    <ul className="space-y-1">
+                      {customFields.map((field) => (
+                        <li key={field.id}>
+                          <span className="font-medium text-foreground">{field.label}:</span> {field.value}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {!customFields.length && fallbackFields.length > 0 ? (
+                  <div className="mt-3 rounded-md bg-muted/40 p-3 text-xs">
+                    <div className="mb-1 font-semibold text-muted-foreground">Customer input</div>
+                    <ul className="space-y-1">
+                      {fallbackFields.map((field) => (
+                        <li key={field.id}>
+                          <span className="font-medium text-foreground">{field.label}:</span> {field.value}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
               </div>
-              <div>{Number(it.unit_price).toFixed(2)} NOK</div>
-            </div>
-          ))}
+            )
+          })}
           {items.length === 0 ? <div className="text-sm text-muted-foreground">No items</div> : null}
         </CardContent>
       </Card>
     </div>
   )
 }
-
 

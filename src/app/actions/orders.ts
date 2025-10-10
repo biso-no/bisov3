@@ -2,9 +2,8 @@
 import { createSessionClient, createAdminClient } from "@/lib/appwrite";
 import { Query } from "node-appwrite";
 import { createVippsCheckout } from "@/lib/vipps";
-import { getProductBySlug } from "@/app/actions/products";
+import { getProduct } from "@/app/actions/products";
 import { getLocale } from "@/app/actions/locale";
-import { redirect } from "next/navigation";
 import { OrderItem } from "@/lib/types/order";
 
 
@@ -73,120 +72,215 @@ async function getMemberDiscountIfAny(product: any) {
     }
 }
 
-export interface CheckoutData {
-    slug: string
-    name: string
-    email: string
-    phone?: string
-    quantity?: number
+export interface CheckoutLineItemInput {
+  productId: string
+  slug: string
+  quantity: number
+  variationId?: string
+  customFields?: Record<string, string>
+  customFieldLabels?: Record<string, string>
 }
 
-export async function createCheckoutSession(data: CheckoutData) {
-    try {
-        const { slug, name, email, phone, quantity = 1 } = data
-        const locale = await getLocale()
-        const product = await getProductBySlug(slug, locale)
-        
-        if (!product || !product.price) {
-            throw new Error('Product not found')
-        }
-
-        const qty = Math.max(1, Number(quantity || 1))
-        const discount = await getMemberDiscountIfAny(product)
-        const unitPrice = Number(product.price)
-        const discountedUnit = discount.applied ? Math.max(0, unitPrice * (1 - discount.percent / 100)) : unitPrice
-        const subtotal = discountedUnit * qty
-        const total = subtotal
-
-        // Create pending order
-        const { db } = await createAdminClient()
-        const orderData: any = {
-            status: 'pending',
-            currency: 'NOK',
-            subtotal,
-            discount_total: discount.applied ? unitPrice * qty - subtotal : 0,
-            total,
-            buyer_name: name || 'Guest',
-            buyer_email: email || '',
-            buyer_phone: phone || '',
-            membership_applied: discount.applied,
-            member_discount_percent: discount.applied ? discount.percent : 0,
-            items_json: JSON.stringify([
-                {
-                    product_id: product.$id,
-                    product_slug: product.slug,
-                    title: product.title || product.slug,
-                    unit_price: discountedUnit,
-                    quantity: qty,
-                } as OrderItem,
-            ]),
-            campus_id: product.campus_id,
-        }
-        
-        const order = await db.createDocument('app', 'orders', 'unique()', orderData)
-
-        // Create Vipps checkout using the SDK
-        const vippsCheckout = await createVippsCheckout({
-            amount: Math.round(total * 100),
-            reference: order.$id,
-            paymentDescription: `${product.title || product.slug} x ${qty}`,
-            email: email,
-            firstName: name.split(' ')[0] || name,
-            lastName: name.split(' ').slice(1).join(' ') || '',
-            phoneNumber: phone || '',
-            orderId: order.$id,
-        })
-
-        if (vippsCheckout.ok) {
-            // Update order with Vipps session info
-            await db.updateDocument('app', 'orders', order.$id, {
-                vipps_session_id: vippsCheckout.data.token,
-                vipps_payment_link: vippsCheckout.data.checkoutFrontendUrl
-            })
-
-            return {
-                success: true,
-                paymentUrl: vippsCheckout.data.checkoutFrontendUrl,
-                orderId: order.$id,
-            }
-        } else {
-            // Handle Vipps checkout failure
-            console.error('Vipps checkout failed:', vippsCheckout)
-            return {
-                success: false,
-                error: 'Failed to create Vipps checkout session',
-            }
-        }
-
-    } catch (error) {
-        console.error('Checkout session error', error)
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : 'Internal error',
-        }
-    }
+export interface CartCheckoutData {
+  items: CheckoutLineItemInput[]
+  name: string
+  email: string
+  phone?: string
 }
 
-export async function startCheckout(data: CheckoutData) {
-    const result = await createCheckoutSession(data)
-    console.log("Result", JSON.stringify(result, null, 2))
-    
-    if (!result) {
-        console.log("Error: createCheckoutSession returned undefined")
-        throw new Error('Failed to create checkout session - no result returned')
+export interface CheckoutResult {
+  success: boolean
+  paymentUrl?: string
+  orderId?: string
+  error?: string
+}
+
+function normalizeCustomFields(inputs?: Record<string, string>) {
+  if (!inputs) return {}
+  return Object.entries(inputs).reduce<Record<string, string>>((acc, [key, value]) => {
+    if (typeof value !== 'string') return acc
+    const trimmed = value.trim()
+    if (trimmed.length === 0) return acc
+    acc[key] = trimmed
+    return acc
+  }, {})
+}
+
+export async function createCartCheckoutSession(data: CartCheckoutData): Promise<CheckoutResult> {
+  try {
+    if (!data.items || data.items.length === 0) {
+      throw new Error('Your cart is empty')
     }
-    
-    if (result.error) {
-        console.log("Error creating checkout session", JSON.stringify(result, null, 2))
-        throw new Error(result.error || 'Failed to create checkout session')
+
+    const locale = await getLocale()
+    const sanitizedItems = data.items
+      .map((item) => ({
+        ...item,
+        quantity: Math.max(1, Math.floor(Number(item.quantity) || 0)),
+      }))
+      .filter((item) => item.quantity > 0 && item.productId)
+
+    if (sanitizedItems.length === 0) {
+      throw new Error('No valid items in cart')
     }
-    
-    if (!result.paymentUrl) {
-        console.log("Error: No payment URL in result", JSON.stringify(result, null, 2))
-        throw new Error('No payment URL received from checkout session')
+
+    const quantityByProduct = new Map<string, number>()
+    for (const item of sanitizedItems) {
+      quantityByProduct.set(
+        item.productId,
+        (quantityByProduct.get(item.productId) || 0) + item.quantity
+      )
     }
-    
-    redirect(result.paymentUrl)
+
+    const discountCache = new Map<string, { applied: boolean; percent: number }>()
+    const productCache = new Map<string, any>()
+    const orderItems: OrderItem[] = []
+    const campusIds = new Set<string>()
+    let subtotal = 0
+    let originalTotal = 0
+    let membershipApplied = false
+    let maxDiscountPercent = 0
+
+    for (const input of sanitizedItems) {
+      const productId = input.productId
+      if (!productId) continue
+
+      let product = productCache.get(productId)
+      if (!product) {
+        product = await getProduct(productId, locale)
+        if (!product) {
+          throw new Error(`Product ${input.slug || productId} is not available anymore.`)
+        }
+        productCache.set(productId, product)
+      }
+
+      if (!product.price) {
+        throw new Error(`Product ${product.title || product.slug} is missing a price.`)
+      }
+
+      const totalForProduct = quantityByProduct.get(productId) || 0
+      if (product.max_per_order && totalForProduct > product.max_per_order) {
+        throw new Error(`Only ${product.max_per_order} of ${product.title || product.slug} can be purchased per order.`)
+      }
+
+      if (product.max_per_user === 1 && totalForProduct > 1) {
+        throw new Error(`${product.title || product.slug} is limited to one per customer.`)
+      }
+
+      const variation = product.variations?.find((variant: any) => variant.id === input.variationId)
+      const basePrice = Number(product.price || 0)
+      const variationModifier = Number(variation?.price_modifier || 0)
+      const originalUnit = Math.max(0, basePrice + variationModifier)
+
+      const discount = discountCache.get(productId) || (await getMemberDiscountIfAny(product))
+      discountCache.set(productId, discount)
+
+      const discountedUnit = discount.applied
+        ? Math.max(0, originalUnit * (1 - discount.percent / 100))
+        : originalUnit
+
+      membershipApplied = membershipApplied || discount.applied
+      maxDiscountPercent = discount.applied
+        ? Math.max(maxDiscountPercent, discount.percent || 0)
+        : maxDiscountPercent
+
+      const customFieldResponses = normalizeCustomFields(input.customFields)
+      const customFieldLabels = input.customFieldLabels || {}
+      if (product.custom_fields) {
+        const missingFields = product.custom_fields
+          .filter((field: any) => field.required)
+          .filter((field: any) => !customFieldResponses[field.id])
+          .map((field: any) => field.label)
+        if (missingFields.length > 0) {
+          throw new Error(`Missing required information for ${product.title || product.slug}: ${missingFields.join(', ')}`)
+        }
+      }
+
+      const customFieldDetails = Object.entries(customFieldResponses).map(([fieldId, value]) => ({
+        id: fieldId,
+        label: customFieldLabels[fieldId] || fieldId,
+        value,
+      }))
+
+      orderItems.push({
+        product_id: product.$id,
+        product_slug: product.slug,
+        title: product.title || product.slug,
+        unit_price: discountedUnit,
+        quantity: input.quantity,
+        variation_id: variation?.id,
+        variation_name: variation?.name,
+        variation_price: variationModifier,
+        custom_field_responses: Object.keys(customFieldResponses).length ? customFieldResponses : undefined,
+        custom_fields: customFieldDetails.length ? customFieldDetails : undefined,
+      })
+
+      subtotal += discountedUnit * input.quantity
+      originalTotal += originalUnit * input.quantity
+      if (product.campus_id) {
+        campusIds.add(product.campus_id)
+      }
+    }
+
+    const discountTotal = Math.max(0, originalTotal - subtotal)
+    const { db } = await createAdminClient()
+    const order = await db.createDocument('app', 'orders', 'unique()', {
+      status: 'pending',
+      currency: 'NOK',
+      subtotal,
+      discount_total: discountTotal,
+      total: subtotal,
+      buyer_name: data.name || 'Guest',
+      buyer_email: data.email || '',
+      buyer_phone: data.phone || '',
+      membership_applied: membershipApplied,
+      member_discount_percent: membershipApplied ? maxDiscountPercent : 0,
+      items_json: JSON.stringify(orderItems),
+      campus_id: campusIds.size === 1 ? Array.from(campusIds)[0] : undefined,
+    })
+
+    const paymentDescription = orderItems
+      .slice(0, 2)
+      .map((item) => `${item.title} x ${item.quantity}`)
+      .join(', ')
+
+    const vippsCheckout = await createVippsCheckout({
+      amount: Math.round(subtotal * 100),
+      reference: order.$id,
+      paymentDescription,
+      email: data.email,
+      firstName: data.name.split(' ')[0] || data.name,
+      lastName: data.name.split(' ').slice(1).join(' ') || '',
+      phoneNumber: data.phone || '',
+      orderId: order.$id,
+    })
+
+    if (!vippsCheckout.ok) {
+      console.error('Vipps checkout failed:', vippsCheckout)
+      return { success: false, error: 'Failed to create Vipps checkout session' }
+    }
+
+    await db.updateDocument('app', 'orders', order.$id, {
+      vipps_session_id: vippsCheckout.data.token,
+      vipps_payment_link: vippsCheckout.data.checkoutFrontendUrl,
+    })
+
+    return {
+      success: true,
+      paymentUrl: vippsCheckout.data.checkoutFrontendUrl,
+      orderId: order.$id,
+    }
+  } catch (error) {
+    console.error('Checkout session error', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Internal error',
+    }
+  }
+}
+
+export async function startCartCheckout(data: CartCheckoutData) {
+  return createCartCheckoutSession(data)
 }
 
 export async function getCheckoutStatus(orderId: string) {

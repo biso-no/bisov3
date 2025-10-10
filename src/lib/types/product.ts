@@ -1,6 +1,27 @@
 import { Models } from 'node-appwrite'
 import { ContentTranslation } from './content-translation'
 
+export type ProductCustomFieldType = 'text' | 'textarea' | 'number' | 'select'
+
+export interface ProductCustomField {
+  id: string
+  label: string
+  type: ProductCustomFieldType
+  required?: boolean
+  placeholder?: string
+  options?: string[]
+}
+
+export interface ProductVariation {
+  id: string
+  name: string
+  description?: string
+  price_modifier?: number
+  sku?: string
+  stock_quantity?: number
+  is_default?: boolean
+}
+
 export interface Product extends Models.Document {
   slug: string
   status: 'draft' | 'published' | 'archived'
@@ -29,6 +50,10 @@ export interface ProductWithTranslations extends Product {
   shipping_required?: boolean
   member_discount_enabled?: boolean
   member_discount_percent?: number
+  max_per_user?: number
+  max_per_order?: number
+  custom_fields?: ProductCustomField[]
+  variations?: ProductVariation[]
 }
 
 export interface ProductMetadata {
@@ -44,6 +69,10 @@ export interface ProductMetadata {
   shipping_required?: boolean
   member_discount_enabled?: boolean
   member_discount_percent?: number
+  max_per_user?: number
+  max_per_order?: number
+  custom_fields?: ProductCustomField[]
+  variations?: ProductVariation[]
 }
 
 export interface ProductTranslation {

@@ -19,6 +19,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { SUPPORTED_LOCALES, type Locale } from "@/i18n/config";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { CartButton } from "@/components/cart/cart-button";
 
 type NavDocument = NavTreeItem;
 
@@ -292,6 +293,7 @@ export const Header = ({ editMode }: { editMode: boolean }) => {
             <Search className="h-4 w-4" />
             <span className="sr-only">Søk</span>
           </Button>
+          <CartButton className="hidden h-10 w-10 rounded-full border border-primary/10 text-primary-80 hover:border-primary/30 hover:bg-primary/5 md:inline-flex" />
           <div className="hidden items-center gap-2 md:flex">
             {PRIMARY_ACTIONS.map((action) => (
               <Button
@@ -317,6 +319,13 @@ export const Header = ({ editMode }: { editMode: boolean }) => {
             </SheetTrigger>
             <SheetContent side="right" className="w-full max-w-sm border-l border-primary/10 bg-surface-strong/95 px-0 pb-12 pt-8 backdrop-blur">
               <div className="flex flex-col gap-6 px-6">
+                <div className="flex items-center justify-between">
+                  <CartButton className="h-10 w-10 rounded-full border border-primary/15 bg-white/80 text-primary-80 hover:border-primary/30 hover:bg-primary/5" />
+                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full border border-primary/15 bg-white text-primary-80 hover:border-primary/30 hover:bg-primary/5">
+                    <Search className="h-4 w-4" />
+                    <span className="sr-only">Søk</span>
+                  </Button>
+                </div>
                 <div className="flex flex-col gap-3">
                   <Badge variant="gradient" className="w-max rounded-full px-3 py-1 text-xs uppercase tracking-[0.16em]">
                     Studentliv

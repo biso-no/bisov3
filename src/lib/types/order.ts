@@ -8,6 +8,11 @@ export interface OrderItem {
   title?: string
   unit_price: number
   quantity: number
+  variation_id?: string
+  variation_name?: string
+  variation_price?: number
+  custom_field_responses?: Record<string, string>
+  custom_fields?: { id: string; label: string; value: string }[]
 }
 
 export interface Order extends Models.Document {
@@ -30,5 +35,3 @@ export interface Order extends Models.Document {
   vipps_payment_link?: string
   vipps_receipt_url?: string
 }
-
-

@@ -4,9 +4,8 @@ import { PublicPageHeader } from '@/components/public/PublicPageHeader'
 import Image from 'next/image'
 import { createSessionClient } from '@/lib/appwrite'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
 import { getLocale } from '@/app/actions/locale'
+import { ProductPurchaseClient } from './product-purchase-client'
 
 async function maybeGetMemberPrice(product: any) {
   try {
@@ -35,12 +34,14 @@ export default async function PublicProductDetail({ params }: { params: Promise<
   const product = await getProductBySlug(slug, await getLocale())
   if (!product) return notFound()
   const member = await maybeGetMemberPrice(product)
+  const basePrice = Number(product.price || 0)
+  const subtitlePrice = member ? `${member.discounted.toFixed(2)} kr (member)` : `${basePrice.toFixed(2)} kr`
 
   return (
     <div className="space-y-6">
       <PublicPageHeader
         title={product.title || product.slug}
-        subtitle={member ? `${member.discounted.toFixed(2)} kr` : `${Number(product.price).toFixed(2)} kr`}
+        subtitle={subtitlePrice}
         breadcrumbs={[{ label: 'Home', href: '/' }, { label: 'Shop', href: '/shop' }, { label: product.title || product.slug }]}
       />
       <div className="grid gap-8 md:grid-cols-2">
@@ -55,31 +56,15 @@ export default async function PublicProductDetail({ params }: { params: Promise<
         </Card>
 
         <div className="space-y-6">
-          <div>
-            <div className="text-3xl font-semibold">
-              {member ? (
-                <>
-                  {member.discounted.toFixed(2)} NOK
-                  <span className="ml-2 text-base text-muted-foreground line-through">{Number(product.price).toFixed(2)} NOK</span>
-                </>
-              ) : (
-                <>{Number(product.price).toFixed(2)} NOK</>
-              )}
-            </div>
-            {member ? <div className="text-sm text-green-600">Member discount applied</div> : null}
-          </div>
-
           <article className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: product.description || '' }} />
 
-          <div>
-            <Button asChild size="lg">
-              <Link href={`/shop/checkout/${product.slug}`}>Buy now</Link>
-            </Button>
-          </div>
+          <ProductPurchaseClient
+            product={product}
+            memberPricing={member}
+          />
         </div>
       </div>
     </div>
   )
 }
-
 
