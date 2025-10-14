@@ -48,7 +48,7 @@ import { cn } from "@/lib/utils"
 import type { DocumentData as ActionDocumentData } from '../../../actions'
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { processDocumentAction } from "@/app/actions/document-processing"
+// Use API route for document processing to keep heavy OCR libs isolated server-side
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { generateExpenseDescription } from '../../../actions'
@@ -339,10 +339,12 @@ export function DocumentUpload({ onNext, onPrevious, onUpdate, data }: DocumentU
         const doc = documents[i];
         if (!doc.processedByAI) {
           const file = doc.file;
-          const result = await processDocumentAction(
-            await file.arrayBuffer(),
-            file.type
-          );
+          const form = new FormData();
+          form.append('file', file);
+          form.append('mimeType', file.type);
+          const res = await fetch('/api/process-document', { method: 'POST', body: form });
+          if (!res.ok) throw new Error('Failed to process document');
+          const result = await res.json();
           
           updatedDocuments[i] = {
             ...doc,
@@ -400,10 +402,12 @@ export function DocumentUpload({ onNext, onPrevious, onUpdate, data }: DocumentU
         };
 
         if (aiEnabled) {
-          const result = await processDocumentAction(
-            await file.arrayBuffer(),
-            file.type
-          );
+          const form = new FormData();
+          form.append('file', file);
+          form.append('mimeType', file.type);
+          const res = await fetch('/api/process-document', { method: 'POST', body: form });
+          if (!res.ok) throw new Error('Failed to process document');
+          const result = await res.json();
           const amount = Number(result.amount || 0);
           const currency = result.currency || 'NOK';
           

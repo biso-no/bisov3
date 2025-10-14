@@ -8,6 +8,7 @@ const baseConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   reactStrictMode: false,
   productionBrowserSourceMaps: false,
+  swcMinify: process.env.DISABLE_MINIFY === '1' ? false : true,
 
   transpilePackages: ["lucide-react", "ui"],
 
@@ -50,7 +51,7 @@ const baseConfig: NextConfig = {
   },
 
   experimental: {
-    optimizePackageImports: ["lucide-react", "@radix-ui"],
+    optimizePackageImports: process.env.DISABLE_MINIFY === '1' ? [] : ["lucide-react", "@radix-ui"],
   },
 };
 
