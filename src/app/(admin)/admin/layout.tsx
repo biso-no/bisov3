@@ -2,8 +2,7 @@ import '@/app/globals.css';
 import { AdminLayout as Component } from '@/components/admin-layout';
 import { getUserRoles } from '@/app/actions/admin';
 import { getLoggedInUser } from '@/lib/actions/user';
-import dynamic from 'next/dynamic';
-const AdminProviders = dynamic(() => import('@/components/layout/admin-providers').then(m => m.AdminProviders), { ssr: false });
+import { AdminProviders } from '@/components/layout/admin-providers';
 import { getAuthStatus } from '@/lib/auth-utils';
 import { redirect } from 'next/navigation';
 

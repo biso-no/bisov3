@@ -10,7 +10,7 @@ const baseConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   swcMinify: process.env.DISABLE_MINIFY === '1' ? false : true,
 
-  transpilePackages: process.env.DISABLE_MINIFY === '1' ? [] : ["lucide-react", "ui"],
+  transpilePackages: [],
 
   images: {
     remotePatterns: [
@@ -79,8 +79,8 @@ const baseConfig: NextConfig = {
       const originalExternals = config.externals || [];
       config.externals = [
         ...originalExternals,
-        function (_context: any, request: string, callback: Function) {
-          if (heavyPkgs.some((name) => request === name || request.startsWith(name))) {
+        ({ request }: { request?: string }, callback: (err?: any, result?: any) => void) => {
+          if (request && heavyPkgs.some((name) => request === name || request.startsWith(name))) {
             return callback(null, 'commonjs ' + request);
           }
           callback();
@@ -91,7 +91,7 @@ const baseConfig: NextConfig = {
   },
 
   experimental: {
-    optimizePackageImports: process.env.DISABLE_MINIFY === '1' ? [] : ["lucide-react", "@radix-ui"],
+    optimizePackageImports: [],
   },
 };
 

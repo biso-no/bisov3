@@ -1,8 +1,7 @@
 import "@/app/globals.css";
 
 import { AssistantModal } from "@/components/ai/public";
-import dynamic from 'next/dynamic';
-const PublicProviders = dynamic(() => import('@/components/layout/public-providers').then(m => m.PublicProviders), { ssr: false });
+import { PublicProviders } from "@/components/layout/public-providers";
 import { Footer } from "@/lib/components/Footer";
 import { Header } from "@/lib/components/Header";
 
