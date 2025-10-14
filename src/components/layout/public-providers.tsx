@@ -1,4 +1,6 @@
 "use client";
+import "@assistant-ui/styles/index.css";
+import "@assistant-ui/styles/markdown.css";
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
 import { AssistantChatTransport } from "@assistant-ui/react-ai-sdk";
 import { useChatRuntime } from "@assistant-ui/react-ai-sdk";

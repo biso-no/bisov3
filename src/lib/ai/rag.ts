@@ -1,6 +1,6 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import { createIndexingService } from '@/lib/ai/indexing-service';
+// Lazy import heavy indexing service to reduce initial bundle size
 import { documentClassifier } from '@/lib/ai/document-classifier';
 
 export type RagSearchResult = {
@@ -71,6 +71,7 @@ export const searchSharePoint = tool({
   }),
   execute: async ({ query, k, filter }: { query: string; k: number; filter?: Record<string, any> }) => {
     try {
+      const { createIndexingService } = await import('@/lib/ai/indexing-service');
       const indexingService = await createIndexingService();
       
       // Detect query language for better response handling
@@ -123,6 +124,7 @@ export const getDocumentStats = tool({
   inputSchema: z.object({}),
   execute: async () => {
     try {
+      const { createIndexingService } = await import('@/lib/ai/indexing-service');
       const indexingService = await createIndexingService();
       const stats = await indexingService.getDocumentStats();
       
