@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:appwrite": "NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "next start",
     "lint": "next lint",
     "i18n:sync": "node scripts/sync-translations.mjs",
@@ -121,6 +122,5 @@
     "@types/react-dom": "^18.3.5",
     "tailwindcss": "^4.1.14",
     "typescript": "^5.9.3"
-  },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  }
 }

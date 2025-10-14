@@ -1,5 +1,4 @@
-import { createWorker } from 'tesseract.js';
-import { Jimp } from 'jimp';
+import 'server-only';
 import { extractTextFromPdf } from '@/lib/pdf-text-extractor';
 
 export interface ExtractedDocumentData {
@@ -115,6 +114,10 @@ async function processPDF(buffer: Buffer): Promise<ExtractedDocumentData> {
 
 async function processImage(buffer: Buffer): Promise<ExtractedDocumentData> {
   try {
+    const [{ createWorker }, { Jimp }] = await Promise.all([
+      import('tesseract.js'),
+      import('jimp'),
+    ]);
     const worker = await createWorker('eng+nor');
 
     // Use Jimp to read the image with new v1.x API

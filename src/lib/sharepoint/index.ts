@@ -1,3 +1,4 @@
+import 'server-only';
 import { Client, ResponseType } from '@microsoft/microsoft-graph-client';
 import { ConfidentialClientApplication } from '@azure/msal-node';
 import { z } from 'zod';

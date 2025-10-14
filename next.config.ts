@@ -7,6 +7,7 @@ const withNextIntl = createNextIntlPlugin();
 const baseConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   reactStrictMode: false,
+  productionBrowserSourceMaps: false,
 
   transpilePackages: ["lucide-react", "ui"],
 
@@ -33,7 +34,11 @@ const baseConfig: NextConfig = {
     ],
   },
 
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
+    if (!dev) {
+      // Disable source maps in production to reduce memory usage
+      config.devtool = false;
+    }
     if (!isServer) {
       config.resolve.alias = {
         ...config.resolve.alias,

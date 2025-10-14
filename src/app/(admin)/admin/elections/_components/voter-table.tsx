@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react"
 import { MoreHorizontal, Pencil, Trash, UserPlus, Upload, Plus, X, Download } from "lucide-react"
-import * as XLSX from "xlsx"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
@@ -71,6 +70,7 @@ const showNotification = (message: string, type: 'error' | 'success' | 'info') =
   
     setIsLoading(true)
     try {
+      const XLSX = await import("xlsx")
       const data = await file.arrayBuffer()
       const workbook = XLSX.read(data, { type: "array" })
       const worksheet = workbook.Sheets[workbook.SheetNames[0]]
@@ -104,7 +104,8 @@ const showNotification = (message: string, type: 'error' | 'success' | 'info') =
   }
   
 
-  const downloadTemplate = () => {
+  const downloadTemplate = async () => {
+    const XLSX = await import("xlsx")
     const workbook = XLSX.utils.book_new()
     const worksheetData = [
       ["Name", "Email", "Voter ID", "Vote Weight"], // Header row

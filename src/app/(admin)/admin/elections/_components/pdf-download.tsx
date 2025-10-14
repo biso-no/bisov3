@@ -1,8 +1,6 @@
 "use client"
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { pdf } from '@react-pdf/renderer';
-import ElectionResultsPDF from './pdf-results';
 import { Election, DetailedVoteResult } from '../actions';
 import { LoaderIcon } from 'lucide-react';
 
@@ -17,6 +15,11 @@ const PDFDownloadButton: React.FC<PDFDownloadButtonProps> = ({ election, detaile
   const handleDownload = async () => {
     setIsLoading(true);
     try {
+      const [{ pdf }, { default: ElectionResultsPDF }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('./pdf-results'),
+      ]);
+
       const blob = await pdf(
         <ElectionResultsPDF election={election} detailedResults={detailedResults} />
       ).toBlob();

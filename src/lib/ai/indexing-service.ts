@@ -1,3 +1,4 @@
+import 'server-only';
 import { SharePointService, SharePointDocument } from '@/lib/sharepoint';
 import { DocumentProcessor, ProcessedDocument } from './document-processor';
 import { isSupportedContentType } from './content-types';

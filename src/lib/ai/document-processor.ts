@@ -1,9 +1,6 @@
-import mammoth from 'mammoth';
+import 'server-only';
 import { extractTextFromPdf } from '@/lib/pdf-text-extractor';
 import TurndownService from 'turndown';
-import * as XLSX from 'xlsx';
-import JSZip from 'jszip';
-import { parseStringPromise } from 'xml2js';
 import { isSupportedContentType } from './content-types';
 import { correctMimeType } from './mime-utils';
 import { encode } from 'gpt-tokenizer';
@@ -87,11 +84,14 @@ export class DocumentProcessor {
 
   private async extractWordText(buffer: ArrayBuffer): Promise<string> {
     const nodeBuffer = Buffer.from(buffer);
+    const mammoth = await import('mammoth');
     const result = await mammoth.convertToHtml({ buffer: nodeBuffer });
     return this.turndownService.turndown(result.value || '');
   }
 
   private async extractPowerPointText(buffer: ArrayBuffer): Promise<string> {
+    const JSZip = (await import('jszip')).default;
+    const { parseStringPromise } = await import('xml2js');
     const zip = await JSZip.loadAsync(new Uint8Array(buffer));
     const slideFiles = Object.keys(zip.files).filter(f => 
       f.startsWith('ppt/slides/slide') && f.endsWith('.xml')
@@ -124,6 +124,7 @@ export class DocumentProcessor {
   }
 
   private async extractExcelText(buffer: ArrayBuffer): Promise<string> {
+    const XLSX = await import('xlsx');
     const wb = XLSX.read(Buffer.from(buffer), { type: 'buffer' });
     const sheets: string[] = [];
     

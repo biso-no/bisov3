@@ -1,5 +1,5 @@
+import 'server-only';
 import { Buffer } from 'node:buffer';
-import * as pdfjsLib from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 type PdfTextItem = {
   str: string;
@@ -31,6 +31,7 @@ function toUint8Array(input: PdfInput): Uint8Array {
  */
 export async function extractTextFromPdf(input: PdfInput): Promise<string> {
   const data = toUint8Array(input);
+  const pdfjsLib: any = await import('pdfjs-dist/legacy/build/pdf.mjs');
 
   // Disable worker usage in Node environments where web workers are unavailable.
   (pdfjsLib as any).GlobalWorkerOptions.workerSrc = undefined;
@@ -42,7 +43,7 @@ export async function extractTextFromPdf(input: PdfInput): Promise<string> {
     isEvalSupported: false,
   } as any);
 
-  let pdf: pdfjsLib.PDFDocumentProxy | null = null;
+  let pdf: any | null = null;
 
   try {
     pdf = await loadingTask.promise;

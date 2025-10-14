@@ -1,4 +1,3 @@
-import { createWorker } from 'tesseract.js';
 import { clientFunctions } from '../appwrite-client';
 
 // Import PDF.js dynamically for client-side only
@@ -71,6 +70,7 @@ async function extractImageText(file: File): Promise<string> {
     return 'Image processing only available in browser';
   }
   
+  const { createWorker } = await import('tesseract.js');
   const worker = await createWorker('eng+nor');
   
   try {
