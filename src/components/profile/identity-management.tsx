@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { clientAccount, clientFunctions } from "@/lib/appwrite-client";
+import { clientAccount } from "@/lib/appwrite-client";
 import { removeIdentity } from "@/lib/actions/user";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
-import { Link2, Trash2, CheckCircle2, CircleAlert } from "lucide-react";
+import { Link2, Trash2 } from "lucide-react";
 import { OAuthProvider } from "appwrite";
 
 type Identity = {
@@ -16,28 +16,10 @@ type Identity = {
   providerUid?: string;
 };
 
-type MembershipState =
-  | { state: "idle" }
-  | { state: "checking" }
-  | { state: "active"; membership: any }
-  | { state: "inactive" }
-  | { state: "error"; message?: string };
-
-export function IdentityManagement({ initialIdentities, initialMembership }: { initialIdentities: Identity[] | undefined; initialMembership?: any }) {
+export function IdentityManagement({ initialIdentities }: { initialIdentities: Identity[] | undefined }) {
   const [identities, setIdentities] = useState<Identity[] | undefined>(initialIdentities);
   const [isLinking, startLinkTransition] = useTransition();
   const [removingId, setRemovingId] = useState<string | null>(null);
-  const [membership, setMembership] = useState<MembershipState>(() => {
-    if (initialMembership && initialMembership.ok) {
-      return initialMembership.active
-        ? { state: "active", membership: initialMembership.membership }
-        : { state: "inactive" };
-    }
-    if (initialMembership && initialMembership.error) {
-      return { state: "error", message: String(initialMembership.error) };
-    }
-    return { state: "idle" };
-  });
 
   const canRemove = (id: Identity) => {
     const provider = (id.provider || "").toLowerCase();
@@ -50,8 +32,8 @@ export function IdentityManagement({ initialIdentities, initialMembership }: { i
 
   const providerLabel = (p: string) => {
     const key = (p || "").toLowerCase();
-    if (key === "microsoft") return "BISO (Microsoft)";
-    if (key === "oidc") return "BI Student (OIDC)";
+    if (key === "microsoft") return "BISO";
+    if (key === "oidc") return "BI Student";
     if (key === "email") return "Email";
     if (key === "magic-url" || key === "magicurl") return "Magic URL";
     return p;
@@ -78,29 +60,6 @@ export function IdentityManagement({ initialIdentities, initialMembership }: { i
     });
   };
 
-  const checkMembership = async () => {
-    setMembership({ state: "checking" });
-    try {
-      const exec: any = await clientFunctions.createExecution("verify_biso_membership", undefined, false);
-      const payload = (() => {
-        try { return JSON.parse(exec?.responseBody || exec?.response || "{}"); } catch { return {}; }
-      })();
-      const isActive = !!payload?.membership?.status || payload?.active === true;
-      if (isActive) {
-        setMembership({ state: "active", membership: payload?.membership || payload });
-        toast({ title: "Membership verified", description: "Your BI Student membership is active." });
-      } else if (payload?.error) {
-        setMembership({ state: "error", message: String(payload.error) });
-        toast({ title: "Verification failed", description: String(payload.error), variant: "destructive" });
-      } else {
-        setMembership({ state: "inactive" });
-        toast({ title: "No active membership found" });
-      }
-    } catch (err: any) {
-      setMembership({ state: "error", message: String(err?.message || err) });
-      toast({ title: "Verification error", description: String(err?.message || err), variant: "destructive" });
-    }
-  };
 
   const onRemove = async (identity: Identity) => {
     if (!canRemove(identity)) return;
@@ -126,17 +85,17 @@ export function IdentityManagement({ initialIdentities, initialMembership }: { i
         <CardHeader>
           <CardTitle>Linked Accounts</CardTitle>
           <CardDescription>
-            Link your BISO account (Microsoft) and your BI Student account (OIDC). Linking your BI Student account
-            lets us verify your paid semester membership for benefits and discounts.
+            Link your BISO account and your BI Student account. Linking your BI Student account lets us verify your paid
+            semester membership for benefits and discounts.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
             <Button onClick={() => linkProvider(OAuthProvider.Microsoft)} disabled={isLinking} className="rounded-lg">
-              <Link2 className="mr-2 h-4 w-4" /> Link BISO (Microsoft)
+              <Link2 className="mr-2 h-4 w-4" /> Link BISO
             </Button>
             <Button variant="outline" onClick={() => linkProvider(OAuthProvider.Oidc)} disabled={isLinking} className="rounded-lg">
-              <Link2 className="mr-2 h-4 w-4" /> Link BI Student (OIDC)
+              <Link2 className="mr-2 h-4 w-4" /> Link BI Student
             </Button>
           </div>
           <p className="text-xs text-primary-60">When linking, you will be redirected to complete the OAuth flow.</p>
@@ -172,41 +131,6 @@ export function IdentityManagement({ initialIdentities, initialMembership }: { i
               </div>
             ))
           )}
-        </CardContent>
-      </Card>
-
-      <Card className="border border-primary/10 bg-white">
-        <CardHeader>
-          <CardTitle>BI Student Membership</CardTitle>
-          <CardDescription>Verify your semester fee status using your BI Student (OIDC) identity</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-sm">
-            {membership.state === "active" ? (
-              <>
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <span className="text-green-700">Active membership</span>
-              </>
-            ) : membership.state === "inactive" ? (
-              <>
-                <CircleAlert className="h-4 w-4 text-amber-600" />
-                <span className="text-amber-700">No active membership found</span>
-              </>
-            ) : membership.state === "error" ? (
-              <>
-                <CircleAlert className="h-4 w-4 text-red-600" />
-                <span className="text-red-700">{membership.message || "Verification error"}</span>
-              </>
-            ) : (
-              <span className="text-primary-70">Status unknown</span>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={checkMembership} disabled={membership.state === "checking"} className="rounded-lg">
-              {membership.state === "checking" ? "Checking..." : "Check membership"}
-            </Button>
-            <p className="text-xs text-primary-60">Make sure your BI Student (OIDC) account is linked first.</p>
-          </div>
         </CardContent>
       </Card>
     </div>

@@ -14,7 +14,7 @@ import { PrivacyControls } from "@/components/privacy-controls";
 import { ProfileForm } from "@/app/expenses/profile/profile-form";
 import { IdentityManagement } from "@/components/profile/identity-management";
 
-export function ProfileTabs({ userData, identities, membership }: { userData: any; identities?: any[]; membership?: any }) {
+export function ProfileTabs({ userData, identities }: { userData: any; identities?: any[] }) {
   const [activeTab, setActiveTab] = useState("account");
 
   return (
@@ -24,16 +24,16 @@ export function ProfileTabs({ userData, identities, membership }: { userData: an
       onValueChange={setActiveTab}
       className="space-y-6"
     >
-      <TabsList className="grid w-full grid-cols-3 bg-gray-100">
-        <TabsTrigger value="account" className="flex items-center gap-2">
+      <TabsList className="w-full rounded-xl border border-primary/10 bg-surface-strong/60 p-1 shadow-card-soft">
+        <TabsTrigger value="account" className="flex h-10 flex-1 items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary-100">
           <User className="h-4 w-4" />
           <span>Account</span>
         </TabsTrigger>
-        <TabsTrigger value="privacy" className="flex items-center gap-2">
+        <TabsTrigger value="privacy" className="flex h-10 flex-1 items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary-100">
           <Shield className="h-4 w-4" />
           <span>Privacy</span>
         </TabsTrigger>
-        <TabsTrigger value="identities" className="flex items-center gap-2">
+        <TabsTrigger value="identities" className="flex h-10 flex-1 items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary-100">
           <Link2 className="h-4 w-4" />
           <span>Linked Accounts</span>
         </TabsTrigger>
@@ -58,7 +58,7 @@ export function ProfileTabs({ userData, identities, membership }: { userData: an
       </TabsContent>
 
       <TabsContent value="identities" className="space-y-6">
-        <IdentityManagement initialIdentities={identities} initialMembership={membership} />
+        <IdentityManagement initialIdentities={identities} />
       </TabsContent>
     </Tabs>
   );

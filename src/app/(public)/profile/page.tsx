@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfileHead } from "@/components/profile/profile-head";
 import { ProfileTabs } from "@/components/profile/profile-tabs";
+import MembershipStatusCard from "@/components/profile/membership-status-card";
 
 export const metadata: Metadata = {
   title: "Your Profile | BISO",
@@ -15,9 +16,20 @@ export const metadata: Metadata = {
 
 export default async function PublicProfilePage() {
   const userData = await getLoggedInUser();
-  const [identitiesResp, membership] = userData
-    ? await Promise.all([listIdentities(), checkMembership()])
-    : [null, null];
+  let identitiesResp: any = null;
+  let membership: any = null;
+  let hasBIIdentity = false;
+
+  if (userData) {
+    identitiesResp = await listIdentities();
+    const ids: any[] = identitiesResp?.identities || [];
+    hasBIIdentity = Array.isArray(ids) && ids.some((i) => (String(i?.provider || "").toLowerCase()) === "oidc");
+    if (hasBIIdentity) {
+      membership = await checkMembership();
+    } else {
+      membership = null;
+    }
+  }
 
   if (!userData) {
     return (
@@ -73,7 +85,12 @@ export default async function PublicProfilePage() {
           </Card>
         );
       })()}
-      <ProfileTabs userData={userData} identities={identitiesResp?.identities} membership={membership} />
+      {/* Membership status up-front */}
+      <div className="mb-6">
+        <MembershipStatusCard initial={membership} hasBIIdentity={hasBIIdentity} />
+      </div>
+
+      <ProfileTabs userData={userData} identities={identitiesResp?.identities} />
     </div>
   );
 }

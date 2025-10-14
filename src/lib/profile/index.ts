@@ -7,7 +7,18 @@ export type MembershipCheckResult =
 
 export async function checkMembership(): Promise<MembershipCheckResult> {
   try {
-    const { functions } = await createSessionClient();
+    const { functions, account } = await createSessionClient();
+
+    // Only verify if BI Student identity is linked
+    try {
+      const identities = await account.listIdentities();
+      const hasBI = (identities?.identities || []).some((i: any) => String(i?.provider || "").toLowerCase() === "oidc");
+      if (!hasBI) {
+        return { ok: true, active: false };
+      }
+    } catch (e: any) {
+      return { ok: false, error: `Failed to inspect identities: ${String(e?.message || e)}` };
+    }
     const exec: any = await functions.createExecution(
       "verify_biso_membership",
       undefined,
