@@ -26,9 +26,10 @@ const nextConfig: NextConfig = {
     return config;
   },
   experimental: {
-    turbo: { rules: {} },
     optimizePackageImports: ["lucide-react", "@radix-ui"],
   },
+  // Disable Turbopack for now
+  turbo: undefined,
 };
 
 export default withNextIntl(nextConfig);
