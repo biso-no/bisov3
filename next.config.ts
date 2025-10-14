@@ -8,7 +8,6 @@ const baseConfig: NextConfig = {
   typescript: { ignoreBuildErrors: true },
   reactStrictMode: false,
   productionBrowserSourceMaps: false,
-  swcMinify: process.env.DISABLE_MINIFY === '1' ? false : true,
 
   transpilePackages: [],
 
