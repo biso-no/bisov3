@@ -1,21 +1,38 @@
-import { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import withBundleAnalyzer from "@next/bundle-analyzer";
+import type { NextConfig } from "next";
 
 const withNextIntl = createNextIntlPlugin();
 
-const nextConfig: NextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+const baseConfig: NextConfig = {
+  typescript: { ignoreBuildErrors: true },
   reactStrictMode: false,
+
   transpilePackages: ["lucide-react", "ui"],
+
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "appwrite.biso.no" },
-      { protocol: "https", hostname: "biso.no" },
-      { protocol: "https", hostname: "images.unsplash.com" },
+      {
+        protocol: "https",
+        hostname: "appwrite.biso.no",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "biso.no",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
+
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.alias = {
@@ -26,9 +43,14 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+
   experimental: {
     optimizePackageImports: ["lucide-react", "@radix-ui"],
   },
 };
 
-export default withNextIntl(nextConfig);
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
+
+export default withNextIntl(withAnalyzer(baseConfig));

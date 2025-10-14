@@ -8,6 +8,8 @@ export interface ExtractedDocumentData {
   description: string | null;
   confidence: number;
   method: 'pdf' | 'ocr' | 'manual';
+  currency?: string | null;
+  exchangeRate?: number | null;
 }
 
 // Helper function to extract dates using various formats
@@ -99,7 +101,9 @@ async function processPDF(buffer: Buffer): Promise<ExtractedDocumentData> {
       amount,
       description,
       confidence,
-      method: 'pdf'
+      method: 'pdf',
+      currency: null,
+      exchangeRate: null,
     };
   } catch (error) {
     console.error('PDF processing failed:', error);
@@ -146,7 +150,9 @@ async function processImage(buffer: Buffer): Promise<ExtractedDocumentData> {
       amount,
       description,
       confidence: finalConfidence,
-      method: 'ocr'
+      method: 'ocr',
+      currency: null,
+      exchangeRate: null,
     };
   } catch (error) {
     console.error('OCR processing failed:', error);
@@ -187,7 +193,9 @@ export async function processDocument(
       amount: null,
       description: null,
       confidence: 0,
-      method: 'manual'
+      method: 'manual',
+      currency: null,
+      exchangeRate: null,
     };
   }
 } 

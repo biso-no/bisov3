@@ -48,7 +48,7 @@ import { cn } from "@/lib/utils"
 import type { DocumentData as ActionDocumentData } from '../../../actions'
 import { useToast } from "@/components/ui/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { processDocument } from '@/lib/utils/document-processing'
+import { processDocumentAction } from "@/app/actions/document-processing"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { generateExpenseDescription } from '../../../actions'
@@ -73,6 +73,7 @@ interface DocumentData {
     date: string;
   };
 }
+
 
 interface DocumentUploadProps {
   onNext: () => void
@@ -337,7 +338,11 @@ export function DocumentUpload({ onNext, onPrevious, onUpdate, data }: DocumentU
       for (let i = 0; i < documents.length; i++) {
         const doc = documents[i];
         if (!doc.processedByAI) {
-          const result = await processDocument(doc.file);
+          const file = doc.file;
+          const result = await processDocumentAction(
+            await file.arrayBuffer(),
+            file.type
+          );
           
           updatedDocuments[i] = {
             ...doc,
@@ -395,7 +400,10 @@ export function DocumentUpload({ onNext, onPrevious, onUpdate, data }: DocumentU
         };
 
         if (aiEnabled) {
-          const result = await processDocument(file);
+          const result = await processDocumentAction(
+            await file.arrayBuffer(),
+            file.type
+          );
           const amount = Number(result.amount || 0);
           const currency = result.currency || 'NOK';
           
@@ -1015,4 +1023,4 @@ export function DocumentUpload({ onNext, onPrevious, onUpdate, data }: DocumentU
       </AnimatePresence>
     </div>
   )
-} 
+}
