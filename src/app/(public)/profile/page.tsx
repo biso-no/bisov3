@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { getLoggedInUser } from "@/lib/actions/user";
+import { getLoggedInUser, listIdentities } from "@/lib/actions/user";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 
 export default async function PublicProfilePage() {
   const userData = await getLoggedInUser();
+  const identitiesResp = userData ? await listIdentities() : null;
 
   if (!userData) {
     return (
@@ -69,7 +70,7 @@ export default async function PublicProfilePage() {
           </Card>
         );
       })()}
-      <ProfileTabs userData={userData} />
+      <ProfileTabs userData={userData} identities={identitiesResp?.identities} />
     </div>
   );
 }

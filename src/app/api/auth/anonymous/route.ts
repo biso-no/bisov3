@@ -11,11 +11,11 @@ export async function GET(request: NextRequest) {
     
     const cookieStore = await cookies();
     cookieStore.set("a_session_biso", session.secret, {
-      path: "/",
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+    path: "/",
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+    domain: ".biso.no"
     });
     
     // Get the redirect URL from query params

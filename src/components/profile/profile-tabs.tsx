@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Shield } from "lucide-react";
+import { User, Shield, Link2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/card";
 import { PrivacyControls } from "@/components/privacy-controls";
 import { ProfileForm } from "@/app/expenses/profile/profile-form";
+import { IdentityManagement } from "@/components/profile/identity-management";
 
-export function ProfileTabs({userData}: {userData: any}) {
+export function ProfileTabs({ userData, identities }: { userData: any; identities?: any[] }) {
   const [activeTab, setActiveTab] = useState("account");
 
   return (
@@ -23,7 +24,7 @@ export function ProfileTabs({userData}: {userData: any}) {
       onValueChange={setActiveTab}
       className="space-y-6"
     >
-      <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+      <TabsList className="grid w-full grid-cols-3 bg-gray-100">
         <TabsTrigger value="account" className="flex items-center gap-2">
           <User className="h-4 w-4" />
           <span>Account</span>
@@ -31,6 +32,10 @@ export function ProfileTabs({userData}: {userData: any}) {
         <TabsTrigger value="privacy" className="flex items-center gap-2">
           <Shield className="h-4 w-4" />
           <span>Privacy</span>
+        </TabsTrigger>
+        <TabsTrigger value="identities" className="flex items-center gap-2">
+          <Link2 className="h-4 w-4" />
+          <span>Linked Accounts</span>
         </TabsTrigger>
       </TabsList>
       
@@ -50,6 +55,10 @@ export function ProfileTabs({userData}: {userData: any}) {
       
       <TabsContent value="privacy" className="space-y-6">
         <PrivacyControls userId={userData.user.$id} />
+      </TabsContent>
+
+      <TabsContent value="identities" className="space-y-6">
+        <IdentityManagement initialIdentities={identities} />
       </TabsContent>
     </Tabs>
   );

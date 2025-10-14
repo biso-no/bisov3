@@ -103,6 +103,17 @@ export async function listIdentities() {
     }
 }
 
+export async function removeIdentity(identityId: string) {
+    try {
+        const { account } = await createSessionClient();
+        await account.deleteIdentity(identityId);
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to remove identity", error);
+        return { success: false, error: String((error as any)?.message || error) };
+    }
+}
+
 interface ProfileDetails {
     department?: string;
     name?: string;

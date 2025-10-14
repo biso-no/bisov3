@@ -17,8 +17,9 @@ export async function GET(request: NextRequest) {
   fetchedCookies.set("a_session_biso", session.secret, {
     path: "/",
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "none",
     secure: true,
+    domain: ".biso.no"
   });
 
   // Redirect to the original destination if available
