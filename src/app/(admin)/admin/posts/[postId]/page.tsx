@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation"
 import { getPost, getPosts } from "@/app/actions/admin"
 import PostEditor from "../post-editor"
-import { getDepartments } from "@/app/actions/products"
+import { getDepartments } from "@/app/actions/admin"
 import { getCampuses } from "../actions"
 
 export default async function AdminPostPage({ params }: { params: { postId: string } }) {
   const posts = await getPosts()
   
-  const departments = await getDepartments(undefined, 300)
+  const departments = await getDepartments()
 
   const campuses = await getCampuses();
 
