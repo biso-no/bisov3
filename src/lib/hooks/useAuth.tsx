@@ -37,6 +37,24 @@ export function AuthProvider({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    async function initSession() {
+      const token = await createJWT();
+      if (!token) {
+        console.log("Not authenticated.")
+        return;
+      }
+      clientSideClient.setJWT(token)
+    }
+    try {
+    initSession()
+    console.log("Client initialized")
+    } catch (error: any) {
+      console.log("Error: ", error)
+    }
+
+  }, []);
+
+  useEffect(() => {
     async function getUser() {
       try {
         setIsLoading(true);
