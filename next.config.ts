@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
-  transpilePackages: ["@measured/puck", "lucide-react", "ui"],
+  transpilePackages: ["lucide-react", "ui"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "appwrite.biso.no" },
