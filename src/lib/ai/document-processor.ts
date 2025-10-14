@@ -92,7 +92,7 @@ export class DocumentProcessor {
   }
 
   private async extractPowerPointText(buffer: ArrayBuffer): Promise<string> {
-    const zip = await JSZip.loadAsync(Buffer.from(buffer));
+    const zip = await JSZip.loadAsync(new Uint8Array(buffer));
     const slideFiles = Object.keys(zip.files).filter(f => 
       f.startsWith('ppt/slides/slide') && f.endsWith('.xml')
     );
