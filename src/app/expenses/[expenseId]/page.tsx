@@ -1,15 +1,12 @@
-import { ExpenseDetails } from "./expense-details";
-import { FormContextProvider, useFormContext  } from "./formContext";
-import { addAttachmentImage, getExpense } from "@/app/actions/admin";
+import { FormProvider } from "./formContext";
 import ExpenseView from "./expenseView";
 
 export default async function Expense({ params }: { params: { expenseId: string } }) {
 
   return (
-    <FormContextProvider>
-      <ExpenseView expenseId={params.expenseId}/>
-      </FormContextProvider>
-    
+    <FormProvider>
+      <ExpenseView expenseId={params.expenseId} />
+    </FormProvider>
   )
     
 }

@@ -256,6 +256,28 @@ export async function deleteProduct(id: string, skipRevalidation = false): Promi
   }
 }
 
+export async function updateProductStatus(
+  id: string,
+  status: Product['status'],
+  skipRevalidation = false
+): Promise<Product | null> {
+  try {
+    const { db } = await createAdminClient()
+
+    const product = await db.updateDocument('app', 'webshop_products', id, { status }) as Product
+
+    if (!skipRevalidation) {
+      revalidatePath('/shop')
+      revalidatePath('/admin/products')
+    }
+
+    return product
+  } catch (error) {
+    console.error('Error updating product status:', error)
+    return null
+  }
+}
+
 // AI Translation function
 export async function translateProductContent(
   content: ProductTranslation,
