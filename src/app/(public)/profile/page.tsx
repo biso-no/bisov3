@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { getLoggedInUser, listIdentities } from "@/lib/actions/user";
+import { checkMembership } from "@/lib/profile";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,9 @@ export const metadata: Metadata = {
 
 export default async function PublicProfilePage() {
   const userData = await getLoggedInUser();
-  const identitiesResp = userData ? await listIdentities() : null;
+  const [identitiesResp, membership] = userData
+    ? await Promise.all([listIdentities(), checkMembership()])
+    : [null, null];
 
   if (!userData) {
     return (
@@ -70,7 +73,7 @@ export default async function PublicProfilePage() {
           </Card>
         );
       })()}
-      <ProfileTabs userData={userData} identities={identitiesResp?.identities} />
+      <ProfileTabs userData={userData} identities={identitiesResp?.identities} membership={membership} />
     </div>
   );
 }

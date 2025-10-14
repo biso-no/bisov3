@@ -14,7 +14,7 @@ import { PrivacyControls } from "@/components/privacy-controls";
 import { ProfileForm } from "@/app/expenses/profile/profile-form";
 import { IdentityManagement } from "@/components/profile/identity-management";
 
-export function ProfileTabs({ userData, identities }: { userData: any; identities?: any[] }) {
+export function ProfileTabs({ userData, identities, membership }: { userData: any; identities?: any[]; membership?: any }) {
   const [activeTab, setActiveTab] = useState("account");
 
   return (
@@ -58,7 +58,7 @@ export function ProfileTabs({ userData, identities }: { userData: any; identitie
       </TabsContent>
 
       <TabsContent value="identities" className="space-y-6">
-        <IdentityManagement initialIdentities={identities} />
+        <IdentityManagement initialIdentities={identities} initialMembership={membership} />
       </TabsContent>
     </Tabs>
   );
