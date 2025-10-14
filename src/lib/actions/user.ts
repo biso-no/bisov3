@@ -210,7 +210,7 @@ export async function signOut() {
   
     const { account } = await createSessionClient();
   
-    (await cookies()).delete("x-biso-session");
+    (await cookies()).delete("a_session_biso");
     await account.deleteSession("current");
   
     redirect("/auth/login");

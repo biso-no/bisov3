@@ -6,7 +6,7 @@ export function middleware(req: NextRequest) {
 
   // Handle admin routes - require authenticated user
   if (pathname.startsWith('/admin')) {
-    const sessionCookie = req.cookies.get('x-biso-session');
+    const sessionCookie = req.cookies.get('a_session_biso');
     
     if (!sessionCookie?.value) {
       // No session at all, redirect to login
@@ -32,7 +32,7 @@ export function middleware(req: NextRequest) {
                        !pathname.startsWith('/favicon');
 
   if (isPublicRoute) {
-    const sessionCookie = req.cookies.get('x-biso-session');
+    const sessionCookie = req.cookies.get('a_session_biso');
     
     // If no session exists, create anonymous session
     if (!sessionCookie?.value) {

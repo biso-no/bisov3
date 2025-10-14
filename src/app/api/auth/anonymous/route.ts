@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     console.log("Anonymous user created:", session.userId);
     
     const cookieStore = await cookies();
-    cookieStore.set("x-biso-session", session.secret, {
+    cookieStore.set("a_session_biso", session.secret, {
       path: "/",
       httpOnly: true,
       sameSite: "lax",
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     console.log("Anonymous user created:", session.userId);
     
     const cookieStore = await cookies();
-    cookieStore.set("x-biso-session", session.secret, {
+    cookieStore.set("a_session_biso", session.secret, {
       path: "/",
       httpOnly: true,
       sameSite: "lax",

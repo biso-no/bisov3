@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   // Session logging for debugging
   console.debug && console.debug("Session:", session);
 
-  (await cookies()).set("x-biso-session", session.secret, {
+  (await cookies()).set("a_session_biso", session.secret, {
     path: "/",
     httpOnly: true,
     sameSite: "lax",

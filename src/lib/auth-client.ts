@@ -34,7 +34,7 @@ export async function hasValidSession(): Promise<boolean> {
   try {
     // This would typically be a call to your auth check endpoint
     // For now, we'll just check if the cookie exists
-    return document.cookie.includes('x-biso-session');
+    return document.cookie.includes('a_session_biso');
   } catch (error) {
     console.error('Failed to check session:', error);
     return false;
