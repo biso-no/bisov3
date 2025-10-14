@@ -10,7 +10,7 @@ const baseConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   swcMinify: process.env.DISABLE_MINIFY === '1' ? false : true,
 
-  transpilePackages: ["lucide-react", "ui"],
+  transpilePackages: process.env.DISABLE_MINIFY === '1' ? [] : ["lucide-react", "ui"],
 
   images: {
     remotePatterns: [
@@ -40,12 +40,52 @@ const baseConfig: NextConfig = {
       // Disable source maps in production to reduce memory usage
       config.devtool = false;
     }
+    // Avoid polyfilling large Node modules in client bundles
+    config.resolve.fallback = {
+      ...(config.resolve.fallback || {}),
+      fs: false,
+      path: false,
+      crypto: false,
+      canvas: false,
+      buffer: false,
+      stream: false,
+      zlib: false,
+    };
+    
     if (!isServer) {
       config.resolve.alias = {
         ...config.resolve.alias,
         "pdfjs-dist/legacy": false,
         "pdfjs-dist/build/pdf.worker": false,
       };
+    }
+
+    if (isServer) {
+      const heavyPkgs = [
+        'pdfjs-dist',
+        'pdfjs-dist/legacy/build/pdf.mjs',
+        'tesseract.js',
+        'jimp',
+        'mammoth',
+        'jszip',
+        'xml2js',
+        '@react-pdf/renderer',
+        'xlsx',
+        '@microsoft/microsoft-graph-client',
+        '@azure/msal-node',
+        '@pinecone-database/pinecone',
+        'gpt-tokenizer',
+      ];
+      const originalExternals = config.externals || [];
+      config.externals = [
+        ...originalExternals,
+        function (_context: any, request: string, callback: Function) {
+          if (heavyPkgs.some((name) => request === name || request.startsWith(name))) {
+            return callback(null, 'commonjs ' + request);
+          }
+          callback();
+        },
+      ];
     }
     return config;
   },
