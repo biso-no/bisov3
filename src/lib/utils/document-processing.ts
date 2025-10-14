@@ -8,12 +8,12 @@ let GlobalWorkerOptions: any = null;
 
 // Only import PDF.js on the client side
 if (typeof window !== 'undefined') {
-  // Dynamic imports
   import('pdfjs-dist').then((pdfjs) => {
     pdfjsLib = pdfjs;
     getDocument = pdfjs.getDocument;
     GlobalWorkerOptions = pdfjs.GlobalWorkerOptions;
-    GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+    // Point to your public file
+    GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
   });
 }
 

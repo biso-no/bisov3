@@ -20,7 +20,8 @@ const nextConfig: NextConfig = {
     if (!isServer) {
       config.resolve.alias = {
         ...config.resolve.alias,
-        "pdfjs-dist/node_modules/canvas": false,
+        "pdfjs-dist/legacy": false,
+        "pdfjs-dist/build/pdf.worker": false,
       };
     }
     return config;
