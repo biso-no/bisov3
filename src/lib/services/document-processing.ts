@@ -1,6 +1,6 @@
-import pdfParse from 'pdf-parse';
 import { createWorker } from 'tesseract.js';
 import { Jimp } from 'jimp';
+import { extractTextFromPdf } from '@/lib/pdf-text-extractor';
 
 export interface ExtractedDocumentData {
   date: string | null;
@@ -83,8 +83,7 @@ function extractDescription(text: string): string | null {
 // Process PDF files
 async function processPDF(buffer: Buffer): Promise<ExtractedDocumentData> {
   try {
-    const data = await pdfParse(buffer);
-    const text = data.text;
+    const text = await extractTextFromPdf(buffer);
 
     const date = extractDate(text);
     const amount = extractAmount(text);
@@ -198,4 +197,4 @@ export async function processDocument(
       exchangeRate: null,
     };
   }
-} 
+}
