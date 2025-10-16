@@ -6,7 +6,7 @@ import type { SearchIndex, SearchResult } from "@/lib/search/types";
 
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 25;
-const DEFAULT_INDICES: SearchIndex[] = ["jobs", "events", "news"];
+const DEFAULT_INDICES: SearchIndex[] = ["jobs", "events", "news", "units"];
 
 type SearchPayload = {
   query?: unknown;
@@ -66,8 +66,8 @@ export async function POST(request: Request) {
       indices.map((index) => SEARCH_HANDLERS[index](context)),
     );
 
-    const flattened = results.flat();
-    flattened.sort((a, b) => (b._score ?? 0) - (a._score ?? 0));
+    const flattened = results.flat() as Array<SearchResult & { _score?: number; _updatedAt?: number }>;
+    flattened.sort((a, b) => (Number(b._score) || 0) - (Number(a._score) || 0));
 
     const sanitized = flattened
       .slice(0, limit)
@@ -105,6 +105,7 @@ const SEARCH_HANDLERS: Record<SearchIndex, SearchHandler> = {
       index: "news",
       buildResult: (params) => buildNewsResult(params),
     }),
+  units: async (ctx) => searchUnits(ctx),
 };
 
 type TranslationSearchParams = HandlerContext & {
@@ -303,6 +304,49 @@ function buildNewsResult({
     date: parent.$createdAt ?? undefined,
     href: `/news/${parent.$id}`,
   };
+}
+
+async function searchUnits({ db, query, limit }: HandlerContext): Promise<SearchResult[]> {
+  const perFieldLimit = Math.max(limit * 3, 15);
+
+  try {
+    const response = await db.listDocuments("app", "departments", [
+      Query.limit(perFieldLimit),
+      Query.search("Name", query),
+    ]);
+
+    // Optionally enrich with campus name (best-effort)
+    const results: SearchResult[] = await Promise.all(
+      response.documents.map(async (dept) => {
+        let campusName: string | undefined;
+        try {
+          if (dept.campus_id) {
+            const campus = await db.getDocument("app", "campus", String(dept.campus_id));
+            campusName = campus?.name as string | undefined;
+          }
+        } catch {}
+
+        const summary = typeof dept.description === "string" && dept.description.length
+          ? truncate(stripHtml(dept.description), 180)
+          : undefined;
+
+        return {
+          id: dept.$id,
+          index: "units",
+          title: String(dept.Name || "Unit"),
+          name: String(dept.Name || "Unit"),
+          description: summary,
+          location: campusName,
+          href: `/units${dept.campus_id ? `?campus_id=${dept.campus_id}` : ""}`,
+        };
+      })
+    );
+
+    return results;
+  } catch (error) {
+    console.error("Failed to search units:", error);
+    return [];
+  }
 }
 
 function computeMatchScore({

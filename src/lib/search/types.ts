@@ -1,7 +1,8 @@
 export type SearchIndex =
   | "jobs"
   | "events"
-  | "news";
+  | "news"
+  | "units";
 
 export type SearchResult = {
   id: string;

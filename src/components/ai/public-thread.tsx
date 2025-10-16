@@ -112,14 +112,24 @@ import {
       <div className="aui-thread-welcome-suggestions grid w-full gap-2 @md:grid-cols-2">
         {[
           {
-            title: "What's the weather",
-            label: "in San Francisco?",
-            action: "What's the weather in San Francisco?",
+            title: "Hva sier vedtektene",
+            label: "om valgkomité (§ 5.3)?",
+            action: "Hva sier vedtektene om valgkomité (§ 5.3)?",
           },
           {
-            title: "Help me write an essay",
-            label: `about AI chat applications`,
-            action: `Help me write an essay about AI chat applications`,
+            title: "Lokale lover for Oslo",
+            label: "Hva gjelder for arrangementer?",
+            action: "Hva sier lokale lover for campus Oslo om arrangementer?",
+          },
+          {
+            title: "Refusjon av utlegg",
+            label: "Hvordan søker jeg?",
+            action: "Hvordan søker jeg refusjon av utlegg i BISO?",
+          },
+          {
+            title: "Retningslinjer for alkohol",
+            label: "Hva er kravene ved event?",
+            action: "Hva er Bisos retningslinjer for alkoholservering på arrangementer?",
           },
         ].map((suggestedAction, index) => (
           <m.div
@@ -233,6 +243,15 @@ import {
           data-role="assistant"
         >
           <div className="aui-assistant-message-content mx-2 leading-7 break-words text-foreground">
+            <ThreadPrimitive.If running>
+              <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-primary/5 px-2.5 py-1 text-xs text-primary">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                </span>
+                Thinking…
+              </div>
+            </ThreadPrimitive.If>
             <MessagePrimitive.Parts
               components={{
                 Text: MarkdownText,
