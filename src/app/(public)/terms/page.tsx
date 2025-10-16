@@ -16,7 +16,7 @@ export default async function TermsPage() {
   return (
     <div className="space-y-6">
       <PublicPageHeader
-        title={t('title')}
+        title={tr?.title || t('title')}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Terms" }]}
       />
       {tr ? (

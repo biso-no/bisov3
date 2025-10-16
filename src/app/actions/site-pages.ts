@@ -20,12 +20,25 @@ export async function getSitePageTranslation(slug: SitePageSlug, locale: 'en' | 
   const page = await getSitePageBySlug(slug)
   if (!page) return null
 
+  // Prefer relationship attribute if available
   const tr = await db.listDocuments('app', 'content_translations', [
-    Query.equal('content_type', 'site_page'),
-    Query.equal('content_id', page.$id),
+    Query.equal('site_page_ref', page.$id),
     Query.equal('locale', locale),
     Query.limit(1)
   ])
+  
+  // Fallback to legacy fields if relation not yet indexed
+  if (tr.documents.length === 0) {
+    const fallback = await db.listDocuments('app', 'content_translations', [
+      Query.equal('content_type', 'site_page'),
+      Query.equal('content_id', page.$id),
+      Query.equal('locale', locale),
+      Query.limit(1)
+    ])
+    if (fallback.documents.length === 0) return null
+    const doc = fallback.documents[0] as ContentTranslation
+    return { title: doc.title as string | undefined, body: (doc.description as string | undefined) || '' }
+  }
   const doc = tr.documents[0] as ContentTranslation | undefined
   if (!doc) return null
   return { title: doc.title as string | undefined, body: (doc.description as string | undefined) || '' }
@@ -137,4 +150,3 @@ export async function translateSitePageContent(
     return null
   }
 }
-

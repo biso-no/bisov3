@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -36,10 +36,10 @@ export function PolicyPagesManager() {
     }
   }
 
-  // Initial load
-  useState(() => {
+  useEffect(() => {
     void load(activePage, activeLocale)
-  })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePage, activeLocale])
 
   const handleChangePage = (slug: PageSlug) => {
     setActivePage(slug)
@@ -70,6 +70,9 @@ export function PolicyPagesManager() {
         return
       }
       toast({ title: 'Translated', description: `Updated ${to.toUpperCase()} content` })
+      // Switch to target locale and reload fields
+      setActiveLocale(to)
+      void load(activePage, to)
     })
   }
 
@@ -112,4 +115,3 @@ export function PolicyPagesManager() {
     </Card>
   )
 }
-
