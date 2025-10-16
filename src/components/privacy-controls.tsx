@@ -101,7 +101,7 @@ export function PrivacyControls({ userId }: { userId: string }) {
         <CardContent className="space-y-4 pt-6">
           <div className="p-3 border border-blue-200 rounded-md bg-blue-50 mb-4">
             <p className="text-sm text-gray-700">
-              We process your data in accordance with our <a href="https://biso.no/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">privacy policy</a> and applicable data protection laws.
+              We process your data in accordance with our <a href="/privacy" className="text-blue-600 hover:underline">privacy policy</a> and applicable data protection laws.
               You have the right to access, export, and request deletion of your data.
             </p>
           </div>

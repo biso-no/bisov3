@@ -18,7 +18,7 @@ export default async function StudentsPage() {
 
   const [events, jobs, departments, campusData, globalBenefits] = await Promise.all([
     listEvents({ status: "published", limit: 24, locale }),
-    listJobs({ status: "open", limit: 24, locale }),
+    listJobs({ status: "published", limit: 24, locale }),
     getDepartments({ active: true, limit: 300 }),
     getCampusData(),
     getGlobalMembershipBenefits()

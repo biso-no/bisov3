@@ -14,6 +14,9 @@ export default async function PublicNewsDetail({ params }: {
   const item = await getNewsItem(id, locale)
   
   if (!item) return notFound()
+  if ((item as any).status && (item as any).status !== 'published') {
+    return notFound()
+  }
   
   return (
     <div className="space-y-6">
@@ -35,5 +38,4 @@ export default async function PublicNewsDetail({ params }: {
     </div>
   )
 }
-
 

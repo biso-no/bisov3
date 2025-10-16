@@ -91,7 +91,7 @@ export function CookieConsent() {
             <p className="text-sm text-gray-600">
               We use cookies to ensure the website functions properly and to improve your experience.
               By clicking &quot;Accept All&quot;, you consent to all cookies. See our{" "}
-              <Link href="https://biso.no/privacy" target="_blank" className="text-blue-600 hover:underline">
+              <Link href="/privacy" className="text-blue-600 hover:underline">
                 Privacy Policy
               </Link>{" "}
               for more information.
@@ -161,7 +161,7 @@ export function CookieConsent() {
             
             <p className="text-xs text-gray-500 mt-4">
               For more details about how we use cookies and your data, please read our{" "}
-              <Link href="https://biso.no/privacy" target="_blank" className="text-blue-600 hover:underline">
+              <Link href="/privacy" className="text-blue-600 hover:underline">
                 Privacy Policy
               </Link>.
             </p>

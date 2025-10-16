@@ -31,6 +31,7 @@ export function middleware(req: NextRequest) {
                        !pathname.startsWith('/_next') &&
                        !pathname.startsWith('/favicon');
 
+                       /*
   if (isPublicRoute) {
     const sessionCookie = req.cookies.get('a_session_biso');
     
@@ -43,7 +44,7 @@ export function middleware(req: NextRequest) {
       return NextResponse.redirect(anonymousUrl);
     }
   }
-
+*/
   return NextResponse.next();
 }
 

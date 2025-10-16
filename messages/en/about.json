@@ -112,47 +112,45 @@
   "pages": {
     "whatIsBiso": {
       "title": "What is BISO",
-      "intro": "BISO is the student union at BI Norwegian Business School, representing and empowering students across campuses.",
-      "content": "We create opportunities for students through events, academic initiatives, and community building, collaborating with BI and external partners to improve the student experience."
+      "intro": "BISO is the student union at BI Norwegian Business School. We represent, include and empower students across all campuses.",
+      "content": "BISO brings students together through committees and projects that create academic and social activities on campus.\n\nWe work in three directions:\n• Impact – give students a clear voice in decisions that affect them\n• Connected – unite campuses and connect students with industry\n• Engaged – build an inclusive, social and rewarding environment\n\nAll surplus goes back to student welfare. That means more events, better services and benefits for members."
     },
     "politics": {
       "title": "Our politics",
-      "intro": "Politically independent, student-first.",
-      "content": "We engage in student politics to advocate for quality education, inclusion, and student welfare. Our focus is constructive dialogue with BI and national student bodies."
+      "intro": "BISO is politically independent. We work for our members’ academic, economic, social, psychosocial and health interests.",
+      "content": "We advance student welfare through constructive collaboration with BI and student democracy. Our priorities include study quality, inclusion and a safe student environment – alongside practical measures for student life (discounts, relevant roles and low‑barrier events)."
     },
     "bylaws": {
       "title": "Bylaws and statutes",
-      "intro": "Governance documents that define our structure, roles, and processes.",
-      "content": "Here you will find national statutes applicable to all campuses and links to local bylaws. These documents ensure transparency, accountability, and consistent operations."
+      "intro": "Our governance framework ensures clarity, transparency and accountability.",
+      "content": "BISO has national statutes that apply across all campuses, and local bylaws tailored to each campus organisation. Together they define roles, democratic processes, elections, finance and responsibilities.\n\nIf you need guidance on interpretation or access to the latest documents, contact the Operations Unit or your campus leadership."
     },
     "history": {
       "title": "Our history",
-      "intro": "Where we come from and how we grew.",
-      "content": "From local student initiatives to a national union, BISO’s story is shaped by volunteers committed to improving student life at BI."
+      "intro": "From local student initiatives to a national union.",
+      "content": "BISO’s story is driven by volunteers who wanted stronger student communities and better study life at BI. Over time, local organisations joined forces to form one national student union with shared values and goals.\n\nToday BISO supports thousands of students through activities, representation and services at every campus."
     },
     "studyQuality": {
       "title": "Study quality",
       "intro": "Continuous improvement of education and learning environment.",
-      "content": "We collect student feedback, collaborate with faculty, and run initiatives that strengthen academic quality and wellbeing across campuses."
+      "content": "We represent student voices in formal committees with BI and bring forward concrete feedback from courses and programmes. Our goals are better teaching quality, relevant learning experiences and a supportive environment on every campus.\n\nYou can get involved by sharing input with your campus leadership or joining a committee that works with study quality."
     },
     "operations": {
       "title": "Operations Unit",
-      "intro": "Our national department for organizational excellence.",
-      "content": "The Operations Unit supports campuses with governance, finance, compliance, and shared services to ensure sustainable and efficient operations."
+      "intro": "Our national department that supports all campuses.",
+      "content": "The Operations Unit helps campus organisations deliver for students by supporting governance, finance, compliance, IT and shared services. It also facilitates national initiatives and ensures good routines across BISO.\n\nThe Executive Board (Arbeidsutvalget) works full‑time to set direction and enable local leaderships to succeed."
     },
     "alumni": {
       "title": "BISO Alumni",
       "intro": "A growing network for former BISO students and volunteers.",
-      "content": "Learn about the vision for BISO Alumni and how you can participate. To join or explore programs, visit the Alumni site.",
+      "content": "BISO Alumni connects former students and volunteers who want to keep contributing or reconnect with the community. The network shares knowledge, opportunities and experience back to current students.",
       "cta": "Go to Alumni site"
     },
     "saih": {
       "title": "Support SAIH",
       "intro": "SAIH promotes academic freedom and education rights globally.",
-      "content": "BISO supports SAIH’s mission. Learn how we collaborate and how you can support through donations, awareness, and events.",
+      "content": "BISO supports SAIH because education creates freedom and opportunities. We collaborate on activities that raise awareness and invite students to contribute through donations and events.",
       "cta": "Learn about SAIH"
     }
   }
 }
-
-

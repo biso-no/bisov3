@@ -9,6 +9,10 @@ import { useCartStore, cartSelectors } from "@/lib/stores/cart"
 export function CartButton({ className }: { className?: string }) {
   const itemCount = useCartStore((state) => cartSelectors.itemCount(state))
 
+  if (itemCount === 0) {
+    return null
+  }
+
   return (
     <Button
       asChild

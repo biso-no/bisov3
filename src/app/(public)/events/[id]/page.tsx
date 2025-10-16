@@ -14,6 +14,9 @@ export default async function PublicEventDetail({ params }: {
   const event = await getEvent(id, locale)
   
   if (!event) return notFound()
+  if ((event as any).status && (event as any).status !== 'published') {
+    return notFound()
+  }
 
   const imageUrl = event.image ? await getEventImageViewUrl(event.image) : null
 
@@ -51,5 +54,4 @@ export default async function PublicEventDetail({ params }: {
     </div>
   )
 }
-
 

@@ -16,7 +16,7 @@ export const revalidate = 0
 export default async function CampusPage() {
   const [events, jobs, news, departments, campusData, campusMetadata, locale] = await Promise.all([
     listEvents({ status: 'publish', limit: 100 }),
-    listJobs({ status: 'open', limit: 100 }),
+    listJobs({ status: 'published', limit: 100 }),
     listNews({ limit: 12 }),
     getDepartments({ active: true, limit: 300 }),
     getCampusData(),

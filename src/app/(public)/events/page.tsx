@@ -10,7 +10,8 @@ import { PublicPageHeader } from '@/components/public/PublicPageHeader'
 export default async function PublicEventsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams
   const campus = params.campus
-  const status = params.status || 'published'
+  // Enforce published events for public list
+  const status = 'published'
   const q = params.q
   
   // Get user's preferred locale from their account preferences
@@ -48,16 +49,7 @@ export default async function PublicEventsPage({ searchParams }: { searchParams:
                 ))}
               </SelectContent>
             </Select>
-            <Select name="status" defaultValue={status}>
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="published">Published</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Status is fixed to published in public listing */}
             <button type="submit" className="hidden" />
           </form>
         </CardContent>
@@ -91,5 +83,4 @@ export default async function PublicEventsPage({ searchParams }: { searchParams:
     </div>
   )
 }
-
 

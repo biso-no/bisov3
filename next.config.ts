@@ -92,6 +92,7 @@ const baseConfig: NextConfig = {
   experimental: {
     optimizePackageImports: [],
   },
+  // No framework-level redirects at this time (user preference)
 };
 
 const withAnalyzer = withBundleAnalyzer({

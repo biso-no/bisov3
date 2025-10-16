@@ -112,47 +112,45 @@
   "pages": {
     "whatIsBiso": {
       "title": "Hva er BISO",
-      "intro": "BISO er studentforeningen ved Handelshøyskolen BI, som representerer og styrker studenter på tvers av campuser.",
-      "content": "Vi skaper muligheter for studenter gjennom arrangementer, faglige initiativer og fellesskap, og samarbeider med BI og eksterne partnere for å forbedre studentopplevelsen."
+      "intro": "BISO er studentforeningen ved Handelshøyskolen BI. Vi representerer, inkluderer og styrker studenter på alle campuser.",
+      "content": "BISO samler studenter i utvalg og prosjekter som skaper faglige og sosiale aktiviteter på campus.\n\nVi jobber i tre retninger:\n• Påvirkning – gi studentene en tydelig stemme i saker som angår dem\n• Påkoblet – forene campusene og knytte studenter til næringslivet\n• Engasjert – skape et inkluderende, sosialt og givende miljø\n\nAlt overskudd går tilbake til studentvelferd. Det betyr flere arrangementer, bedre tjenester og fordeler for medlemmene."
     },
     "politics": {
       "title": "Vår politikk",
-      "intro": "Politisk uavhengig, student først.",
-      "content": "Vi engasjerer oss i studentpolitikk for å fremme god utdanningskvalitet, inkludering og studentvelferd. Vårt fokus er konstruktiv dialog med BI og nasjonale studentorganer."
+      "intro": "BISO er partipolitisk uavhengig og jobber for medlemmenes faglige, økonomiske, sosiale, psykososiale og helsemessige interesser.",
+      "content": "Vi arbeider for studentvelferd gjennom konstruktivt samarbeid med BI og studentdemokratiet. Våre viktigste saker er studiekvalitet, inkludering og et trygt studentmiljø – i tillegg til tiltak som styrker økonomi i studenthverdagen (rabatter, relevante jobber og lavterskel arrangementer)."
     },
     "bylaws": {
       "title": "Vedtekter og lover",
-      "intro": "Styringsdokumenter som definerer vår struktur, roller og prosesser.",
-      "content": "Her finner du nasjonale vedtekter som gjelder for alle campuser og lenker til lokale vedtekter. Dokumentene sikrer åpenhet, ansvarlighet og forutsigbar drift."
+      "intro": "Vårt styringsverk gir tydelige rammer for roller, demokrati og drift.",
+      "content": "BISO har nasjonale vedtekter som gjelder på tvers av campuser, og lokale vedtekter som er tilpasset hver campus. Sammen beskriver de roller, valgprosesser, økonomi og ansvar.\n\nTrenger du veiledning eller siste versjon av dokumentene? Ta kontakt med Operations Unit eller campusledelsen."
     },
     "history": {
       "title": "Vår historie",
-      "intro": "Hvor vi kommer fra og hvordan vi har vokst.",
-      "content": "Fra lokale initiativer til en nasjonal forening – BISOs historie er formet av frivillige som brenner for å forbedre studentlivet ved BI."
+      "intro": "Fra lokale initiativer til en nasjonal forening.",
+      "content": "BISOs historie er drevet av frivillige som ønsket sterkere studentmiljø og bedre studiehverdag ved BI. Over tid gikk lokale organisasjoner sammen i én nasjonal studentforening med felles verdier og mål.\n\nI dag støtter BISO tusenvis av studenter med aktiviteter, representasjon og tilbud på alle campuser."
     },
     "studyQuality": {
       "title": "Studiekvalitet",
       "intro": "Kontinuerlig forbedring av utdanning og læringsmiljø.",
-      "content": "Vi samler studentinnspill, samarbeider med fagmiljøer og gjennomfører tiltak som styrker akademisk kvalitet og trivsel på tvers av campuser."
+      "content": "Vi løfter studentstemmer i formelle utvalg med BI og bringer konkrete tilbakemeldinger fra emner og studieprogram. Målet er god undervisningskvalitet, relevante læringsopplevelser og et støttende miljø på hver campus.\n\nDu kan bidra ved å dele innspill med campusledelsen eller bli med i et utvalg som jobber med studiekvalitet."
     },
     "operations": {
       "title": "Operations Unit",
-      "intro": "Vår nasjonale avdeling for organisasjonsutvikling.",
-      "content": "Operations Unit støtter campuser med styring, økonomi, etterlevelse og felles tjenester for å sikre effektiv og bærekraftig drift."
+      "intro": "Vår nasjonale avdeling som støtter alle campuser.",
+      "content": "Operations Unit hjelper campusorganisasjonene å levere for studentene gjennom støtte innen styring, økonomi, etterlevelse, IT og felles tjenester. Enheten legger også til rette for nasjonale satsinger og gode rutiner.\n\nArbeidsutvalget jobber fulltid for å sette retning og gjøre campusledelsene i stand til å lykkes."
     },
     "alumni": {
       "title": "BISO Alumni",
       "intro": "Et voksende nettverk for tidligere BISO-studenter og frivillige.",
-      "content": "Les om visjonen for BISO Alumni og hvordan du kan delta. For å bli med eller utforske programmer, gå til Alumni-siden.",
+      "content": "BISO Alumni knytter sammen tidligere studenter og frivillige som vil fortsette å bidra eller holde kontakten med fellesskapet. Nettverket deler kunnskap, muligheter og erfaring tilbake til dagens studenter.",
       "cta": "Gå til Alumni-siden"
     },
     "saih": {
       "title": "Støtt SAIH",
       "intro": "SAIH fremmer akademisk frihet og utdanningsrettigheter globalt.",
-      "content": "BISO støtter SAIHs arbeid. Les om vårt samarbeid og hvordan du kan bidra gjennom donasjoner, bevisstgjøring og arrangementer.",
+      "content": "BISO støtter SAIH fordi utdanning skaper frihet og muligheter. Vi samarbeider om aktiviteter som skaper engasjement, og inviterer studenter til å bidra gjennom donasjoner og arrangementer.",
       "cta": "Les om SAIH"
     }
   }
 }
-
-

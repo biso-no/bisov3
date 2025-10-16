@@ -518,7 +518,7 @@ export const CampusPageClient = ({ events, jobs, news, departments, campusData, 
   }, [events, activeCampusId])
 
   const campusSpecificJobs = useMemo(() => {
-    const filtered = activeCampusId ? jobs.filter((job) => job.campus.$id === activeCampusId) : jobs
+    const filtered = activeCampusId ? jobs.filter((job) => job?.campus?.$id === activeCampusId) : jobs
     return filtered.sort((a, b) => (b.application_deadline || '').localeCompare(a.application_deadline || ''))
   }, [jobs, activeCampusId])
 

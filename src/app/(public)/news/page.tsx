@@ -10,7 +10,8 @@ export default async function PublicNewsPage({ searchParams }: { searchParams: P
   const params = await searchParams
   const q = params.q || ''
   const campus = params.campus || 'all'
-  const status = params.status || 'published'
+  // Enforce published news for public list
+  const status = 'published'
   
   // Get user's preferred locale from their account preferences
   const locale = await getLocale()
@@ -43,15 +44,7 @@ export default async function PublicNewsPage({ searchParams }: { searchParams: P
               ))}
             </SelectContent>
           </Select>
-          <Select name="status" defaultValue={status}>
-            <SelectTrigger>
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="published">Published</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Status is fixed to published in public listing */}
           <button type="submit" className="hidden" />
         </form>
       </div>
@@ -81,5 +74,4 @@ export default async function PublicNewsPage({ searchParams }: { searchParams: P
     </div>
   )
 }
-
 

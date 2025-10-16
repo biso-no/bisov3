@@ -40,17 +40,16 @@ export default async function PublicLayout({ children }: { children: React.React
             <Footer.Link href="/units">Units</Footer.Link>
           </Footer.List>
           <Footer.List title="Campuses">
-            <Footer.Link href="#">Oslo</Footer.Link>
-            <Footer.Link href="#">Bergen</Footer.Link>
-            <Footer.Link href="#">Trondheim</Footer.Link>
-            <Footer.Link href="#">Stavanger</Footer.Link>
-            <Footer.Link href="#">National</Footer.Link>
+            <Footer.Link href="/campus?campus=oslo">Oslo</Footer.Link>
+            <Footer.Link href="/campus?campus=bergen">Bergen</Footer.Link>
+            <Footer.Link href="/campus?campus=trondheim">Trondheim</Footer.Link>
+            <Footer.Link href="/campus?campus=stavanger">Stavanger</Footer.Link>
           </Footer.List>
           <Footer.List title="About BISO">
             <Footer.Link href="/about">About BISO</Footer.Link>
             <Footer.Link href="/partner">Become a Partner</Footer.Link>
-            <Footer.Link href="#">Contact</Footer.Link>
-            <Footer.Link href="#">Privacy</Footer.Link>
+            <Footer.Link href="/contact">Contact</Footer.Link>
+            <Footer.Link href="/privacy">Privacy</Footer.Link>
           </Footer.List>
         </Footer>
       </div>

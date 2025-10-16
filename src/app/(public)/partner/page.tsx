@@ -128,12 +128,14 @@ export default function PartnerPage() {
                 {t('hero.description')}
               </p>
               <div className="mt-10 flex items-center gap-x-6">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                  <Mail className="mr-2 h-4 w-4" />
-                  {t('buttons.contact')}
+                <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
+                  <Link href="/contact">
+                    <Mail className="mr-2 h-4 w-4" />
+                    {t('buttons.contact')}
+                  </Link>
                 </Button>
-                <Button variant="outline" size="lg">
-                  {t('buttons.readMore')}
+                <Button variant="outline" size="lg" asChild>
+                  <Link href="#benefits">{t('buttons.readMore')}</Link>
                 </Button>
               </div>
             </div>

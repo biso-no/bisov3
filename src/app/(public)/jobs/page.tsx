@@ -7,7 +7,8 @@ import Link from 'next/link'
 
 export default async function JobsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams
-  const status = params.status || 'open'
+  // Public listing shows published jobs only
+  const status = 'published'
   const campus = params.campus || 'all'
   const interest = params.interest || 'all'
   const q = params.q
@@ -40,16 +41,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         <CardContent className="grid gap-4 md:grid-cols-5">
           <form className="contents">
             <Input defaultValue={q || ''} name="q" placeholder="Search by title..." className="md:col-span-2" />
-            <Select name="status" defaultValue={status}>
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Status fixed to published for public listing */}
             <Select name="campus" defaultValue={campus}>
               <SelectTrigger>
                 <SelectValue placeholder="Campus" />

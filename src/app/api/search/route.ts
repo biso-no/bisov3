@@ -162,6 +162,22 @@ async function searchTranslations({
             | undefined;
           if (!parent) return;
 
+          // Public safety: only include visible parent records
+          const parentStatus = (parent as any).status as string | undefined
+          const allowed = (() => {
+            switch (index) {
+              case 'events':
+                return parentStatus === 'published'
+              case 'news':
+                return parentStatus === 'published'
+              case 'jobs':
+                return parentStatus === 'published'
+              default:
+                return true
+            }
+          })()
+          if (!allowed) return;
+
           const key = `${index}:${parent.$id}`;
           const value = translation[field] as string | undefined;
           const score = computeMatchScore({

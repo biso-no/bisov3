@@ -15,6 +15,9 @@ export default async function JobDetailBySlug({ params }: {
   const job = await getJobBySlug(slug, locale)
   
   if (!job) return notFound()
+  if (job.status && job.status !== 'published' && job.status !== 'closed') {
+    return notFound()
+  }
   
   return (
     <div className="space-y-6">
@@ -23,6 +26,9 @@ export default async function JobDetailBySlug({ params }: {
         <p className="text-muted-foreground">
           {job.campus?.name || job.campus_id} • {job.department?.Name} • {job.type}
         </p>
+        {job.status === 'closed' && (
+          <p className="text-sm text-red-600">{locale === 'no' ? 'Søknadsfrist utløpt – stillingen er lukket' : 'This role is closed'}</p>
+        )}
         {job.application_deadline && (
           <p className="text-sm text-orange-600">
             Application deadline: {new Date(job.application_deadline).toLocaleDateString()}
@@ -65,5 +71,4 @@ export default async function JobDetailBySlug({ params }: {
     </div>
   )
 }
-
 
