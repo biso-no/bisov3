@@ -3,22 +3,34 @@
 import { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Briefcase, CalendarDays, MapPin, Newspaper, Ticket, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Briefcase,
+  CalendarDays,
+  Compass,
+  Handshake,
+  HeartHandshake,
+  MapPin,
+  Newspaper,
+  Sparkles,
+  Target,
+  Ticket,
+  Users,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { SelectCampus } from "@/components/select-campus";
 import { useCampus } from "@/components/context/campus";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { cn, formatDateReadable } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 import type { EventWithTranslations } from "@/lib/types/event";
 import type { JobWithTranslations } from "@/lib/types/job";
 import type { NewsItemWithTranslations } from "@/lib/types/news";
 import type { ProductWithTranslations } from "@/lib/types/product";
-import { useTranslations, useFormatter } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 
 type HomePageClientProps = {
   events: EventWithTranslations[];
@@ -40,22 +52,28 @@ const SectionHeader = ({
   href?: string;
   linkLabel?: string;
 }) => (
-  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+  <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
     <div className="space-y-2">
       {eyebrow ? (
-        <Badge variant="outline" className="w-max rounded-full border-primary/20 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-50">
+        <Badge
+          variant="outline"
+          className="w-max rounded-full border-primary/20 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-50"
+        >
           {eyebrow}
         </Badge>
       ) : null}
       <div className="space-y-1.5">
-        <h2 className="font-heading text-2xl font-semibold text-primary-100 lg:text-3xl">{title}</h2>
-        {description ? (
-          <p className="text-sm text-muted-foreground lg:text-base">{description}</p>
-        ) : null}
+        <h2 className="font-heading text-2xl font-semibold text-primary-100 lg:text-4xl">{title}</h2>
+        {description ? <p className="text-sm text-muted-foreground lg:text-base">{description}</p> : null}
       </div>
     </div>
     {href && linkLabel ? (
-      <Button asChild variant="ghost" size="sm" className="group h-10 gap-2 rounded-full border border-primary/10 px-4 text-primary-40 hover:bg-primary/5">
+      <Button
+        asChild
+        variant="ghost"
+        size="sm"
+        className="group h-10 gap-2 rounded-full border border-primary/10 px-4 text-primary-40 hover:bg-primary/5"
+      >
         <Link href={href} className="flex items-center gap-2">
           {linkLabel}
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -72,11 +90,75 @@ const StatPill = ({ label, value }: { label: string; value: string | number }) =
   </div>
 );
 
+const ValueCard = ({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+}) => (
+  <Card className="h-full rounded-[24px] border border-primary/10 bg-white shadow-card-soft">
+    <CardContent className="flex flex-col gap-4 p-6">
+      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/5 text-primary-40">
+        <Icon className="h-5 w-5" />
+      </span>
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold text-primary-100">{title}</h3>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const HighlightList = ({
+  items,
+  emptyLabel,
+}: {
+  items: {
+    id: string;
+    title: string;
+    subtitle: string;
+    href: string;
+    icon: LucideIcon;
+    badge: string;
+  }[];
+  emptyLabel: string;
+}) => (
+  <div className="flex flex-col divide-y divide-white/15">
+    {items.length ? (
+      items.map((item) => (
+        <Link
+          key={item.id}
+          href={item.href}
+          className="group flex items-center justify-between gap-4 py-3 text-white/90 transition hover:text-white"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15">
+              <item.icon className="h-5 w-5" />
+            </span>
+            <div className="space-y-0.5">
+              <p className="text-xs uppercase tracking-[0.16em] text-white/70">{item.badge}</p>
+              <p className="text-sm font-semibold leading-tight">{item.title}</p>
+              <p className="text-xs text-white/70">{item.subtitle}</p>
+            </div>
+          </div>
+          <ArrowRight className="h-4 w-4 opacity-0 transition group-hover:translate-x-1 group-hover:opacity-100" />
+        </Link>
+      ))
+    ) : (
+      <div className="py-4 text-sm text-white/80">{emptyLabel}</div>
+    )}
+  </div>
+);
+
 export const HomePageClient = ({ events, news, jobs, products }: HomePageClientProps) => {
   const { campuses, activeCampus, activeCampusId } = useCampus();
   const t = useTranslations("home");
   const commonT = useTranslations("common");
   const format = useFormatter();
+
   const campusLookup = useMemo(() => {
     return campuses.reduce<Record<string, string>>((acc, campus) => {
       acc[campus.$id] = campus.name;
@@ -114,11 +196,18 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
 
   const spotlightProducts = useMemo(() => productsForCampus.slice(0, 3), [productsForCampus]);
   const spotlightNews = useMemo(() => newsForCampus.slice(0, 3), [newsForCampus]);
-  const spotlightEvents = useMemo(() => eventsForCampus.slice(0, 6), [eventsForCampus]);
-  const spotlightJobs = useMemo(() => jobsForCampus.slice(0, 6), [jobsForCampus]);
+  const spotlightEvents = useMemo(() => eventsForCampus.slice(0, 4), [eventsForCampus]);
+  const spotlightJobs = useMemo(() => jobsForCampus.slice(0, 5), [jobsForCampus]);
 
   const heroHighlights = useMemo(() => {
-    const highlights: { id: string; title: string; subtitle: string; href: string; icon: LucideIcon; badge: string }[] = [];
+    const highlights: {
+      id: string;
+      title: string;
+      subtitle: string;
+      href: string;
+      icon: LucideIcon;
+      badge: string;
+    }[] = [];
 
     const featuredEvent = spotlightEvents[0];
     if (featuredEvent) {
@@ -127,10 +216,10 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
         title: featuredEvent.title,
         subtitle: featuredEvent.start_date
           ? format.dateTime(new Date(featuredEvent.start_date), { dateStyle: "medium" })
-          : "Dato kommer",
+          : t("events.pendingDate"),
         href: `/events/${featuredEvent.$id}`,
         icon: CalendarDays,
-        badge: t("events.title"),
+        badge: t("hero.highlights.events"),
       });
     }
 
@@ -145,7 +234,7 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
             : commonT("labels.organisation"),
         href: `/jobs/${featuredJob.slug}`,
         icon: Briefcase,
-        badge: t("jobs.title"),
+        badge: t("hero.highlights.jobs"),
       });
     }
 
@@ -157,43 +246,73 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
         subtitle: format.dateTime(new Date(featuredNews.$createdAt), { dateStyle: "medium" }),
         href: `/news/${featuredNews.$id}`,
         icon: Newspaper,
-        badge: t("news.titleDefault"),
+        badge: t("hero.highlights.news"),
       });
     }
 
     return highlights.slice(0, 3);
   }, [spotlightEvents, spotlightJobs, spotlightNews, format, t, campusLookup, commonT]);
 
-  const quickLinkItems = useMemo(
+  const additionalEvents = useMemo(() => spotlightEvents.slice(1, 4), [spotlightEvents]);
+  const additionalNews = useMemo(() => spotlightNews.slice(1, 3), [spotlightNews]);
+  const supportingJobs = useMemo(() => spotlightJobs.slice(1, 5), [spotlightJobs]);
+
+  const benefitsPerks = useMemo(
     () => [
       {
-        title: t("quickLinks.units.title"),
-        description: t("quickLinks.units.description"),
-        href: "/units",
-        cta: t("quickLinks.units.cta"),
+        icon: HeartHandshake,
+        title: t("benefits.perks.community.title"),
+        description: t("benefits.perks.community.description"),
+      },
+      {
+        icon: Handshake,
+        title: t("benefits.perks.partners.title"),
+        description: t("benefits.perks.partners.description"),
+      },
+      {
+        icon: Compass,
+        title: t("benefits.perks.support.title"),
+        description: t("benefits.perks.support.description"),
+      },
+    ],
+    [t]
+  );
+
+  const identityHighlights = useMemo(
+    () => [
+      {
+        icon: Target,
+        title: t("identity.values.mission.title"),
+        description: t("identity.values.mission.description"),
+      },
+      {
         icon: Users,
+        title: t("identity.values.members.title"),
+        description: t("identity.values.members.description"),
       },
       {
-        title: t("quickLinks.highlights.title"),
-        description: t("quickLinks.highlights.description"),
-        href: "/events",
-        cta: t("quickLinks.highlights.cta"),
-        icon: CalendarDays,
+        icon: Sparkles,
+        title: t("identity.values.impact.title"),
+        description: t("identity.values.impact.description"),
       },
-      {
-        title: t("quickLinks.roles.title"),
-        description: t("quickLinks.roles.description"),
-        href: "/jobs",
-        cta: t("quickLinks.roles.cta"),
-        icon: Briefcase,
-      },
-      {
-        title: t("quickLinks.benefits.title"),
-        description: t("quickLinks.benefits.description"),
-        href: "/shop",
-        cta: t("quickLinks.benefits.cta"),
-        icon: Ticket,
-      },
+    ],
+    [t]
+  );
+
+  const supportLinks = useMemo(
+    () => [
+      { href: "/volunteer", label: t("opportunities.supportLinks.volunteer") },
+      { href: "/contact", label: t("opportunities.supportLinks.contact") },
+      { href: "/safety", label: t("opportunities.supportLinks.safety") },
+    ],
+    [t]
+  );
+
+  const finalLinks = useMemo(
+    () => [
+      { href: "/about", label: t("finalCta.links.about") },
+      { href: "/contact", label: t("finalCta.links.contact") },
+      { href: "/press", label: t("finalCta.links.press") },
     ],
     [t]
   );
@@ -202,22 +321,29 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
     ? t("hero.subtitleActive", { campusName: activeCampus.name })
     : t("hero.subtitleDefault");
 
+  const featuredEvent = spotlightEvents[0];
+  const featuredProduct = spotlightProducts[0];
+
   return (
-    <div className="space-y-20 text-primary-100">
-      <section className="relative overflow-hidden rounded-[36px] bg-brand-hero text-white shadow-glow-blue">
+    <div className="space-y-24 text-primary-100">
+      <section className="relative overflow-hidden rounded-[40px] bg-brand-hero text-white shadow-glow-blue">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.18),transparent_55%),radial-gradient(circle_at_bottom_right,rgba(61,169,224,0.35),transparent_55%)]" />
-        <div className="noise-overlay relative grid gap-10 px-6 py-12 md:px-10 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center lg:py-16 xl:px-14">
-          <div className="space-y-6">
-            <Badge variant="gradient" className="w-max rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
-              BISO Universe
-            </Badge>
-            <div className="space-y-4">
+        <div className="noise-overlay relative grid gap-10 px-6 py-12 md:px-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:items-center lg:py-16 xl:px-14">
+          <div className="space-y-8">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge variant="gradient" className="w-max rounded-full px-4 py-1 text-xs font-semibold uppercase tracking-[0.18em]">
+                {t("hero.badge")}
+              </Badge>
+              <div className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-white/80 backdrop-blur">
+                <SelectCampus className="h-9 w-[180px] border-none bg-transparent text-xs font-semibold uppercase tracking-[0.14em] text-white" />
+              </div>
+            </div>
+            <div className="space-y-6">
               <h1 className="max-w-2xl font-heading text-3xl font-semibold leading-tight text-white drop-shadow md:text-5xl">
-                {activeCampus
-                  ? t("hero.titleActive", { campusName: activeCampus.name })
-                  : t("hero.titleDefault")}
+                {activeCampus ? t("hero.titleActive", { campusName: activeCampus.name }) : t("hero.titleDefault")}
               </h1>
               <p className="max-w-2xl text-base text-white/80 md:text-lg">{heroSubtitle}</p>
+              <p className="max-w-xl text-sm text-white/70 md:text-base">{t("hero.mission")}</p>
               {activeCampus ? (
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em]">
                   <MapPin className="h-4 w-4" />
@@ -235,7 +361,15 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
                 variant="secondary"
                 className="rounded-full border border-white/40 bg-transparent px-6 text-white hover:bg-white/15"
               >
-                <Link href="/events">{t("hero.primaryCtaSecondary")}</Link>
+                <Link href="/campus">{t("hero.primaryCtaSecondary")}</Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="ghost"
+                className="rounded-full border border-white/15 bg-white/10 px-6 text-white hover:bg-white/20"
+              >
+                <Link href="/contact">{t("hero.contactCta")}</Link>
               </Button>
             </div>
             <div className="grid gap-3 pt-2 sm:grid-cols-3">
@@ -245,325 +379,444 @@ export const HomePageClient = ({ events, news, jobs, products }: HomePageClientP
             </div>
           </div>
 
-          <div className="relative flex flex-col gap-4 rounded-[28px] border border-white/20 bg-white/10 p-5 shadow-card-soft backdrop-blur">
-            <div className="relative h-44 w-full overflow-hidden rounded-2xl border border-white/20 bg-primary-90/60">
+          <div className="relative flex flex-col gap-5 rounded-[30px] border border-white/25 bg-white/10 p-6 shadow-card-soft backdrop-blur">
+            <div className="relative h-48 w-full overflow-hidden rounded-2xl border border-white/20 bg-primary-90/60">
               <Image
                 src={
-                  spotlightEvents[0]?.image ||
-                  spotlightNews[0]?.image ||
-                  "/images/placeholder.jpg"
+                  featuredEvent?.image || spotlightNews[0]?.image || "/images/placeholder.jpg"
                 }
-                alt={t("hero.imageAlt")}
+                alt={featuredEvent?.title || t("hero.imageAlt")}
                 fill
                 className="object-cover"
                 priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary-100/80 via-primary-90/5 to-transparent" />
               <div className="absolute bottom-4 left-4 flex flex-col gap-1">
-                <span className="text-xs uppercase tracking-[0.16em] text-white/70">
-                  {t("hero.promo.tagline")}
-                </span>
+                <span className="text-xs uppercase tracking-[0.16em] text-white/70">{t("hero.promo.tagline")}</span>
                 <p className="text-lg font-semibold text-white">{t("hero.promo.headline")}</p>
               </div>
             </div>
-            <div className="flex flex-col divide-y divide-white/15">
-              {heroHighlights.length ? (
-                heroHighlights.map((highlight) => (
-                  <Link
-                    key={highlight.id}
-                    href={highlight.href}
-                    className="group flex items-center justify-between gap-4 py-3 text-white/90 transition hover:text-white"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15">
-                        <highlight.icon className="h-5 w-5" />
-                      </span>
-                      <div className="space-y-0.5">
-                        <p className="text-xs uppercase tracking-[0.16em] text-white/70">{highlight.badge}</p>
-                        <p className="text-sm font-semibold leading-tight">{highlight.title}</p>
-                        <p className="text-xs text-white/70">{highlight.subtitle}</p>
-                      </div>
-                    </div>
-                    <ArrowRight className="h-4 w-4 opacity-0 transition group-hover:translate-x-1 group-hover:opacity-100" />
-                  </Link>
-                ))
-              ) : (
-                <div className="py-4 text-sm text-white/80">{t("hero.promo.tagline")}</div>
-              )}
-            </div>
+            <HighlightList items={heroHighlights} emptyLabel={t("hero.promo.tagline")} />
           </div>
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {quickLinkItems.map((item, index) => (
-          <Card
-            key={item.title}
-            className="group relative flex h-full flex-col justify-between overflow-hidden rounded-[28px] border border-primary/10 bg-white/90 p-6 shadow-card-soft transition hover:-translate-y-1.5 hover:shadow-card-hover"
-          >
-            <div className="pointer-events-none absolute inset-x-6 top-0 h-1 rounded-b-full bg-gradient-to-r from-blue-accent via-gold-default to-blue-accent opacity-0 transition group-hover:opacity-100" />
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/5 text-primary-40">
-                <item.icon className="h-5 w-5" />
-              </div>
-              <Badge variant="outline" className="rounded-full border-primary/10 bg-primary/5 px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-primary-50">
-                {index + 1 < 10 ? `0${index + 1}` : index + 1}
-              </Badge>
-            </div>
-            <div className="space-y-2 pt-6">
-              <CardTitle className="text-lg font-semibold text-primary-100">{item.title}</CardTitle>
-              <p className="text-sm text-muted-foreground">{item.description}</p>
-            </div>
-            <Button asChild variant="link" className="flex items-center gap-1 px-0 text-primary-30">
-              <Link href={item.href}>
-                {item.cta}
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
-          </Card>
-        ))}
+      <section className="grid gap-6 rounded-[36px] border border-primary/10 bg-white/90 p-8 shadow-card-soft lg:grid-cols-[1.1fr_1fr]">
+        <div className="space-y-5">
+          <Badge variant="outline" className="w-max rounded-full border-primary/10 bg-primary/5 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-primary-50">
+            {t("identity.eyebrow")}
+          </Badge>
+          <div className="space-y-3">
+            <h2 className="font-heading text-3xl font-semibold text-primary-100 lg:text-4xl">{t("identity.title")}</h2>
+            <p className="max-w-2xl text-base text-muted-foreground lg:text-lg">{t("identity.description")}</p>
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3 md:gap-5">
+          {identityHighlights.map((item) => (
+            <ValueCard key={item.title} icon={item.icon} title={item.title} description={item.description} />
+          ))}
+        </div>
       </section>
 
-      <section className="space-y-8">
+      <section className="space-y-10">
         <SectionHeader
-          title={
-            activeCampus
-              ? t("news.titleActive", { campusName: activeCampus.name })
-              : t("news.titleDefault")
-          }
-          description={t("news.description")}
-          href="/news"
-          linkLabel={t("news.cta")}
+          eyebrow={t("spotlight.eyebrow")}
+          title={t("spotlight.title")}
+          description={t("spotlight.description")}
+          href="/events"
+          linkLabel={t("spotlight.cta")}
         />
-        <div className="grid gap-6 lg:grid-cols-3">
-          {spotlightNews.length ? (
-            spotlightNews.map((item) => {
-              const summary = item.content?.replace(/<[^>]+>/g, "").slice(0, 160) ?? "";
-              const campusName = campusLookup[item.campus_id] ?? commonT("labels.organisation");
-              return (
-                <Card
-                  key={item.$id}
-                  className="group overflow-hidden rounded-[28px] border border-primary/10 bg-white/95 shadow-card-soft transition hover:-translate-y-1 hover:shadow-card-hover"
-                >
-                  {item.image ? (
-                    <div className="relative h-48 w-full overflow-hidden">
-                      <Image src={item.image} alt={item.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-transparent to-transparent" />
-                      <div className="absolute bottom-3 left-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/80">
-                        <MapPin className="h-3.5 w-3.5" />
-                        {campusName}
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+          <Card className="group overflow-hidden rounded-[32px] border border-primary/10 bg-white shadow-card-soft">
+            {featuredEvent ? (
+              <>
+                <div className="relative h-64 w-full overflow-hidden">
+                  <Image
+                    src={featuredEvent.image || "/images/placeholder.jpg"}
+                    alt={featuredEvent.title}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-5 flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-white/90 backdrop-blur">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    {featuredEvent.start_date
+                      ? format.dateTime(new Date(featuredEvent.start_date), { dateStyle: "medium" })
+                      : t("events.pendingDate")}
+                  </div>
+                </div>
+                <CardContent className="space-y-4 p-6 lg:p-8">
+                  <Badge variant="outline" className="w-max rounded-full border-primary/15 bg-primary/5 px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-primary-50">
+                    {t("spotlight.featuredEvent")}
+                  </Badge>
+                  <div className="space-y-3">
+                    <CardTitle className="text-2xl font-semibold text-primary-100 lg:text-3xl">
+                      <Link href={`/events/${featuredEvent.$id}`} className="hover:underline">
+                        {featuredEvent.title}
+                      </Link>
+                    </CardTitle>
+                    {featuredEvent.description ? (
+                      <p className="max-w-2xl text-sm text-muted-foreground lg:text-base">{featuredEvent.description}</p>
+                    ) : null}
+                  </div>
+                  <Button
+                    asChild
+                    variant="secondary"
+                    className="w-full justify-between rounded-full border border-primary/15 bg-primary/5 px-5 text-primary-60 hover:bg-primary/10"
+                  >
+                    <Link href={`/events/${featuredEvent.$id}`}>
+                      {t("spotlight.eventCta")}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  {additionalEvents.length ? (
+                    <div className="grid gap-3 pt-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary-40">
+                        {t("spotlight.moreEvents")}
+                      </p>
+                      <div className="grid gap-3">
+                        {additionalEvents.map((event) => (
+                          <Link
+                            key={event.$id}
+                            href={`/events/${event.$id}`}
+                            className="flex items-center justify-between gap-3 rounded-2xl border border-primary/10 bg-primary/5 px-4 py-3 text-sm text-primary-60 transition hover:bg-primary/10"
+                          >
+                            <span className="font-semibold text-primary-100">{event.title}</span>
+                            <span className="text-xs uppercase tracking-[0.14em] text-primary-40">
+                              {event.start_date
+                                ? format.dateTime(new Date(event.start_date), { dateStyle: "medium" })
+                                : t("events.pendingDate")}
+                            </span>
+                          </Link>
+                        ))}
                       </div>
                     </div>
                   ) : null}
-                  <CardContent className="space-y-4 p-6">
-                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.14em] text-primary-40">
-                      <span>{format.dateTime(new Date(item.$createdAt), { dateStyle: "medium" })}</span>
-                      <Badge variant="outline" className="rounded-full border-primary/15 bg-primary/5 px-2 py-0.5">
-                        {t("news.titleDefault")}
-                      </Badge>
-                    </div>
-                    <div className="space-y-2">
-                      <CardTitle className="text-xl font-semibold text-primary-100">
+                </CardContent>
+              </>
+            ) : (
+              <CardContent className="p-10 text-center text-muted-foreground">{t("events.empty")}</CardContent>
+            )}
+          </Card>
+
+          <div className="grid gap-5">
+            {spotlightNews.length ? (
+              spotlightNews.map((item, index) => {
+                const summary = item.content?.replace(/<[^>]+>/g, "").slice(0, 140) ?? "";
+                return (
+                  <Card
+                    key={item.$id}
+                    className={cn(
+                      "group overflow-hidden rounded-[28px] border border-primary/10 bg-white/95 shadow-card-soft transition",
+                      index === 0 ? "lg:row-span-2" : ""
+                    )}
+                  >
+                    {item.image ? (
+                      <div className="relative h-40 w-full overflow-hidden">
+                        <Image
+                          src={item.image}
+                          alt={item.title}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-transparent to-transparent" />
+                      </div>
+                    ) : null}
+                    <CardContent className="space-y-3 p-6">
+                      <div className="flex items-center justify-between text-xs uppercase tracking-[0.14em] text-primary-40">
+                        <span>{format.dateTime(new Date(item.$createdAt), { dateStyle: "medium" })}</span>
+                        <Badge variant="outline" className="rounded-full border-primary/15 bg-primary/5 px-2 py-0.5">
+                          {t("spotlight.newsLabel")}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-lg font-semibold text-primary-100">
                         <Link href={`/news/${item.$id}`} className="hover:underline">
                           {item.title}
                         </Link>
                       </CardTitle>
-                      {summary ? <p className="line-clamp-3 text-sm text-muted-foreground">{summary}{item.content && item.content.length > 160 ? "…" : ""}</p> : null}
-                    </div>
-                    <Button asChild variant="ghost" size="sm" className="group flex w-full items-center justify-between rounded-full border border-primary/10 px-4 py-2 text-primary-50 hover:bg-primary/5">
-                      <Link href={`/news/${item.$id}`}>
-                        {commonT("buttons.readMore")}
-                        <ArrowRight className="ml-2 inline-block h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })
-          ) : (
-            <div className="col-span-full rounded-2xl border border-dashed border-primary/20 bg-white/60 p-10 text-center text-muted-foreground">
-              {t("news.empty")}
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="space-y-8">
-        <SectionHeader
-          title={t("events.title")}
-          description={
-            activeCampus
-              ? t("events.descriptionActive", { campusName: activeCampus.name })
-              : t("events.descriptionDefault")
-          }
-          href="/events"
-          linkLabel={t("events.cta")}
-        />
-        {spotlightEvents.length ? (
-          <ScrollArea>
-            <div className="flex gap-4 pb-4">
-              {spotlightEvents.map((event) => {
-                const campusName = campusLookup[event.campus_id] ?? commonT("labels.organisation");
-                return (
-                  <Card
-                    key={event.$id}
-                    className="group flex min-w-[270px] max-w-sm flex-1 flex-col justify-between rounded-[26px] border border-primary/10 bg-white/95 p-5 shadow-card-soft transition hover:-translate-y-1 hover:shadow-card-hover"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-xs uppercase tracking-[0.14em] text-primary-50">
-                        <span>
-                          {event.start_date
-                            ? format.dateTime(new Date(event.start_date), { dateStyle: "medium" })
-                            : "Dato kommer"}
-                        </span>
-                        <Badge variant="outline" className="rounded-full border-primary/15 bg-primary/5 px-2 py-0.5">
-                          {campusName}
-                        </Badge>
-                      </div>
-                      <CardTitle className="text-lg font-semibold text-primary-100">
-                        <Link href={`/events/${event.$id}`} className="hover:underline">
-                          {event.title}
+                      {summary ? <p className="text-sm text-muted-foreground">{summary}{item.content && item.content.length > 140 ? "…" : ""}</p> : null}
+                      <Button asChild variant="link" className="px-0 text-primary-40">
+                        <Link href={`/news/${item.$id}`}>
+                          {commonT("buttons.readMore")}
+                          <ArrowRight className="ml-1 h-4 w-4" />
                         </Link>
-                      </CardTitle>
-                      {event.description ? (
-                        <p className="line-clamp-3 text-sm text-muted-foreground">{event.description}</p>
-                      ) : null}
-                    </div>
-                    <Button asChild variant="ghost" size="sm" className="mt-4 inline-flex w-full items-center justify-between rounded-full border border-primary/10 px-4 text-primary-50 hover:bg-primary/5">
-                      <Link href={`/events/${event.$id}`}>
-                        {commonT("buttons.viewDetails")}
-                        <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                      </Link>
-                    </Button>
+                      </Button>
+                    </CardContent>
                   </Card>
                 );
-              })}
-            </div>
-            <ScrollBar orientation="horizontal" className="h-2" />
-          </ScrollArea>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-primary/20 bg-white/60 p-10 text-center text-muted-foreground">
-            {t("events.empty")}
+              })
+            ) : (
+              <Card className="flex h-full items-center justify-center rounded-[28px] border border-dashed border-primary/20 bg-white/75 p-8 text-center text-muted-foreground">
+                {t("news.empty")}
+              </Card>
+            )}
           </div>
-        )}
-      </section>
-
-      <section className="space-y-8">
-        <SectionHeader
-          title={t("jobs.title")}
-          description={t("jobs.description")}
-          href="/jobs"
-          linkLabel={t("jobs.cta")}
-        />
-        <div className="grid gap-6 lg:grid-cols-3">
-          {spotlightJobs.length ? (
-            spotlightJobs.map((job) => {
-              const description = job.description?.replace(/<[^>]+>/g, "").slice(0, 160) ?? "";
-              const campusName = campusLookup[job.campus_id] ?? commonT("labels.organisation");
-              return (
-                <Card
-                  key={job.$id}
-                  className="flex h-full flex-col justify-between rounded-[28px] border border-primary/10 bg-white/95 shadow-card-soft transition hover:-translate-y-1 hover:shadow-card-hover"
-                >
-                  <CardContent className="space-y-4 p-6">
-                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.14em] text-primary-50">
-                      <Badge variant="outline" className="rounded-full border-primary/15 bg-primary/5 px-2 py-0.5">
-                        {campusName}
-                      </Badge>
-                      <span className="rounded-full bg-primary/5 px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-50">
-                        {job.application_deadline
-                          ? t("jobs.deadline", { date: format.dateTime(new Date(job.application_deadline), { dateStyle: "medium" }) })
-                          : t("jobs.rolling")}
-                      </span>
-                    </div>
-                    <CardTitle className="text-lg font-semibold text-primary-100">
-                      <Link href={`/jobs/${job.slug}`} className="hover:underline">
-                        {job.title}
-                      </Link>
-                    </CardTitle>
-                    {description ? (
-                      <p className="line-clamp-3 text-sm text-muted-foreground">
-                        {description}
-                        {job.description && job.description.length > 160 ? "…" : ""}
-                      </p>
-                    ) : null}
-                  </CardContent>
-                  <div className="px-6 pb-6">
-                    <Button asChild variant="ghost" className="flex w-full items-center justify-between rounded-full border border-primary/10 px-4 py-2 text-primary-50 hover:bg-primary/5">
-                      <Link href={`/jobs/${job.slug}`}>
-                        {commonT("buttons.readMore")}
-                        <ArrowRight className="ml-2 h-4 w-4 transition-transform hover:translate-x-1" />
-                      </Link>
-                    </Button>
-                  </div>
-                </Card>
-              );
-            })
-          ) : (
-            <div className="col-span-full rounded-2xl border border-dashed border-primary/20 bg-white/60 p-10 text-center text-muted-foreground">
-              {t("jobs.empty")}
-            </div>
-          )}
         </div>
       </section>
 
       <section className="space-y-8">
         <SectionHeader
-          title={t("shop.title")}
-          description={t("shop.description")}
-          href="/shop"
-          linkLabel={t("shop.cta")}
+          eyebrow={t("explore.eyebrow")}
+          title={t("explore.title")}
+          description={t("explore.description")}
+          href="/resources"
+          linkLabel={t("explore.cta")}
         />
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {spotlightProducts.length ? (
-            spotlightProducts.map((product) => {
-              const imageSrc = product.image || product.images?.[0];
-              return (
-                <Card
-                  key={product.$id}
-                  className="group overflow-hidden rounded-[28px] border border-primary/10 bg-white/95 shadow-card-soft transition hover:-translate-y-1 hover:shadow-card-hover"
-                >
-                  {imageSrc ? (
-                    <div className="relative h-56 w-full overflow-hidden">
-                      <Image
-                        src={imageSrc}
-                        alt={product.title || product.slug}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-x-4 bottom-4 inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-white backdrop-blur">
-                        <Ticket className="h-3.5 w-3.5" />
-                        BISO Shop
-                      </div>
+        <div className="grid gap-5 lg:grid-cols-2">
+          {["units", "highlights", "roles", "benefits", "support", "international"].map((key, index) => {
+            const iconMap: Record<string, LucideIcon> = {
+              units: Users,
+              highlights: CalendarDays,
+              roles: Briefcase,
+              benefits: Ticket,
+              support: HeartHandshake,
+              international: Compass,
+            };
+
+            const icon = iconMap[key] ?? Users;
+            const title = t(`explore.cards.${key}.title` as const);
+            const description = t(`explore.cards.${key}.description` as const);
+            const href = t(`explore.cards.${key}.href` as const);
+            const cta = t(`explore.cards.${key}.cta` as const);
+
+            return (
+              <Card
+                key={key}
+                className="group relative flex h-full flex-col justify-between overflow-hidden rounded-[30px] border border-primary/10 bg-white shadow-card-soft transition hover:-translate-y-1.5 hover:shadow-card-hover"
+              >
+                <div className="pointer-events-none absolute inset-x-6 top-0 h-1 rounded-b-full bg-gradient-to-r from-blue-accent via-gold-default to-blue-accent opacity-0 transition group-hover:opacity-100" />
+                <CardHeader className="flex flex-row items-center justify-between gap-4 p-6">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/5 text-primary-40">
+                    <icon className="h-5 w-5" />
+                  </span>
+                  <Badge variant="outline" className="rounded-full border-primary/10 bg-primary/5 px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-primary-50">
+                    {index + 1 < 10 ? `0${index + 1}` : index + 1}
+                  </Badge>
+                </CardHeader>
+                <CardContent className="space-y-4 px-6 pb-6">
+                  <CardTitle className="text-xl font-semibold text-primary-100">{title}</CardTitle>
+                  <p className="text-sm text-muted-foreground">{description}</p>
+                  <Button asChild variant="link" className="px-0 text-primary-30">
+                    <Link href={href}>
+                      {cta}
+                      <ArrowRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="space-y-10">
+        <SectionHeader
+          eyebrow={t("opportunities.eyebrow")}
+          title={t("opportunities.title")}
+          description={t("opportunities.description")}
+          href="/jobs"
+          linkLabel={t("opportunities.cta")}
+        />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+          <Card className="flex h-full flex-col overflow-hidden rounded-[32px] border border-primary/10 bg-white shadow-card-soft">
+            {spotlightJobs.length ? (
+              <>
+                <CardContent className="space-y-4 p-6 lg:p-8">
+                  <Badge variant="outline" className="w-max rounded-full border-primary/15 bg-primary/5 px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-primary-50">
+                    {t("opportunities.featured")}
+                  </Badge>
+                  <div className="space-y-3">
+                    <CardTitle className="text-2xl font-semibold text-primary-100 lg:text-3xl">
+                      <Link href={`/jobs/${spotlightJobs[0].slug}`} className="hover:underline">
+                        {spotlightJobs[0].title}
+                      </Link>
+                    </CardTitle>
+                    <p className="max-w-2xl text-sm text-muted-foreground lg:text-base">
+                      {spotlightJobs[0].description?.replace(/<[^>]+>/g, "").slice(0, 220)}
+                      {spotlightJobs[0].description && spotlightJobs[0].description.length > 220 ? "…" : ""}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.14em] text-primary-40">
+                    <span className="rounded-full bg-primary/5 px-3 py-1 font-semibold">
+                      {spotlightJobs[0].application_deadline
+                        ? t("jobs.deadline", {
+                            date: format.dateTime(new Date(spotlightJobs[0].application_deadline), { dateStyle: "medium" }),
+                          })
+                        : t("jobs.rolling")}
+                    </span>
+                    {spotlightJobs[0].campus_id ? (
+                      <span className="rounded-full bg-primary/5 px-3 py-1 font-semibold">
+                        {campusLookup[spotlightJobs[0].campus_id] ?? commonT("labels.organisation")}
+                      </span>
+                    ) : null}
+                  </div>
+                  <Button asChild className="w-full justify-between rounded-full px-5">
+                    <Link href={`/jobs/${spotlightJobs[0].slug}`}>
+                      {t("opportunities.applyCta")}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </CardContent>
+                {supportingJobs.length ? (
+                  <div className="border-t border-primary/10 bg-primary/3 px-6 py-5 lg:px-8">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary-40">
+                      {t("opportunities.more")}
+                    </p>
+                    <div className="mt-4 grid gap-3">
+                      {supportingJobs.map((job) => (
+                        <Link
+                          key={job.$id}
+                          href={`/jobs/${job.slug}`}
+                          className="flex items-center justify-between gap-4 rounded-2xl border border-primary/10 bg-white px-4 py-3 text-sm text-primary-60 transition hover:bg-primary/5"
+                        >
+                          <div className="space-y-1">
+                            <p className="font-semibold text-primary-100">{job.title}</p>
+                            <p className="text-xs uppercase tracking-[0.14em] text-primary-40">
+                              {job.campus_id && campusLookup[job.campus_id]
+                                ? campusLookup[job.campus_id]
+                                : commonT("labels.organisation")}
+                            </p>
+                          </div>
+                          <ArrowRight className="h-4 w-4 text-primary-30" />
+                        </Link>
+                      ))}
                     </div>
-                  ) : null}
-                  <CardContent className="space-y-3 p-6">
-                    <CardTitle className="text-lg font-semibold text-primary-100">
-                      {product.slug ? (
-                        <Link href={`/shop/${product.slug}`} className="hover:underline">
-                          {product.title || product.slug}
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <CardContent className="p-10 text-center text-muted-foreground">{t("opportunities.empty")}</CardContent>
+            )}
+          </Card>
+
+          <Card className="h-full rounded-[32px] border border-primary/10 bg-gradient-to-br from-primary/5 via-white to-primary/5 p-6 shadow-card-soft">
+            <CardContent className="space-y-6 p-0">
+              <div className="space-y-2">
+                <Badge variant="outline" className="w-max rounded-full border-primary/15 bg-primary/5 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-primary-50">
+                  {t("opportunities.supportTitle")}
+                </Badge>
+                <h3 className="text-xl font-semibold text-primary-100">{t("opportunities.supportHeadline")}</h3>
+                <p className="text-sm text-muted-foreground">{t("opportunities.supportDescription")}</p>
+              </div>
+              <div className="grid gap-3">
+                {supportLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-primary/10 bg-white px-4 py-3 text-sm font-semibold text-primary-60 transition hover:bg-primary/10"
+                  >
+                    {link.label}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <section className="space-y-10">
+        <SectionHeader
+          eyebrow={t("benefits.eyebrow")}
+          title={t("benefits.title")}
+          description={t("benefits.description")}
+          href="/shop"
+          linkLabel={t("benefits.cta")}
+        />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+          <Card className="group overflow-hidden rounded-[32px] border border-primary/10 bg-white shadow-card-soft">
+            {featuredProduct ? (
+              <>
+                {featuredProduct.image || featuredProduct.images?.[0] ? (
+                  <div className="relative h-56 w-full overflow-hidden">
+                    <Image
+                      src={featuredProduct.image || featuredProduct.images?.[0] || "/images/placeholder.jpg"}
+                      alt={featuredProduct.title || featuredProduct.slug}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-primary/70 via-transparent to-transparent" />
+                    <div className="absolute bottom-4 left-5 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-white backdrop-blur">
+                      <Ticket className="h-3.5 w-3.5" />
+                      {t("benefits.shopTag")}
+                    </div>
+                  </div>
+                ) : null}
+                <CardContent className="space-y-4 p-6 lg:p-8">
+                  <div className="space-y-2">
+                    <CardTitle className="text-2xl font-semibold text-primary-100 lg:text-3xl">
+                      {featuredProduct.slug ? (
+                        <Link href={`/shop/${featuredProduct.slug}`} className="hover:underline">
+                          {featuredProduct.title || featuredProduct.slug}
                         </Link>
                       ) : (
-                        product.title || "Untitled Product"
+                        featuredProduct.title || "Untitled Product"
                       )}
                     </CardTitle>
-                    {product.description ? (
-                      <p className="line-clamp-2 text-sm text-muted-foreground">{product.description}</p>
+                    {featuredProduct.description ? (
+                      <p className="text-sm text-muted-foreground lg:text-base">{featuredProduct.description}</p>
                     ) : null}
-                    {typeof product.price === "number" ? (
-                      <div className="text-base font-semibold text-primary-40">
-                        {t("shop.price", { value: product.price.toFixed(2) })}
-                      </div>
+                    {typeof featuredProduct.price === "number" ? (
+                      <p className="text-base font-semibold text-primary-40">
+                        {t("shop.price", { value: featuredProduct.price.toFixed(2) })}
+                      </p>
                     ) : null}
-                  </CardContent>
-                </Card>
-              );
-            })
-          ) : (
-            <div className="col-span-full rounded-2xl border border-dashed border-primary/20 bg-white/60 p-10 text-center text-muted-foreground">
-              {t("shop.empty")}
+                  </div>
+                  <Button asChild className="w-full rounded-full px-5">
+                    <Link href={featuredProduct.slug ? `/shop/${featuredProduct.slug}` : "/shop"}>
+                      {t("benefits.shopCta")}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </CardContent>
+              </>
+            ) : (
+              <CardContent className="p-10 text-center text-muted-foreground">{t("shop.empty")}</CardContent>
+            )}
+          </Card>
+
+          <div className="grid gap-5">
+            {benefitsPerks.map((perk) => (
+              <ValueCard key={perk.title} icon={perk.icon} title={perk.title} description={perk.description} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-[36px] border border-primary/10 bg-gradient-to-r from-primary/10 via-white to-primary/5 p-8 shadow-card-soft lg:p-12">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-center">
+          <div className="space-y-4">
+            <Badge variant="outline" className="w-max rounded-full border-primary/15 bg-primary/5 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-primary-50">
+              {t("finalCta.eyebrow")}
+            </Badge>
+            <h2 className="font-heading text-3xl font-semibold text-primary-100 lg:text-4xl">{t("finalCta.title")}</h2>
+            <p className="max-w-2xl text-base text-muted-foreground lg:text-lg">{t("finalCta.description")}</p>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild size="lg" className="rounded-full px-6">
+                <Link href="/membership">{t("finalCta.primary")}</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="rounded-full px-6">
+                <Link href={t("finalCta.secondaryHref")}>{t("finalCta.secondary")}</Link>
+              </Button>
             </div>
-          )}
+          </div>
+          <Card className="rounded-[28px] border border-primary/15 bg-white/90 shadow-card-soft">
+            <CardContent className="space-y-4 p-6">
+              <p className="text-sm text-muted-foreground">{t("finalCta.supportCopy")}</p>
+              <div className="grid gap-3">
+                {finalLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="flex items-center justify-between gap-2 rounded-2xl border border-primary/10 bg-primary/3 px-4 py-3 text-sm font-semibold text-primary-60 transition hover:bg-primary/5"
+                  >
+                    {link.label}
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
     </div>
